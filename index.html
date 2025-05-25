@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<meta name="theme-color" content="#34d399">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PackControl">
+<link rel="apple-touch-icon" href="icon-512.png">
+  <title>📦 Учёт упаковки</title>
+  <style>
+.tooltip {
+  position: relative;
+  cursor: help;
+}
+@media (min-width: 768px) {
+  .mobile-nav {
+    display: none;
+  }
+}
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #ccc;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0;
+  z-index: 1000;
+}
+button {
+  min-height: 48px;
+  min-width: 48px;
+  touch-action: manipulation;
+}
+.mobile-nav button {
+  background: none;
+  border: none;
+  font-size: 22px;
+  padding: 8px 0;
+  flex: 1;
+  cursor: pointer;
+  color: #333;
+}
+
+.button-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.button-loading::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border: 2px solid #fff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.mobile-nav button:active {
+  background: #f0f0f0;
+}
+
+button:active {
+  transform: scale(0.97);
+  background-color: #1d4ed8 !important; /* немного темнее */
+  transition: 0.1s ease;
+}
+
+.salary-card {
+  background: #f9fafb;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.salary-card p {
+  margin: 6px 0;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: #111;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 13px;
+  margin-top: 6px;
+  z-index: 100;
+  opacity: 0.95;
+}
+
+.rate-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background-color: #f3f4f6;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.rate-item span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.rate-item strong {
+  color: #111827;
+  font-weight: 600;
+}
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0 12px;
+      background: #f7f9fc;
+    }
+    .container {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 16px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 22px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+    input, select, button {
+  width: 100%;
+  padding: 16px;           /* Было 14px — теперь больше */
+  font-size: 18px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+    input[readonly] {
+      background-color: #f0f0f0;
+      color: #555;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #1e40af;
+    }
+    .danger { background: #ef4444; }
+    .tabs {
+      display: flex;
+      margin-top: 20px;
+    }
+.container {
+  overflow-y: auto;
+}
+form button[type="submit"] {
+  position: relative;
+  z-index: 2;
+}
+    .tab-button {
+      flex: 1;
+      padding: 12px;
+      background: #e5e7eb;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+    }
+    .tab-button.active {
+      background: white;
+      border-bottom: 2px solid white;
+    }
+    #result { margin-top: 20px; font-weight: bold; text-align: center; }
+    .stat-card {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f9fafb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 15px;
+} 
+  </style>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<meta name="theme-color" content="#34d399">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PackControl">
+<link rel="apple-touch-icon" href="icon-512.png">
+</head>
+<body>
+<div class="container" id="loginContainer">
+  <h2>🔐 Вход в систему</h2>
+<input type="text" id="login" required autocomplete="off" placeholder="Введите имя сотрудника">
+<input type="password" id="password" required autocomplete="off" placeholder="Введите PIN-код">
+  <button onclick="handleLogin()">Войти</button>
+  <p id="loginError" style="color:red; text-align:center;"></p>
+</div>
+<div class="container" style="display:none;" id="tabContainer">
+</div>
+<div class="container" style="display:none;" id="appContainer">
+  <h2 id="mainTitle">📦 Учёт упаковки</h2>
+  <form id="dataForm" style="padding-bottom: 100px;">
+  <div class="tooltip" data-tooltip="Поле заполняется автоматически при входе">
+    <label>Имя сотрудника:
+      <input name="employeeName" required readonly />
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Введите количество обработанных единиц">
+    <label>Количество:
+      <input name="quantity" type="number" required />
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Укажите точное время начала">
+    <label>Время начала:
+      <input name="startTime" type="time" required />
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Укажите время завершения работы">
+    <label>Время окончания:
+      <input name="endTime" type="time" required />
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Рассчитывается автоматически по времени">
+    <label>Продолжительность:
+      <input name="duration" readonly />
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Выберите объём упаковки, например 5л, 10л и т.д." id="volumeLabel">
+    <label>Объём:
+      <select name="volume" required></select>
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Выберите тип операции, например Упаковка, Сборка и т.п.">
+    <label>Операция:
+      <select name="operationType" required></select>
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Введите номер заказа из производственного задания">
+    <label>Номер заказа:
+      <input name="orderNumber" required />
+    </label>
+  </div>
+
+  <div class="tooltip" data-tooltip="Если выбрана сборка — укажите артикул набора" id="setNumberField" style="display:none;">
+    <label>Артикул набора:
+      <select name="setNumber"></select>
+    </label>
+  </div>
+
+  <div id="rateInfo" style="margin-top:16px; background:#f0f0f0; padding:10px; border-radius:8px; display:none;">
+    <p><strong>⏱ Норма в час:</strong> <span id="normDisplay">-</span></p>
+    <p><strong>💰 Тариф за 1 шт:</strong> <span id="rateDisplay">-</span></p>
+  </div>
+
+  <div id="calcBlock" style="margin-top:16px; background:#e7f5ff; padding:10px; border-radius:8px; display:none;">
+    <p><strong>💸 Расчёт оплаты:</strong> <span id="wageDisplay">-</span></p>
+    <p><strong>⚙️ Эффективность:</strong> <span id="efficiencyDisplay">-</span></p>
+  </div>
+
+  <button type="submit">💾 Сохранить</button>
+</form>
+<p id="result" style="display:none;"></p>
+</div>
+<div class="container" style="display:none;" id="statsContainer">
+  <h2>📈 Статистика</h2>
+  <label>Выбрать дату:<input type="date" id="statsDate"></label>
+  <div style="margin-top: 12px;">
+  <label>Фильтр по операции:
+    <select id="operationFilter">
+      <option value="">-- Все операции --</option>
+    </select>
+  </label>
+  <button id="showStatsBtn" onclick="loadStats()">📊 Показать статистику</button>
+</div>
+  <div id="statsCards"></div>
+<div id="statsLogs" style="margin-top: 16px;"></div>
+<p id="totalWage" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
+</div>
+<div class="container" style="display:none;" id="profileContainer">
+  <h2>👤 Личный профиль</h2>
+
+
+  <label>Тип смены:
+    <select id="shiftType">
+      <option value="">-- Выберите смену --</option>
+      <option>День</option>
+      <option>Ночь</option>
+    </select>
+  </label>
+
+  <label>Статус сотрудника:
+    <select id="employeeStatus">
+      <option value="">-- Выберите статус --</option>
+      <option>Штат</option>
+      <option>Аутсорсинг</option>
+      <option>Стажёр</option>
+    </select>
+  </label>
+
+  <button onclick="saveProfile()">💾 Сохранить</button>
+<p id="profileSaved" style="color:green; text-align:center; display:none;">✅ Сохранено</p>
+<p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
+  ⚠️ Укажите тип смены и статус, затем нажмите «Сохранить», чтобы разблокировать вкладку "Учёт".
+</p>
+<button id="logoutBtn" onclick="handleLogout()" class="danger">🚪 Выйти</button>
+</div>
+<div class="container" style="display:none;" id="ratesContainer">
+  <h2>💰 Тарифы и нормативы</h2>
+  <!-- 🎯 ФИЛЬТРЫ -->
+  <div id="ratesFilters" style="display: flex; gap: 10px; margin: 16px 0;">
+    <select id="filterOperation" style="flex:1; padding: 10px; font-size: 16px;">
+      <option value="">-- Все операции --</option>
+    </select>
+    <select id="filterKey" style="flex:1; padding: 10px; font-size: 16px;">
+      <option value="">-- Все объёмы / артикулы --</option>
+    </select>
+</div>
+  <!-- 📋 СПИСОК ТАРИФОВ -->
+  <div id="ratesTable"></div>
+</div>
+  <!-- Таблица будет добавлена через JS -->
+</div>
+<!-- Контейнер: Админ-панель -->
+<div class="container" style="display:none;" id="adminContainer">
+  <h2>🛠️ Админ-панель</h2>
+
+  <!-- 📅 Выбор даты для сводки -->
+  <label>📅 Выбрать дату:
+    <input type="date" id="adminDate" />
+  </label>
+  <button onclick="loadShiftStats()">📊 Показать сводку по сменам</button>
+  <button id="exportBtn" onclick="manualExport()">💾 Экспортировать показатели</button>
+
+  <!-- 📆 Период для недельного отчёта -->
+  <div style="margin-top:16px;">
+    <label>📆 Период с:
+      <input type="date" id="reportStartDate" />
+    </label>
+    <label style="margin-left:10px;">по:
+      <input type="date" id="reportEndDate" />
+    </label>
+    <button id="reportBtn" onclick="runCustomReport()">📆 Сформировать отчёт за период</button>
+  </div>
+
+  <!-- 📊 Вывод сводки по сменам -->
+  <div id="shiftStatsOutput" style="margin-top:20px;"></div>
+
+  <!-- 🔍 Аналитика по упаковщикам -->
+  <div style="margin-top:24px; border-top:1px solid #ccc; padding-top:16px;">
+    <h3>📊 Аналитика по упаковщикам</h3>
+    <label>Период с:
+      <input type="date" id="analyzeStart" />
+    </label>
+    <label style="margin-left:10px;">по:
+      <input type="date" id="analyzeEnd" />
+    </label>
+    <button id="analyzeBtn" onclick="analyzePackers()">🔍 Анализировать</button>
+
+    <div id="packerAnalysis" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- 💵 Моя зарплата — перемещён ВНЕ adminContainer -->
+<div class="container" style="display:none;" id="mySalaryContainer">
+  <h2>💵 Моя зарплата</h2>
+  <label>📅 Период с:
+    <input type="date" id="salaryStart">
+  </label>
+  <label style="margin-left:10px;">по:
+    <input type="date" id="salaryEnd">
+  </label>
+  <button id="mySalaryBtn" onclick="loadMySalary()">📊 Показать</button>
+  <div id="mySalaryOutput" style="margin-top:20px;"></div>
+<p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
+</div>
+<script>
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzMZEDeGvhgx0p7CA-1n2rW6Wtxq-s6seYxFubma7zxdjBfAjAVLSPnPGmB0ovmW9s/exec";
+  let todayRecords = [];
+  let currentUser = "";
+let currentShift = "";
+let currentStatus = "";
+ let allRates = [];
+let currentUserRole = "user"; // ← добавляем сюда
+
+function saveProfile() {
+  const shiftSelect = document.getElementById("shiftType");
+  const statusSelect = document.getElementById("employeeStatus");
+
+  const shiftValue = shiftSelect.value;
+  const statusValue = statusSelect.value;
+
+  // Обновляем глобальные переменные
+  currentShift = shiftValue;
+  currentStatus = statusValue;
+
+  const isFilled = shiftValue && statusValue;
+
+  const hint = document.getElementById("profileHint");
+  const msg = document.getElementById("profileSaved");
+  const tabApp = document.getElementById("tabApp");
+
+  // Отображение подсказок
+  hint.style.display = isFilled ? "none" : "block";
+  msg.style.display = isFilled ? "block" : "none";
+  tabApp.disabled = !isFilled;
+  tabApp.innerHTML = isFilled ? "📋 Учёт" : "🔒 Учёт";
+
+  // Скрываем уведомление об успешном сохранении через 2 секунды
+  if (isFilled) {
+    setTimeout(() => msg.style.display = "none", 2000);
+  }
+}
+
+function switchTab(tabName) {
+  // 🔒 Блокируем доступ к админке, если не админ
+  if (tabName === "admin" && currentUserRole !== "admin") return;
+
+  // Контейнеры вкладок
+  const containers = {
+    app: document.getElementById("appContainer"),
+    stats: document.getElementById("statsContainer"),
+    profile: document.getElementById("profileContainer"),
+    rates: document.getElementById("ratesContainer"),
+    admin: document.getElementById("adminContainer"),
+    mySalary: document.getElementById("mySalaryContainer")
+  };
+
+  // Кнопки вкладок (и верхние, и нижние — с одинаковыми id)
+  const buttons = {
+    tabApp: document.getElementById("tabApp"),
+    tabStats: document.getElementById("tabStats"),
+    tabProfile: document.getElementById("tabProfile"),
+    tabRates: document.getElementById("tabRates"),
+    tabAdmin: document.getElementById("tabAdmin"),
+    tabMySalary: document.getElementById("tabMySalary")
+  };
+
+  // Скрываем все контейнеры
+  Object.values(containers).forEach(container => {
+    if (container) container.style.display = "none";
+  });
+
+  // Снимаем активные классы со всех кнопок
+  Object.values(buttons).forEach(btn => {
+    if (btn) btn.classList.remove("active");
+  });
+
+  // Показываем нужный контейнер и активируем нужную кнопку
+  if (containers[tabName]) {
+    containers[tabName].style.display = "block";
+  }
+
+  const btnId = "tab" + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+  const activeBtn = buttons[btnId];
+  if (activeBtn) activeBtn.classList.add("active");
+
+  // Дополнительно — подгрузка при открытии тарифов
+  if (tabName === "rates") {
+    loadRatesTable();
+  }
+}
+
+async function handleLogin() {
+console.log("🔐 handleLogin() вызван");
+  const login = document.getElementById("login").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const errorElem = document.getElementById("loginError");
+
+  try {
+    const res = await fetch(`${scriptURL}?type=auth&login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`);
+    const data = await res.json();
+
+    if (data.status === "ok") {
+      currentUser = login;
+      currentUserRole = data.role || 'user';
+
+      localStorage.setItem("currentUser", login);
+      localStorage.setItem("currentUserRole", currentUserRole);
+
+      if (currentUserRole === "admin") {
+        document.getElementById("tabAdmin").style.display = "block";
+      }
+
+      document.getElementById("loginContainer").style.display = "none";
+      document.getElementById("tabContainer").style.display = "block";
+      document.getElementById("profileContainer").style.display = "block";
+      document.querySelector('[name="employeeName"]').value = currentUser;
+
+      document.getElementById("bottomNav").style.display = "flex"; // 👈 добавлено
+
+      await Promise.all([
+        loadVolumes(),
+        loadOperations(),
+        loadSetNumbers(),
+        loadTodayRecords(),
+        loadOperationFilter(),
+        loadRatesTable()
+      ]);
+
+      document.getElementById("operationFilter").addEventListener("change", loadStats);
+    } else {
+      errorElem.textContent = "❌ Неверный логин или PIN-код";
+    }
+  } catch {
+    errorElem.textContent = "❌ Ошибка подключения";
+  }
+}
+
+
+function handleLogout() {
+  // 🧹 Сброс глобальных переменных
+  currentUser = "";
+  currentUserRole = "user";
+  currentShift = "";
+  currentStatus = "";
+
+  // 🧽 Очистка localStorage
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("currentUserRole");
+
+  // 🧻 Сброс форм входа
+  const loginInput = document.getElementById("login");
+  const passwordInput = document.getElementById("password");
+  loginInput.value = "";
+  passwordInput.value = "";
+  loginInput.focus(); // 🎯 Автофокус
+
+  // 👤 Очистка полей сотрудника
+  document.querySelector('[name="employeeName"]').value = "";
+  document.getElementById("shiftType").value = "";
+  document.getElementById("employeeStatus").value = "";
+
+  // 🧼 Сброс подсказок профиля
+  document.getElementById("profileSaved").style.display = "none";
+  document.getElementById("profileHint").style.display = "block";
+
+  // 🚫 Сброс и блокировка кнопки "Учёт"
+  const tabApp = document.getElementById("tabApp");
+  tabApp.disabled = true;
+  tabApp.innerHTML = "🔒 Учёт";
+
+  // 🧱 Скрытие всех секций
+  const containers = [
+    "loginContainer",
+    "tabContainer",
+    "appContainer",
+    "statsContainer",
+    "profileContainer",
+    "ratesContainer",
+    "adminContainer",
+    "mySalaryContainer"
+  ];
+  containers.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (id === "loginContainer") ? "block" : "none";
+  });
+
+  // 👇 Скрытие нижней панели навигации с анимацией
+  const nav = document.getElementById("bottomNav");
+  nav.style.opacity = "0";
+  setTimeout(() => {
+    nav.style.display = "none";
+    nav.style.opacity = "1"; // сброс на будущее
+  }, 200); // плавность исчезновения
+}
+
+
+
+  async function loadTodayRecords() {
+    const res = await fetch(`${scriptURL}?type=records`);
+    const data = await res.json();
+    todayRecords = data.records || [];
+  }
+
+function loadMySalary() {
+  withLoading("mySalaryBtn", async () => {
+    const employee = localStorage.getItem("currentUser") || "";
+    const start = document.getElementById("salaryStart").value;
+    const end = document.getElementById("salaryEnd").value;
+
+    if (!employee || !start || !end) {
+      alert("⚠️ Укажите все поля");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${scriptURL}?type=mySalary&employee=${encodeURIComponent(employee)}&start=${start}&end=${end}`);
+      const data = await res.json();
+
+      const container = document.getElementById("mySalaryOutput");
+      const totalQtyBlock = document.getElementById("totalQty");
+
+      if (!data.records || data.records.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>Нет данных за выбранный период.</p>";
+        totalQtyBlock.textContent = "";
+        return;
+      }
+
+      let totalQty = 0;
+      let totalWage = 0;
+      let html = "";
+
+      data.records.forEach(r => {
+        totalQty += r.quantity || 0;
+        totalWage += r.wage || 0;
+
+        html += `
+          <div class="salary-card">
+            <p><strong>📅 Дата:</strong> ${formatDate(r.date)}</p>
+            <p><strong>🔢 Кол-во:</strong> ${r.quantity}</p>
+            <p><strong>⚙️ Эффективность:</strong> ${r.efficiency ?? "-"}%</p>
+            <p><strong>💰 Зарплата:</strong> ${(r.wage ?? 0).toFixed(2)} ₽</p>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      totalQtyBlock.textContent = `📦 Всего обработано: ${totalQty} шт. | 💵 Общая сумма: ${totalWage.toFixed(2)} ₽`;
+    } catch (err) {
+      alert("❌ Ошибка загрузки: " + err.message);
+    }
+  });
+}
+
+// Добавь эту вспомогательную функцию рядом:
+function formatDate(isoString) {
+  const parts = isoString.split("-");
+  return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+  async function loadVolumes() {
+    const res = await fetch(`${scriptURL}?type=volumes`);
+    const data = await res.json();
+    const select = document.querySelector('[name="volume"]');
+    select.innerHTML = '<option value="">-- Выбери объём --</option>';
+    data.volumes.forEach(val => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      select.appendChild(opt);
+    });
+  }
+
+  async function loadOperations() {
+    const res = await fetch(`${scriptURL}?type=operations`);
+    const data = await res.json();
+    const select = document.querySelector('[name="operationType"]');
+    select.innerHTML = '<option value="">-- Выбери операцию --</option>';
+    data.operations.forEach(val => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      select.appendChild(opt);
+    });
+    select.addEventListener("change", () => handleOperationChange(select.value));
+  }
+
+  async function loadSetNumbers() {
+    const res = await fetch(`${scriptURL}?type=sets`);
+    const data = await res.json();
+    const select = document.querySelector('[name="setNumber"]');
+    select.innerHTML = '<option value="">-- Выбери артикул --</option>';
+    data.sets.forEach(val => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      select.appendChild(opt);
+    });
+  }
+
+async function deleteRecord(index) {
+  if (!confirm("Удалить эту запись?")) return;
+
+  const res = await fetch(`${scriptURL}?type=deleteRecord&index=${index}`);
+  const data = await res.json();
+
+  alert(data.message || "Удалено");
+  if (data.status === "success") {
+    loadStats();
+  }
+}
+
+  function handleOperationChange(operation) {
+    const volumeLabel = document.getElementById("volumeLabel");
+    const volumeField = document.querySelector('[name="volume"]');
+    const setField = document.getElementById("setNumberField");
+    if (operation === 'Сборка "Набора"') {
+      volumeLabel.style.display = "none";
+      volumeField.required = false;
+      setField.style.display = "block";
+    } else {
+      volumeLabel.style.display = "block";
+      volumeField.required = true;
+      setField.style.display = "none";
+      document.querySelector('[name="setNumber"]').value = "";
+    }
+  }
+function updateRateDisplay() {
+  const operationType = document.querySelector('[name="operationType"]').value;
+  const volume = document.querySelector('[name="volume"]').value;
+  const setNumber = document.querySelector('[name="setNumber"]').value;
+  const quantity = Number(document.querySelector('[name="quantity"]').value) || 0;
+
+  const startTime = document.querySelector('[name="startTime"]').value;
+  const endTime = document.querySelector('[name="endTime"]').value;
+
+  const key = (operationType.includes("Сборка")) ? setNumber : volume;
+
+  const matched = allRates.find(r => r.operation === operationType && r.key === key);
+
+  const block = document.getElementById("rateInfo");
+  const norm = document.getElementById("normDisplay");
+  const rate = document.getElementById("rateDisplay");
+
+  const calcBlock = document.getElementById("calcBlock");
+  const wageDisplay = document.getElementById("wageDisplay");
+  const efficiencyDisplay = document.getElementById("efficiencyDisplay");
+
+  if (matched) {
+    norm.textContent = matched.normPerHour;
+    rate.textContent = matched.ratePerUnit.toFixed(2) + " ₽";
+
+    const totalPay = quantity * matched.ratePerUnit;
+
+    let durationMin = 0;
+    if (startTime && endTime) {
+      const [sh, sm] = startTime.split(":").map(Number);
+      const [eh, em] = endTime.split(":").map(Number);
+      durationMin = (eh * 60 + em) - (sh * 60 + sm);
+      if (durationMin < 0) durationMin += 1440;
+    }
+
+    let efficiency = "-";
+    if (durationMin > 0 && matched.normPerHour > 0) {
+      const expected = (matched.normPerHour / 60) * durationMin;
+      efficiency = ((quantity / expected) * 100).toFixed(0) + " %";
+    }
+
+    wageDisplay.textContent = totalPay.toFixed(2) + " ₽";
+    efficiencyDisplay.textContent = efficiency;
+
+    block.style.display = "block";
+    calcBlock.style.display = "block";
+  } else {
+    norm.textContent = "-";
+    rate.textContent = "-";
+    block.style.display = "none";
+    calcBlock.style.display = "none";
+  }
+}
+document.querySelector('[name="operationType"]').addEventListener("change", updateRateDisplay);
+document.querySelector('[name="volume"]').addEventListener("change", updateRateDisplay);
+document.querySelector('[name="setNumber"]').addEventListener("change", updateRateDisplay);
+document.querySelector('[name="quantity"]').addEventListener("input", updateRateDisplay);
+document.querySelector('[name="startTime"]').addEventListener("change", updateRateDisplay);
+document.querySelector('[name="endTime"]').addEventListener("change", updateRateDisplay);
+
+  document.getElementById("dataForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const result = document.getElementById("result");
+    await loadTodayRecords();
+
+    const start = formData.get("startTime");
+    const end = formData.get("endTime");
+    if (start && end) {
+      const [sh, sm] = start.split(":" ).map(Number);
+      const [eh, em] = end.split(":" ).map(Number);
+      let minutes = (eh * 60 + em) - (sh * 60 + sm);
+      if (minutes < 0) minutes += 1440;
+      const duration = `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
+      formData.set("duration", duration);
+      document.querySelector('[name="duration"]').value = duration;
+}
+formData.append("shiftType", currentShift);
+formData.append("employeeStatus", currentStatus);
+   
+
+    const payload = {
+  employeeName: formData.get("employeeName")?.trim(),
+  quantity: formData.get("quantity")?.trim(),
+  startTime: formData.get("startTime")?.trim(),
+  endTime: formData.get("endTime")?.trim(),
+  volume: formData.get("volume")?.trim(),
+  operationType: formData.get("operationType")?.trim(),
+  orderNumber: formData.get("orderNumber")?.trim(),
+  setNumber: formData.get("setNumber")?.trim(),
+  shiftType: currentShift,
+  employeeStatus: currentStatus
+};
+
+    const isDuplicate = todayRecords.some(rec => {
+  const isSame =
+    rec.employeeName === payload.employeeName &&
+    rec.quantity === payload.quantity &&
+    rec.startTime === payload.startTime &&
+    rec.endTime === payload.endTime &&
+    rec.operationType === payload.operationType &&
+    rec.orderNumber === payload.orderNumber &&
+    rec.setNumber === payload.setNumber;
+
+  if (!isSame) return false;
+
+  // для операций кроме "Сборка Набора" сравниваем объём
+  if (payload.operationType !== 'Сборка "Набора"') {
+    return rec.volume === payload.volume;
+  }
+
+  return true;
+});
+
+    if (isDuplicate) {
+  result.textContent = "⚠️ Такая запись уже существует (локальная проверка)";
+  result.style.display = "block";
+
+  // сбросить форму
+  form.reset();
+  document.querySelector('[name="employeeName"]').value = currentUser;
+  handleOperationChange("");
+  updateRateDisplay();
+  return;
+}
+
+    try {
+      const response = await fetch(scriptURL, {
+        method: "POST",
+        body: formData
+      });
+      const resultData = await response.json();
+      result.textContent = resultData.message;
+      result.style.display = "block";
+
+      if (resultData.status === "success") {
+  form.reset();
+  document.querySelector('[name="employeeName"]').value = currentUser;
+  handleOperationChange("");
+  updateRateDisplay();
+  await loadTodayRecords();
+}
+    } catch (error) {
+      result.textContent = "❌ Ошибка отправки: " + error.message;
+      result.style.display = "block";
+    }
+  });
+
+async function loadRatesTable() {
+  const res = await fetch(`${scriptURL}?type=rates`);
+  const data = await res.json();
+  allRates = data.rates || [];
+
+  const opFilter = document.getElementById("filterOperation");
+  const keyFilter = document.getElementById("filterKey");
+  const container = document.getElementById("ratesTable");
+
+  // Очистка фильтров
+  opFilter.innerHTML = '<option value="">-- Все операции --</option>';
+  keyFilter.innerHTML = '<option value="">-- Все объёмы / артикулы --</option>';
+
+  const operations = [...new Set(allRates.map(r => r.operation))];
+  const keys = [...new Set(allRates.map(r => r.key))];
+
+  operations.forEach(op => {
+    const opt = document.createElement("option");
+    opt.value = op;
+    opt.textContent = op;
+    opFilter.appendChild(opt);
+  });
+
+  keys.forEach(k => {
+    const opt = document.createElement("option");
+    opt.value = k;
+    opt.textContent = k;
+    keyFilter.appendChild(opt);
+  });
+
+  function renderFilteredRates() {
+    const selectedOp = opFilter.value;
+    const selectedKey = keyFilter.value;
+
+    const filtered = allRates.filter(r =>
+      (!selectedOp || r.operation === selectedOp) &&
+      (!selectedKey || r.key === selectedKey)
+    );
+
+    const grouped = {};
+    filtered.forEach(r => {
+      if (!grouped[r.operation]) grouped[r.operation] = [];
+      grouped[r.operation].push(r);
+    });
+
+    container.innerHTML = "";
+
+    if (!Object.keys(grouped).length) {
+      container.innerHTML = "<p style='text-align:center;'>Нет совпадений</p>";
+      return;
+    }
+
+    Object.entries(grouped).forEach(([operation, entries]) => {
+      const block = document.createElement("div");
+      block.style.marginBottom = "20px";
+      block.style.padding = "12px";
+      block.style.border = "1px solid #ddd";
+      block.style.borderRadius = "10px";
+      block.style.backgroundColor = "#f9fafb";
+
+      const title = document.createElement("h4");
+      title.textContent = operation;
+      title.style.color = "#1e40af";
+
+      const list = document.createElement("ul");
+      list.style.listStyle = "none";
+      list.style.paddingLeft = "0";
+
+      entries.forEach(e => {
+        const item = document.createElement("li");
+        item.className = "rate-item";
+        item.innerHTML = `
+          <span>📦 <strong>Объём:</strong> ${e.key}</span>
+          <span>⏱ <strong>Норма:</strong> ${e.normPerHour} шт/час</span>
+          <span>💰 <strong>Тариф:</strong> ${e.ratePerUnit.toFixed(2)} ₽/шт</span>
+        `;
+        list.appendChild(item);
+      });
+
+      block.appendChild(title);
+      block.appendChild(list);
+      container.appendChild(block);
+    });
+  }
+
+  opFilter.onchange = renderFilteredRates;
+  keyFilter.onchange = renderFilteredRates;
+
+  renderFilteredRates(); // начальная отрисовка
+}
+
+async function loadOperationFilter() {
+  const res = await fetch(`${scriptURL}?type=operations`);
+  const data = await res.json();
+  const filter = document.getElementById("operationFilter");
+
+  filter.innerHTML = '<option value="">-- Все операции --</option>';
+  data.operations.forEach(op => {
+    const option = document.createElement("option");
+    option.value = op;
+    option.textContent = op;
+    filter.appendChild(option);
+  });
+}
+
+function openEditModal(index, record) {
+  const form = document.getElementById("editForm");
+
+  form.rowIndex.value = index;
+  form.employeeName.value = currentUser;
+  form.orderNumber.value = record.orderNumber || "";
+  form.shiftType.value = currentShift;
+  form.employeeStatus.value = currentStatus;
+
+  form.quantity.value = record.quantity;
+  form.startTime.value = record.startTime;
+  form.endTime.value = record.endTime;
+
+  document.getElementById("editOperation").value = record.operationType || "";
+  document.getElementById("editVolumeSelect").value = record.volume || "";
+  document.getElementById("editSetNumberSelect").value = record.setNumber || "";
+
+  // триггерим отображение поля объёма/набора
+  document.getElementById("editOperation").dispatchEvent(new Event("change"));
+
+  document.getElementById("editModal").style.display = "block";
+}
+
+async function loadEditFormDictionaries() {
+  // Операции
+  const resOp = await fetch(`${scriptURL}?type=operations`);
+  const operations = (await resOp.json()).operations || [];
+  const opSelect = document.getElementById("editOperation");
+  opSelect.innerHTML = '<option value="">-- Выбери операцию --</option>';
+  operations.forEach(op => {
+    const opt = document.createElement("option");
+    opt.value = op;
+    opt.textContent = op;
+    opSelect.appendChild(opt);
+  });
+
+  // Объёмы
+  const resVol = await fetch(`${scriptURL}?type=volumes`);
+  const volumes = (await resVol.json()).volumes || [];
+  const volSelect = document.getElementById("editVolumeSelect");
+  volSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
+  volumes.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    volSelect.appendChild(opt);
+  });
+
+  // Артикулы наборов
+  const resSet = await fetch(`${scriptURL}?type=sets`);
+  const sets = (await resSet.json()).sets || [];
+  const setSelect = document.getElementById("editSetNumberSelect");
+  setSelect.innerHTML = '<option value="">-- Выбери артикул --</option>';
+  sets.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s;
+    setSelect.appendChild(opt);
+  });
+
+  // Переключение объёма/набора
+  opSelect.addEventListener("change", () => {
+    const isSet = opSelect.value.includes("Сборка");
+    document.getElementById("editVolumeLabel").style.display = isSet ? "none" : "block";
+    volSelect.required = !isSet;
+    document.getElementById("editSetNumberField").style.display = isSet ? "block" : "none";
+  });
+}
+
+async function submitEditForm() {
+  const form = document.getElementById("editForm");
+  const formData = new FormData(form);
+  const params = new URLSearchParams();
+
+  formData.forEach((value, key) => {
+    params.append(key, value);
+  });
+
+  // Устанавливаем флаг редактирования
+  params.set("type", "editRecord");
+
+  // 👇 Пересчёт длительности (важно!)
+  const start = formData.get("startTime");
+  const end = formData.get("endTime");
+  if (start && end) {
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let minutes = (eh * 60 + em) - (sh * 60 + sm);
+    if (minutes < 0) minutes += 1440;
+    const duration = `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
+    params.set("duration", duration);
+  }
+
+  try {
+    const res = await fetch(scriptURL, {
+      method: "POST",
+      body: params,
+    });
+
+    const data = await res.json();
+    if (data.status === "success") {
+      alert(data.message || "Обновлено");
+      closeEditModal();
+      await loadStats();
+    } else {
+      alert(data.message || "Ошибка обновления");
+    }
+  } catch (err) {
+    console.error("❌ Ошибка редактирования:", err);
+    alert("Ошибка соединения: " + err.message);
+  }
+}
+
+function closeEditModal() {
+  document.getElementById("editModal").style.display = "none";
+}
+
+async function loadStats() {
+  withLoading("showStatsBtn", async () => {
+    const selectedOperation = document.getElementById("operationFilter").value;
+    const date = document.getElementById("statsDate").value;
+    if (!currentUser) {
+      alert("❗Ошибка: пользователь не авторизован.");
+      return;
+    }
+
+    const res = await fetch(`${scriptURL}?type=stats&date=${encodeURIComponent(date)}&employee=${encodeURIComponent(currentUser)}`);
+    const data = await res.json();
+
+    const container = document.getElementById("statsCards");
+    const totalElem = document.getElementById("totalWage");
+    const logElem = document.getElementById("statsLogs");
+
+    container.innerHTML = "";
+    totalElem.textContent = "";
+    logElem.innerHTML = "";
+
+    if (!data.records || !data.records.length) {
+      container.innerHTML = '<p style="text-align:center;">Нет данных за выбранную дату</p>';
+      return;
+    }
+
+    let totalWage = 0;
+    let totalEfficiency = 0;
+    let efficiencyCount = 0;
+
+    const filtered = selectedOperation
+      ? data.records.filter(r => r.operationType === selectedOperation)
+      : data.records;
+
+    filtered.forEach(rec => {
+      const wage = rec.wage || 0;
+      totalWage += wage;
+
+      if (rec.efficiency !== null) {
+        totalEfficiency += rec.efficiency;
+        efficiencyCount++;
+      }
+
+      const card = document.createElement("div");
+      card.className = "stat-card";
+      card.innerHTML = `
+        <p><strong>🕒 Время:</strong> ${rec.startTime} – ${rec.endTime}</p>
+        <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
+        <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
+        <p><strong>🧩 Набор:</strong> ${rec.setNumber || "-"}</p>
+        <p><strong>🔢 Кол-во:</strong> ${rec.quantity}</p>
+        <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
+        <p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>
+        <p><strong>💰 Тариф за шт:</strong> ${rec.ratePerUnit?.toFixed(2) ?? "-"} ₽</p>
+        <p><strong>💸 Заработано:</strong> ${wage.toFixed(2)} ₽</p>
+      `;
+
+      const today = new Date().toISOString().split("T")[0];
+      const selectedDate = document.getElementById("statsDate").value;
+      if (rec.rowIndex !== undefined && selectedDate === today) {
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "✏️ Редактировать";
+        editBtn.onclick = () => openEditModal(rec.rowIndex, rec);
+        card.appendChild(editBtn);
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "🗑 Удалить";
+        delBtn.className = "danger";
+        delBtn.style.marginLeft = "10px";
+        delBtn.onclick = () => deleteRecord(rec.rowIndex);
+        card.appendChild(delBtn);
+      }
+
+      container.appendChild(card);
+    });
+
+    const avgEff = efficiencyCount ? Math.round(totalEfficiency / efficiencyCount) : "-";
+    totalElem.textContent = `💵 Всего: ${totalWage.toFixed(2)} ₽ | ⚙️ Средняя эффективность: ${avgEff}%`;
+
+    if (selectedOperation) {
+      totalElem.textContent += ` | Фильтр: ${selectedOperation}`;
+    }
+
+    if (data.logs && data.logs.length) {
+      logElem.innerHTML = `
+        <h4>🔍 Логи обработки:</h4>
+        <pre style="font-size:13px; background:#f3f4f6; padding:10px; border-radius:8px; overflow-x:auto;">${data.logs.join('\n')}</pre>
+      `;
+    }
+  }); // 👈 Закрытие withLoading
+} // 👈 Закрытие loadStats
+
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadEditFormDictionaries();
+
+  const savedUser = localStorage.getItem("currentUser");
+  const savedRole = localStorage.getItem("currentUserRole");
+
+  if (savedUser) {
+    currentUser = savedUser;
+    currentUserRole = savedRole || "user";
+
+    if (currentUserRole === "admin") {
+      document.getElementById("tabAdmin").style.display = "block";
+    }
+
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("tabContainer").style.display = "block";
+    document.getElementById("profileContainer").style.display = "block";
+    document.querySelector('[name="employeeName"]').value = currentUser;
+
+    document.getElementById("bottomNav").style.display = "flex"; // 👈 показать нижнее меню
+
+    await Promise.all([
+      loadVolumes(),
+      loadOperations(),
+      loadSetNumbers(),
+      loadTodayRecords(),
+      loadOperationFilter(),
+      loadRatesTable()
+    ]);
+
+    document.getElementById("operationFilter").addEventListener("change", loadStats);
+
+    // 👉 Автообновление при выборе смены и статуса
+    ["change", "input"].forEach(event =>
+      ["shiftType", "employeeStatus"].forEach(id =>
+        document.getElementById(id).addEventListener(event, saveProfile)
+      )
+    );
+
+    // ⚡ Важное: вызываем в самом конце, чтобы подсказка точно показалась
+    setTimeout(saveProfile, 0);
+  } else {
+    // 👇 Автофокус на поле логина, если пользователь не авторизован
+    document.getElementById("login").focus();
+  }
+});
+
+
+async function manualExport() {
+  withLoading("exportBtn", async () => {
+    const date = document.getElementById("adminDate").value;
+    if (!date) {
+      alert("⚠️ Укажите дату");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${scriptURL}?type=exportNow&date=${encodeURIComponent(date)}`);
+      const result = await res.text();
+      alert(result || "✅ Экспорт завершён");
+    } catch (err) {
+      alert("❌ Ошибка экспорта: " + err.message);
+    }
+  });
+}
+
+async function runCustomReport() {
+  withLoading("reportBtn", async () => {
+    const start = document.getElementById("reportStartDate").value;
+    const end = document.getElementById("reportEndDate").value;
+
+    if (!start || !end) {
+      alert("⚠️ Укажите начало и конец периода");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${scriptURL}?type=weeklyReport&start=${start}&end=${end}`);
+      const text = await res.text();
+
+      alert(text || "✅ Отчёт успешно сформирован");
+    } catch (err) {
+      alert("❌ Ошибка при формировании отчёта: " + err.message);
+    }
+  });
+}
+
+async function analyzePackers() {
+  withLoading("analyzeBtn", async () => {
+    const start = document.getElementById("analyzeStart").value;
+    const end = document.getElementById("analyzeEnd").value;
+    const output = document.getElementById("packerAnalysis");
+
+    if (!start || !end) {
+      output.innerHTML = "<p style='color:red;'>⚠️ Укажите обе даты</p>";
+      return;
+    }
+
+    output.innerHTML = "⌛ Загружается...";
+
+    try {
+      const res = await fetch(`${scriptURL}?type=packerAnalytics&start=${start}&end=${end}`);
+      const data = await res.json();
+
+      if (!data.ok || !data.list || !data.list.length) {
+        output.innerHTML = "<p>Нет данных за указанный период</p>";
+        return;
+      }
+
+      const best = data.best || {};
+
+      let html = "<table style='width:100%; border-collapse:collapse;'>";
+      html += `
+        <thead><tr style="background:#f3f4f6;">
+          <th style="border:1px solid #ccc; padding:6px;">Сотрудник</th>
+          <th style="border:1px solid #ccc; padding:6px;">Кол-во</th>
+          <th style="border:1px solid #ccc; padding:6px;">Эффективность</th>
+          <th style="border:1px solid #ccc; padding:6px;">Зарплата</th>
+        </tr></thead>
+        <tbody>
+      `;
+
+      data.list.forEach(row => {
+        html += `
+          <tr>
+            <td style="border:1px solid #ccc; padding:6px;">${row.name}</td>
+            <td style="border:1px solid #ccc; padding:6px;">${row.qty}</td>
+            <td style="border:1px solid #ccc; padding:6px;">${row.efficiency}%</td>
+            <td style="border:1px solid #ccc; padding:6px;">${row.wage.toFixed(2)} ₽</td>
+          </tr>
+        `;
+      });
+
+      html += "</tbody></table>";
+
+      if (best.name) {
+        html += `<p style="margin-top:12px;"><strong>🏆 Лучший упаковщик:</strong> ${best.name} (${best.qty} шт, ${best.efficiency}% эффективность)</p>`;
+      }
+
+      output.innerHTML = html;
+    } catch (err) {
+      output.innerHTML = `<p style="color:red;">Ошибка: ${err.message}</p>`;
+    }
+  });
+}
+
+
+async function withLoading(buttonId, asyncCallback) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return;
+
+  btn.classList.add("button-loading");
+  btn.disabled = true;
+
+  try {
+    await asyncCallback();
+  } catch (err) {
+    console.error("Ошибка:", err);
+    throw err;
+  } finally {
+    btn.classList.remove("button-loading");
+    btn.disabled = false;
+  }
+}
+
+async function loadShiftStats() {
+  const date = document.getElementById("adminDate").value;
+  const container = document.getElementById("shiftStatsOutput");
+  container.innerHTML = "";
+
+  if (!date) {
+    container.innerHTML = "<p style='color:red;'>⚠️ Укажите дату</p>";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${scriptURL}?type=shiftStats&date=${encodeURIComponent(date)}`);
+    const data = await res.json();
+
+    if (!data || !data.data || !data.data.length) {
+      container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранной дате</p>";
+      return;
+    }
+
+    data.data.forEach(group => {
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.marginTop = "16px";
+      table.style.borderCollapse = "collapse";
+
+      const caption = document.createElement("caption");
+      caption.textContent = `🕐 Смена: ${group.shift}`;
+      caption.style.fontWeight = "bold";
+      caption.style.marginBottom = "8px";
+      table.appendChild(caption);
+
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr style="background:#f3f4f6;">
+          <th style="padding:6px; border:1px solid #ccc;">Сотрудник</th>
+          <th style="padding:6px; border:1px solid #ccc;">Кол-во</th>
+          <th style="padding:6px; border:1px solid #ccc;">Эффективность</th>
+          <th style="padding:6px; border:1px solid #ccc;">Зарплата</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      group.employees.forEach(e => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="padding:6px; border:1px solid #ccc;">${e.name}</td>
+          <td style="padding:6px; border:1px solid #ccc;">${e.quantity}</td>
+          <td style="padding:6px; border:1px solid #ccc;">${e.efficiency}%</td>
+          <td style="padding:6px; border:1px solid #ccc;">${e.wage.toFixed(2)} ₽</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
+
+      // 👉 Итоги по смене
+      const totalQty = group.employees.reduce((sum, e) => sum + e.quantity, 0);
+      const totalWage = group.employees.reduce((sum, e) => sum + e.wage, 0);
+      const avgEff = Math.round(
+        group.employees.reduce((sum, e) => sum + e.efficiency, 0) / group.employees.length
+      );
+
+      const summary = document.createElement("div");
+      summary.style.marginTop = "8px";
+      summary.style.padding = "8px";
+      summary.style.background = "#fef3c7";
+      summary.style.borderRadius = "6px";
+      summary.style.fontWeight = "bold";
+      summary.textContent = `📊 Итого: 🔢 ${totalQty} шт | ⚙️ ${avgEff}% | 💰 ${totalWage.toFixed(2)} ₽`;
+
+      container.appendChild(summary);
+    });
+  } catch (err) {
+    container.innerHTML = "<p style='color:red;'>Ошибка загрузки: " + err.message + "</p>";
+  }
+}
+// 📱 Автоматическое скрытие нижней навигации при появлении клавиатуры
+window.addEventListener("resize", () => {
+  const nav = document.getElementById("bottomNav");
+  const isKeyboardOpen = window.innerHeight < 500;
+  nav.style.display = isKeyboardOpen ? "none" : "flex";
+});
+// 📡 Проверка подключения к интернету
+window.addEventListener('offline', () => {
+  alert('📡 Нет подключения к интернету');
+});
+window.addEventListener('online', () => {
+  alert('✅ Соединение восстановлено');
+});
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('✅ Service Worker зарегистрирован:', reg.scope))
+        .catch(err => console.error('❌ Ошибка регистрации SW:', err));
+    });
+  }
+</script>
+<div id="editModal" style="display:none; position:fixed; top:10%; left:0; right:0; margin:auto; max-width:500px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:1000;">
+  <h3>✏️ Редактировать запись</h3>
+  <form id="editForm">
+  <input type="hidden" name="rowIndex" />
+  <input type="hidden" name="employeeName" />
+  <input type="hidden" name="orderNumber" />
+  <input type="hidden" name="shiftType" />
+  <input type="hidden" name="employeeStatus" />
+  <input type="hidden" name="duration" />
+
+  <label>Операция:
+    <select name="operationType" id="editOperation" required></select>
+  </label>
+
+  <label id="editVolumeLabel">Объём:
+    <select name="volume" id="editVolumeSelect"></select>
+  </label>
+
+  <div id="editSetNumberField" style="display:none;">
+    <label>Артикул набора:
+      <select name="setNumber" id="editSetNumberSelect"></select>
+    </label>
+  </div>
+
+  <label>Количество:<input name="quantity" type="number" required /></label>
+  <label>Начало:<input name="startTime" type="time" required /></label>
+  <label>Окончание:<input name="endTime" type="time" required /></label>
+
+  <button type="button" onclick="submitEditForm()">💾 Сохранить</button>
+  <button type="button" onclick="closeEditModal()" class="danger">❌ Отмена</button>
+</form>
+</div>
+<nav id="bottomNav" class="mobile-nav" style="display:none;">
+  <button onclick="switchTab('profile')" id="tabProfile">👤</button>
+  <button onclick="switchTab('app')" id="tabApp" disabled>📋</button>
+  <button onclick="switchTab('stats')" id="tabStats">📈</button>
+  <button onclick="switchTab('rates')" id="tabRates">💰</button>
+  <button onclick="switchTab('mySalary')" id="tabMySalary">💵</button>
+  <button onclick="switchTab('admin')" id="tabAdmin" style="display:none;">🛠️</button>
+</nav>
+</body>
+</html>
