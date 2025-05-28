@@ -373,13 +373,36 @@ body {
   z-index: 1100;
 }
 
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.form-item {
+  flex: 1;
+}
+
+@media (max-width: 500px) {
+  .form-row {
+    flex-direction: column;
+  }
+}
+
 #saveBar button {
   width: 100%;
   font-size: 16px;
 }
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.form-item {
+  flex: 1 1 200px;
+}
 @media (max-width: 500px) {
-  #appContainer form > div[style*="display: flex"] {
-    flex-direction: column !important;
+  .form-row:not(.horizontal) {
+    flex-direction: column;
   }
 }
   </style>
@@ -415,6 +438,18 @@ body {
 <div class="container" style="display:none;" id="tabContainer">
 </div>
 <div class="container" style="display:none;" id="appContainer">
+  <style>
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .form-item {
+      flex: 1 1 200px;
+    }
+    /* Удалено поведение column для мобилок */
+  </style>
+
   <h2 id="mainTitle">📦 Учёт упаковки</h2>
   <form id="dataForm" style="padding-bottom: 100px;">
     <div class="tooltip" data-tooltip="Поле заполняется автоматически при входе">
@@ -423,28 +458,26 @@ body {
       </label>
     </div>
 
-    <!-- Количество и номер заказа -->
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-      <div style="flex: 1;">
+    <div class="form-row">
+      <div class="form-item">
         <label>Количество:
           <input name="quantity" type="number" required />
         </label>
       </div>
-      <div style="flex: 1;">
+      <div class="form-item">
         <label>Номер заказа:
           <input name="orderNumber" required />
         </label>
       </div>
     </div>
 
-    <!-- Время -->
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-      <div style="flex: 1;">
+    <div class="form-row">
+      <div class="form-item">
         <label>Время начала:
           <input name="startTime" type="time" required />
         </label>
       </div>
-      <div style="flex: 1;">
+      <div class="form-item">
         <label>Время окончания:
           <input name="endTime" type="time" required />
         </label>
@@ -455,23 +488,23 @@ body {
       <input name="duration" readonly />
     </label>
 
-    <!-- Операция, артикул, объём -->
-    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-      <div style="flex: 1;">
+    <div class="form-row" id="operationSetWrapper">
+      <div class="form-item">
         <label>Операция:
-          <select name="operationType" required onchange="handleOperationChange(this.value)"></select>
+          <select name="operationType" required></select>
         </label>
       </div>
-      <div style="flex: 1; display: none;" id="setNumberField">
+      <div class="form-item" id="setNumberField" style="display:none;">
         <label>Артикул набора:
           <select name="setNumber"></select>
         </label>
       </div>
-      <div style="flex: 1;" id="volumeLabel">
-        <label>Объём:
-          <select name="volume" required></select>
-        </label>
-      </div>
+    </div>
+
+    <div id="volumeLabel">
+      <label>Объём:
+        <select name="volume" required></select>
+      </label>
     </div>
 
     <div id="rateInfo" style="margin-top:16px; background:#f0f0f0; padding:10px; border-radius:8px; display:none;">
@@ -484,7 +517,7 @@ body {
       <p><strong>⚙️ Эффективность:</strong> <span id="efficiencyDisplay">-</span></p>
     </div>
 
-    <button type="submit">📀 Сохранить</button>
+    <button type="submit">💾 Сохранить</button>
   </form>
   <p id="result" style="display:none;"></p>
 </div>
