@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -399,15 +398,7 @@ button.danger:hover {
 }
 
   </style>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png" type="image/png">
-<meta name="theme-color" content="#34d399">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="PackControl">
-<link rel="apple-touch-icon" href="icon-512.png">
 </head>
-<body>
 <body>
   <nav id="bottomNav" class="top-nav" style="display: none;">
     <button id="tabProfile" onclick="switchTab('profile')">👤</button>
@@ -482,23 +473,23 @@ button.danger:hover {
     </label>
 
     <div class="form-row" id="operationSetWrapper">
-      <div class="form-item">
-        <label>Операция:
-          <select name="operationType" required></select>
-        </label>
-      </div>
-      <div class="form-item" id="setNumberField" style="display:none;">
-        <label>Артикул набора:
-          <select name="setNumber"></select>
-        </label>
-      </div>
-    </div>
+  <div class="form-item">
+    <label>Операция:
+      <select name="operationType" id="operationSelect" required></select>
+    </label>
+  </div>
+  <div class="form-item" id="setNumberField" style="display:none;">
+    <label>Артикул набора:
+      <select name="setNumber"></select>
+    </label>
+  </div>
+</div>
 
-    <div id="volumeLabel">
-      <label>Объём:
-        <select name="volume" required></select>
-      </label>
-    </div>
+<div id="volumeLabel">
+  <label>Объём:
+    <select name="volume" id="volumeSelect" required></select>
+  </label>
+</div>
 
     <div id="rateInfo" style="margin-top:16px; background:#f0f0f0; padding:10px; border-radius:8px; display:none;">
       <p><strong>⏱ Норма в час:</strong> <span id="normDisplay">-</span></p>
@@ -589,12 +580,19 @@ button.danger:hover {
 </div>
 
   <!-- 🔘 Действия -->
-  <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
-    <button onclick="loadShiftStats()">📊 Сводка по сменам</button>
-    <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ упаковщиков</button>
-    <button onclick="manualExport()" id="exportBtn">💾 Экспорт</button>
-    <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт за период</button>
-  </div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+  <button onclick="loadShiftStats()">📊 Сводка по сменам</button>
+  <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ упаковщиков</button>
+  <button onclick="manualExport()" id="exportBtn">💾 Экспорт</button>
+  <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт за период</button>
+</div>
+
+<!-- 🧾 Единый контейнер для отчётов -->
+<div id="reportContainer" style="margin-top: 20px;"></div>
+
+<!-- 📊 Результаты анализа -->
+<div id="shiftStatsOutput" style="margin-top:20px;"></div>
+<div id="packerAnalysis" style="margin-top:24px;"></div>
 
   <!-- 📊 Результаты анализа -->
   <div id="shiftStatsOutput" style="margin-top:20px;"></div>
@@ -615,12 +613,13 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbzMZEDeGvhgx0p7CA-1n2rW6Wtxq-s6seYxFubma7zxdjBfAjAVLSPnPGmB0ovmW9s/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbyfLoIhJBO0xOYi3s1dVtLAWz7ZdddQ-lUEzMxma7q_aS1bMB5qsKLEtWRdTTzK7QM/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
 let currentStatus = "";
  let allRates = [];
+let allVolumes = []; // ← добавь это!
 let currentUserRole = "user"; // ← добавляем сюда
 
 function saveProfile() {
@@ -639,6 +638,7 @@ function saveProfile() {
   const hint = document.getElementById("profileHint");
   const msg = document.getElementById("profileSaved");
   const tabApp = document.getElementById("tabApp");
+  const tabMySalary = document.getElementById("tabMySalary"); // ✅ добавлено
 
   // Отображение подсказок
   hint.style.display = isFilled ? "none" : "block";
@@ -646,11 +646,17 @@ function saveProfile() {
   tabApp.disabled = !isFilled;
   tabApp.innerHTML = isFilled ? "📋" : "🔒";
 
-  // Скрываем уведомление об успешном сохранении через 2 секунды
+  // 👇 Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
+  if (tabMySalary) {
+    tabMySalary.style.display = (statusValue === "Аутсорсинг") ? "none" : "inline-block";
+  }
+
+  // ⏳ Автоскрытие уведомления
   if (isFilled) {
     setTimeout(() => msg.style.display = "none", 2000);
   }
 }
+
 
 function switchTab(tabName) {
   // Скрываем все контейнеры
@@ -715,7 +721,7 @@ async function handleLogin() {
   const login = document.getElementById("login").value.trim();
   const password = document.getElementById("password").value.trim();
   const errorElem = document.getElementById("loginError");
-  errorElem.textContent = ""; // 🧼 Сброс старой ошибки
+  errorElem.textContent = "";
 
   try {
     const res = await fetch(`${scriptURL}?type=auth&login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}`);
@@ -728,48 +734,26 @@ async function handleLogin() {
       localStorage.setItem("currentUser", login);
       localStorage.setItem("currentUserRole", currentUserRole);
 
-      // Показ/скрытие админской кнопки
+      // Показываем админ-вкладку при необходимости
       const tabAdmin = document.getElementById("tabAdmin");
-      if (currentUserRole === "admin") {
-        tabAdmin.style.display = "block";
-      } else {
-        tabAdmin.style.display = "none";
-      }
+      tabAdmin.style.display = (currentUserRole === "admin") ? "block" : "none";
 
-      // Скрываем контейнеры перед переходом
-      ["appContainer", "statsContainer", "profileContainer", "ratesContainer", "adminContainer", "mySalaryContainer"]
-        .forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.style.display = "none";
-        });
-
+      // Обновляем интерфейс: ПЕРЕД асинхронной загрузкой
       document.getElementById("loginContainer").style.display = "none";
       document.getElementById("tabContainer").style.display = "block";
       document.querySelector('[name="employeeName"]').value = currentUser;
       document.getElementById("bottomNav").style.display = "flex";
 
-      // Закрытие модалки, если осталась
-      const modal = document.getElementById("editModal");
-      if (modal) modal.style.display = "none";
+      switchTab("profile"); // ✅ Мгновенно открываем профиль
+      saveProfile();        // 🔄 Обновляем доступность вкладок
 
-      await Promise.all([
-        loadVolumes(),
-        loadOperations(),
-        loadSetNumbers(),
-        loadTodayRecords(),
-        loadOperationFilter(),
-        loadRatesTable()
-      ]);
-
-      document.getElementById("operationFilter").addEventListener("change", loadStats);
-
-      // 👉 Открываем только нужную вкладку
-      switchTab("profile");
+      // Асинхронная фоновая загрузка (ускорение)
+      loadAllDictionariesInBackground();
 
     } else {
       errorElem.textContent = "❌ Неверный логин или PIN-код";
     }
-  } catch {
+  } catch (err) {
     errorElem.textContent = "❌ Ошибка подключения";
   }
 }
@@ -909,17 +893,19 @@ function formatDate(isoString) {
 }
 
   async function loadVolumes() {
-    const res = await fetch(`${scriptURL}?type=volumes`);
-    const data = await res.json();
-    const select = document.querySelector('[name="volume"]');
-    select.innerHTML = '<option value="">-- Выбери объём --</option>';
-    data.volumes.forEach(val => {
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = val;
-      select.appendChild(opt);
-    });
-  }
+  const res = await fetch(`${scriptURL}?type=volumes`);
+  const data = await res.json();
+  allVolumes = data.volumes.map(v => ["", v]); // ← сохраняем как [операция, объём] (заглушка)
+
+  const select = document.querySelector('[name="volume"]');
+  select.innerHTML = '<option value="">-- Выбери объём --</option>';
+  data.volumes.forEach(val => {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = val;
+    select.appendChild(opt);
+  });
+}
 
   async function loadOperations() {
     const res = await fetch(`${scriptURL}?type=operations`);
@@ -1061,6 +1047,11 @@ document.querySelector('[name="endTime"]').addEventListener("change", updateRate
 }
 formData.append("shiftType", currentShift);
 formData.append("employeeStatus", currentStatus);
+// ✅ Устанавливаем "Общая" вручную, если маркировка
+if (formData.get("operationType") === "Маркировка продукции ш/к") {
+  formData.set("volume", "Общая");
+}
+
    
 
     const payload = {
@@ -1183,43 +1174,62 @@ async function loadRatesTable() {
     }
 
     Object.entries(grouped).forEach(([operation, entries]) => {
-      const block = document.createElement("div");
-      block.style.marginBottom = "20px";
-      block.style.padding = "12px";
-      block.style.border = "1px solid #ddd";
-      block.style.borderRadius = "10px";
-      block.style.backgroundColor = "#f9fafb";
+      const wrapper = document.createElement("div");
+      wrapper.style.marginBottom = "14px";
+      wrapper.style.border = "1px solid #ccc";
+      wrapper.style.borderRadius = "10px";
+      wrapper.style.overflow = "hidden";
+      wrapper.style.background = "#fff";
 
-      const title = document.createElement("h4");
-      title.textContent = operation;
-      title.style.color = "#1e40af";
+      // Аккордеон-кнопка
+      const toggle = document.createElement("button");
+      toggle.textContent = `📌 ${operation}`;
+      toggle.style.width = "100%";
+      toggle.style.padding = "14px";
+      toggle.style.textAlign = "left";
+      toggle.style.fontWeight = "600";
+      toggle.style.fontSize = "15px";
+      toggle.style.border = "none";
+      toggle.style.background = "#2563eb";
+      toggle.style.color = "white";
+      toggle.style.cursor = "pointer";
+      toggle.style.outline = "none";
 
-      const list = document.createElement("ul");
-      list.style.listStyle = "none";
-      list.style.paddingLeft = "0";
+      // Контент
+      const content = document.createElement("div");
+      content.style.display = "none";
+      content.style.padding = "10px 16px";
+      content.style.fontSize = "14px";
+      content.style.color = "#1f2937";
+      content.style.background = "#f9fafb";
 
-      entries.forEach(e => {
-        const item = document.createElement("li");
-        item.className = "rate-item";
-        item.innerHTML = `
-          <span>📦 <strong>Объём:</strong> ${e.key}</span>
-          <span>⏱ <strong>Норма:</strong> ${e.normPerHour} шт/час</span>
-          <span>💰 <strong>Тариф:</strong> ${e.ratePerUnit.toFixed(2)} ₽/шт</span>
+      entries.forEach(r => {
+        const row = document.createElement("div");
+        row.style.marginBottom = "8px";
+        row.innerHTML = `
+          🔸 <strong>Объём:</strong> ${r.key}<br>
+          ⚙️ <strong>Норма:</strong> ${r.normPerHour} шт/ч<br>
+          💰 <strong>Тариф:</strong> ${r.ratePerUnit.toFixed(2)} ₽/шт
         `;
-        list.appendChild(item);
+        content.appendChild(row);
       });
 
-      block.appendChild(title);
-      block.appendChild(list);
-      container.appendChild(block);
+      toggle.onclick = () => {
+        content.style.display = (content.style.display === "none") ? "block" : "none";
+      };
+
+      wrapper.appendChild(toggle);
+      wrapper.appendChild(content);
+      container.appendChild(wrapper);
     });
   }
 
   opFilter.onchange = renderFilteredRates;
   keyFilter.onchange = renderFilteredRates;
 
-  renderFilteredRates(); // начальная отрисовка
+  renderFilteredRates(); // первая отрисовка
 }
+
 
 async function loadOperationFilter() {
   const res = await fetch(`${scriptURL}?type=operations`);
@@ -1352,6 +1362,16 @@ function closeEditModal() {
   document.getElementById("editModal").style.display = "none";
 }
 
+function getVolumesForOperation(operation) {
+  if (!Array.isArray(allVolumes)) return [];
+
+  return allVolumes
+    .filter(item => item[0] === operation)
+    .map(item => item[1])
+    .filter((value, index, self) => self.indexOf(value) === index);
+}
+
+
 function closeStats() {
   document.getElementById("statsCards").innerHTML = "";
   document.getElementById("totalWage").textContent = "";
@@ -1477,47 +1497,94 @@ window.addEventListener("DOMContentLoaded", async () => {
   const savedUser = localStorage.getItem("currentUser");
   const savedRole = localStorage.getItem("currentUserRole");
 
-  if (savedUser) {
-    currentUser = savedUser;
-    currentUserRole = savedRole || "user";
-
-    if (currentUserRole === "admin") {
-      document.getElementById("tabAdmin").style.display = "block";
-    }
-
-    document.getElementById("loginContainer").style.display = "none";
-    document.getElementById("tabContainer").style.display = "block";
-    document.getElementById("profileContainer").style.display = "block";
-    document.querySelector('[name="employeeName"]').value = currentUser;
-
-    document.getElementById("bottomNav").style.display = "flex"; // 👈 показать нижнее меню
-
-    await Promise.all([
-      loadVolumes(),
-      loadOperations(),
-      loadSetNumbers(),
-      loadTodayRecords(),
-      loadOperationFilter(),
-      loadRatesTable()
-    ]);
-
-    document.getElementById("operationFilter").addEventListener("change", loadStats);
-
-    // 👉 Автообновление при выборе смены и статуса
-    ["change", "input"].forEach(event =>
-      ["shiftType", "employeeStatus"].forEach(id =>
-        document.getElementById(id).addEventListener(event, saveProfile)
-      )
-    );
-
-    // ⚡ Важное: вызываем в самом конце, чтобы подсказка точно показалась
-    setTimeout(saveProfile, 0);
-  } else {
-    // 👇 Автофокус на поле логина, если пользователь не авторизован
-    document.getElementById("login").focus();
+  // ⛔ Сброс автоматического входа
+  if (savedUser || savedRole) {
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("currentUserRole");
   }
-});
 
+  if (!currentUser) {
+    document.getElementById("login").focus();
+    document.getElementById("loginContainer").style.display = "block";
+    document.getElementById("tabContainer").style.display = "none";
+    document.getElementById("profileContainer").style.display = "none";
+    document.getElementById("bottomNav").style.display = "none";
+    return;
+  }
+
+  // 👤 Отображаем интерфейс после входа
+  if (currentUserRole === "admin") {
+    document.getElementById("tabAdmin").style.display = "block";
+  }
+
+  document.querySelector('[name="employeeName"]').value = currentUser;
+  document.getElementById("loginContainer").style.display = "none";
+  document.getElementById("tabContainer").style.display = "block";
+  document.getElementById("profileContainer").style.display = "block";
+  document.getElementById("bottomNav").style.display = "flex";
+
+  // 💵 Скрываем вкладку «Моя зарплата» для аутсорсинга
+  const tabMySalary = document.getElementById("tabMySalary");
+  if (currentStatus === "Аутсорсинг" && tabMySalary) {
+    tabMySalary.style.display = "none";
+  }
+
+  // 📥 Загрузка справочников
+  await Promise.all([
+    loadVolumes(),
+    loadOperations(),
+    loadSetNumbers(),
+    loadTodayRecords(),
+    loadOperationFilter(),
+    loadRatesTable()
+  ]);
+
+  // 📊 Автообновление при выборе фильтра
+  document.getElementById("operationFilter").addEventListener("change", loadStats);
+
+  // 📋 Сохранение профиля при смене данных
+  ["change", "input"].forEach(event =>
+    ["shiftType", "employeeStatus"].forEach(id =>
+      document.getElementById(id).addEventListener(event, saveProfile)
+    )
+  );
+
+  // 📦 Логика блокировки объёма
+  const operationSelect = document.querySelector('[name="operationType"]');
+  const volumeSelect = document.querySelector('[name="volume"]');
+
+  if (operationSelect && volumeSelect) {
+    operationSelect.addEventListener("change", () => {
+      const selectedOp = operationSelect.value;
+
+      if (selectedOp === "Маркировка продукции ш/к") {
+        volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
+        volumeSelect.value = "Общая";
+        volumeSelect.disabled = true;
+      } else {
+        volumeSelect.disabled = false;
+        volumeSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
+
+        const relatedKeys = Array.from(
+          new Set(allRates.filter(r => r.operation === selectedOp).map(r => r.key))
+        );
+
+        relatedKeys.forEach(v => {
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          volumeSelect.appendChild(opt);
+        });
+      }
+    });
+
+    // 🟡 Обновить сразу, если операция уже выбрана
+    operationSelect.dispatchEvent(new Event("change"));
+  }
+
+  // ⏱ Подсказка сохранения профиля
+  setTimeout(saveProfile, 0);
+});
 
 async function manualExport() {
   withLoading("exportBtn", async () => {
@@ -1560,63 +1627,77 @@ const end = document.getElementById("unifiedEnd").value;
 }
 
 async function analyzePackers() {
-  withLoading("analyzeBtn", async () => {
-    const start = document.getElementById("unifiedStart").value;
-const end = document.getElementById("unifiedEnd").value;
+  const start = document.getElementById("unifiedStart").value;
+  const end = document.getElementById("unifiedEnd").value;
+  const output = document.getElementById("reportContainer");
 
-    const output = document.getElementById("packerAnalysis");
+  // Очищаем другие отчёты
+  document.getElementById("shiftStatsOutput").innerHTML = "";
 
-    if (!start || !end) {
-      output.innerHTML = "<p style='color:red;'>⚠️ Укажите обе даты</p>";
+  if (!start || !end) {
+    output.innerHTML = "<p style='color:red;'>⚠️ Укажите обе даты</p>";
+    return;
+  }
+
+  output.innerHTML = "⌛ Загружается...";
+
+  try {
+    const res = await fetch(`${scriptURL}?type=packerAnalytics&start=${start}&end=${end}`);
+    const data = await res.json();
+
+    if (!data.ok || !data.list || !data.list.length) {
+      output.innerHTML = "<p>Нет данных за указанный период</p>";
       return;
     }
 
-    output.innerHTML = "⌛ Загружается...";
+    const best = data.best || {};
+    let html = "";
 
-    try {
-      const res = await fetch(`${scriptURL}?type=packerAnalytics&start=${start}&end=${end}`);
-      const data = await res.json();
+    // 🔴 Красная кнопка закрытия
+    html += `
+      <button class="danger" style="margin-bottom: 16px;" onclick="document.getElementById('reportContainer').innerHTML = ''">
+        ❌ Закрыть отчёт
+      </button>
+    `;
 
-      if (!data.ok || !data.list || !data.list.length) {
-        output.innerHTML = "<p>Нет данных за указанный период</p>";
-        return;
-      }
+    html += "<table style='width:100%; border-collapse:collapse;'>"
+    html += `
+      <thead><tr style="background:#f3f4f6;">
+        <th style="border:1px solid #ccc; padding:6px;">Сотрудник</th>
+        <th style="border:1px solid #ccc; padding:6px;">Кол-во</th>
+        <th style="border:1px solid #ccc; padding:6px;">Эффективность</th>
+        <th style="border:1px solid #ccc; padding:6px;">Зарплата</th>
+      </tr></thead><tbody>
+    `;
 
-      const best = data.best || {};
-
-      let html = "<table style='width:100%; border-collapse:collapse;'>";
+    data.list.forEach(row => {
       html += `
-        <thead><tr style="background:#f3f4f6;">
-          <th style="border:1px solid #ccc; padding:6px;">Сотрудник</th>
-          <th style="border:1px solid #ccc; padding:6px;">Кол-во</th>
-          <th style="border:1px solid #ccc; padding:6px;">Эффективность</th>
-          <th style="border:1px solid #ccc; padding:6px;">Зарплата</th>
-        </tr></thead><tbody>
+        <tr>
+          <td style="border:1px solid #ccc; padding:6px;">${row.name}</td>
+          <td style="border:1px solid #ccc; padding:6px;">${row.qty}</td>
+          <td style="border:1px solid #ccc; padding:6px;">${row.efficiency}%</td>
+          <td style="border:1px solid #ccc; padding:6px;">${row.wage.toFixed(2)} ₽</td>
+        </tr>
       `;
+    });
 
-      data.list.forEach(row => {
-        html += `
-          <tr>
-            <td style="border:1px solid #ccc; padding:6px;">${row.name}</td>
-            <td style="border:1px solid #ccc; padding:6px;">${row.qty}</td>
-            <td style="border:1px solid #ccc; padding:6px;">${row.efficiency}%</td>
-            <td style="border:1px solid #ccc; padding:6px;">${row.wage.toFixed(2)} ₽</td>
-          </tr>
-        `;
-      });
+    html += "</tbody></table>";
 
-      html += "</tbody></table>";
-
-      if (best.name) {
-        html += `<p style="margin-top:12px;"><strong>🏆 Лучший упаковщик:</strong> ${best.name} (${best.qty} шт, ${best.efficiency}% эффективность)</p>`;
-      }
-
-      output.innerHTML = html;
-    } catch (err) {
-      output.innerHTML = `<p style="color:red;">Ошибка: ${err.message}</p>`;
+    if (best.name) {
+      html += `
+        <p style="margin-top:12px;">
+          <strong>🏆 Лучший упаковщик:</strong> ${best.name} (${best.qty} шт, ${best.efficiency}% эффективность)
+        </p>
+      `;
     }
-  });
+
+    output.innerHTML = html;
+  } catch (err) {
+    output.innerHTML = `<p style="color:red;">Ошибка загрузки: ${err.message}</p>`;
+  }
 }
+
+
 
 async function withLoading(buttonId, asyncCallback) {
   const btn = document.getElementById(buttonId);
@@ -1636,15 +1717,59 @@ async function withLoading(buttonId, asyncCallback) {
   }
 }
 
+async function loadAllDictionariesInBackground() {
+      try {
+        await Promise.all([
+          loadVolumes(),
+          loadOperations(),
+          loadSetNumbers(),
+          loadTodayRecords(),
+          loadOperationFilter(),
+          loadRatesTable()
+        ]);
+
+
+        document.getElementById("operationFilter").addEventListener("change", loadStats);
+      } catch (err) {
+        console.warn("⚠️ Ошибка фоновой загрузки:", err.message);
+      }
+    }
+
+function toggleReport(id, contentHtml) {
+  const container = document.getElementById("reportContainer");
+  const existing = container.querySelector(`.report[data-id='${id}']`);
+
+  if (existing) {
+    existing.remove(); // 💯 Повторное нажатие — отчёт закрывается
+  } else {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("report");
+    wrapper.dataset.id = id;
+    wrapper.innerHTML = contentHtml;
+    container.appendChild(wrapper);
+  }
+}
+
+function clearReports() {
+  const container = document.getElementById("reportContainer");
+  container.innerHTML = "";
+  isShiftStatsLoaded = false;
+}
+
 async function loadShiftStats() {
   const date = document.getElementById("unifiedStart").value;
-  const container = document.getElementById("shiftStatsOutput");
-  container.innerHTML = "";
+  const container = document.getElementById("reportContainer");
 
   if (!date) {
     container.innerHTML = "<p style='color:red;'>⚠️ Укажите дату</p>";
     return;
   }
+
+  // 🧼 Очистим предыдущий отчёт
+  container.innerHTML = "";
+
+  // ⌛ Загрузка...
+  container.innerHTML = "<p>⌛ Загрузка отчёта по сменам...</p>";
 
   try {
     const res = await fetch(`${scriptURL}?type=shiftStats&date=${encodeURIComponent(date)}`);
@@ -1654,6 +1779,18 @@ async function loadShiftStats() {
       container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранной дате</p>";
       return;
     }
+
+    // 🔘 Кнопка закрытия
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "❌ Закрыть отчёт";
+    closeBtn.className = "danger";
+    closeBtn.style.marginBottom = "12px";
+    closeBtn.onclick = () => {
+      container.innerHTML = "";
+    };
+
+    container.innerHTML = ""; // очистка "Загрузка..."
+    container.appendChild(closeBtn);
 
     data.data.forEach(group => {
       const table = document.createElement("table");
@@ -1708,10 +1845,12 @@ async function loadShiftStats() {
 
       container.appendChild(summary);
     });
+
   } catch (err) {
-    container.innerHTML = "<p style='color:red;'>Ошибка загрузки: " + err.message + "</p>";
+    container.innerHTML = `<p style='color:red;'>Ошибка загрузки: ${err.message}</p>`;
   }
 }
+
 
 // 📡 Проверка подключения к интернету
 window.addEventListener('offline', () => {
