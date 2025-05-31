@@ -613,7 +613,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbyfLoIhJBO0xOYi3s1dVtLAWz7ZdddQ-lUEzMxma7q_aS1bMB5qsKLEtWRdTTzK7QM/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzzTK1FovTpISyOEUpftECPahmv5s-ezHmdgl6OFEBODWv858JLSUoQzLVbB48AHQ/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -621,6 +621,21 @@ let currentStatus = "";
  let allRates = [];
 let allVolumes = []; // ← добавь это!
 let currentUserRole = "user"; // ← добавляем сюда
+
+
+function isProfileComplete() {
+  return currentShift && currentStatus;
+}
+
+function requireProfile() {
+  if (!isProfileComplete()) {
+    alert("⚠️ Сначала заполните профиль и нажмите «Сохранить»");
+    switchTab("profile");
+    return false;
+  }
+  return true;
+}
+
 
 function saveProfile() {
   const shiftSelect = document.getElementById("shiftType");
@@ -659,6 +674,9 @@ function saveProfile() {
 
 
 function switchTab(tabName) {
+  // 🔐 Блокировка, если профиль не заполнен
+  if (tabName !== "profile" && !requireProfile()) return;
+
   // Скрываем все контейнеры
   document.getElementById("profileContainer").style.display = "none";
   document.getElementById("appContainer").style.display = "none";
@@ -686,7 +704,6 @@ function switchTab(tabName) {
 
     case "app":
       document.getElementById("appContainer").style.display = "block";
-      // УБРАНО: document.getElementById("appContainer").classList.add("fullscreen");
       document.getElementById("tabApp").disabled = true;
       break;
 
@@ -711,6 +728,7 @@ function switchTab(tabName) {
       break;
   }
 }
+
 
 
 
@@ -860,37 +878,70 @@ function loadMySalary() {
         return;
       }
 
+      // 📦 Группировка по дате
+      const grouped = {};
       let totalQty = 0;
       let totalWage = 0;
-      let html = "";
 
       data.records.forEach(r => {
+        const date = formatDate(r.date);
+        if (!grouped[date]) {
+          grouped[date] = { qty: 0, wage: 0, effs: [] };
+        }
+        grouped[date].qty += r.quantity || 0;
+        grouped[date].wage += r.wage || 0;
+        if (r.efficiency !== undefined && r.efficiency !== null) {
+          grouped[date].effs.push(r.efficiency);
+        }
+
         totalQty += r.quantity || 0;
         totalWage += r.wage || 0;
+      });
 
+      let html = `
+        <table style="width:100%; border-collapse: collapse; font-size:14px;">
+          <thead style="background:#f3f4f6;">
+            <tr>
+              <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
+              <th style="padding:8px; border:1px solid #ccc;">🔢 Кол-во</th>
+              <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффективность</th>
+              <th style="padding:8px; border:1px solid #ccc;">💰 Сумма</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      Object.entries(grouped).forEach(([date, stats]) => {
+        const avgEff = stats.effs.length
+          ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
+          : "-";
         html += `
-          <div class="salary-card">
-            <p><strong>📅 Дата:</strong> ${formatDate(r.date)}</p>
-            <p><strong>🔢 Кол-во:</strong> ${r.quantity}</p>
-            <p><strong>⚙️ Эффективность:</strong> ${r.efficiency ?? "-"}%</p>
-            <p><strong>💰 Зарплата:</strong> ${(r.wage ?? 0).toFixed(2)} ₽</p>
-          </div>
+          <tr>
+            <td style="padding:6px; border:1px solid #ccc;">${date}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${stats.qty}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
+            <td style="padding:6px; border:1px solid #ccc;">${stats.wage.toFixed(2)} ₽</td>
+          </tr>
         `;
       });
 
+      html += `</tbody></table>`;
       container.innerHTML = html;
-      totalQtyBlock.textContent = `📦 Всего обработано: ${totalQty} шт. | 💵 Общая сумма: ${totalWage.toFixed(2)} ₽`;
+      totalQtyBlock.textContent = `📦 Всего: ${totalQty} шт | 💵 Сумма: ${totalWage.toFixed(2)} ₽`;
+
     } catch (err) {
       alert("❌ Ошибка загрузки: " + err.message);
     }
   });
 }
 
-// Добавь эту вспомогательную функцию рядом:
-function formatDate(isoString) {
-  const parts = isoString.split("-");
-  return `${parts[2]}.${parts[1]}.${parts[0]}`;
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
 }
+
+
+
 
   async function loadVolumes() {
   const res = await fetch(`${scriptURL}?type=volumes`);
@@ -952,6 +1003,7 @@ async function deleteRecord(index) {
   const volumeSelect = document.querySelector('[name="volume"]');
   const setSelect = document.querySelector('[name="setNumber"]');
 
+  // Показать/скрыть поле Артикул набора
   if (operation === 'Сборка "Набора"') {
     setField.style.display = "block";
     setSelect.required = true;
@@ -965,7 +1017,37 @@ async function deleteRecord(index) {
     volumeLabel.style.display = "block";
     volumeSelect.required = true;
   }
+
+  // === 🔒 Маркировка продукции — объём фиксированный ===
+  if (operation === "Маркировка продукции ш/к") {
+    volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
+    volumeSelect.value = "Общая";
+    volumeSelect.disabled = true;
+    return;
+  }
+
+  // === 📂 Подгрузка объёмов по операции ===
+  volumeSelect.disabled = false;
+  volumeSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
+
+  // Фильтруем доступные объёмы по операции из справочника (allRates должен быть загружен заранее)
+  const relatedKeys = Array.from(
+    new Set(
+      allRates
+        .filter(rate => rate.operation === operation)
+        .map(rate => rate.key)
+    )
+  );
+
+  // Добавляем варианты
+  relatedKeys.forEach(key => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = key;
+    volumeSelect.appendChild(opt);
+  });
 }
+
 
 function updateRateDisplay() {
   const operationType = document.querySelector('[name="operationType"]').value;
@@ -1027,99 +1109,105 @@ document.querySelector('[name="quantity"]').addEventListener("input", updateRate
 document.querySelector('[name="startTime"]').addEventListener("change", updateRateDisplay);
 document.querySelector('[name="endTime"]').addEventListener("change", updateRateDisplay);
 
-  document.getElementById("dataForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const result = document.getElementById("result");
-    await loadTodayRecords();
+document.getElementById("dataForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const result = document.getElementById("result");
 
-    const start = formData.get("startTime");
-    const end = formData.get("endTime");
-    if (start && end) {
-      const [sh, sm] = start.split(":" ).map(Number);
-      const [eh, em] = end.split(":" ).map(Number);
-      let minutes = (eh * 60 + em) - (sh * 60 + sm);
-      if (minutes < 0) minutes += 1440;
-      const duration = `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
-      formData.set("duration", duration);
-      document.querySelector('[name="duration"]').value = duration;
-}
-formData.append("shiftType", currentShift);
-formData.append("employeeStatus", currentStatus);
-// ✅ Устанавливаем "Общая" вручную, если маркировка
-if (formData.get("operationType") === "Маркировка продукции ш/к") {
-  formData.set("volume", "Общая");
-}
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "⏳ Отправка...";
+  result.style.display = "none";
 
-   
+  await loadTodayRecords();
 
-    const payload = {
-  employeeName: formData.get("employeeName")?.trim(),
-  quantity: formData.get("quantity")?.trim(),
-  startTime: formData.get("startTime")?.trim(),
-  endTime: formData.get("endTime")?.trim(),
-  volume: formData.get("volume")?.trim(),
-  operationType: formData.get("operationType")?.trim(),
-  orderNumber: formData.get("orderNumber")?.trim(),
-  setNumber: formData.get("setNumber")?.trim(),
-  shiftType: currentShift,
-  employeeStatus: currentStatus
-};
-
-    const isDuplicate = todayRecords.some(rec => {
-  const isSame =
-    rec.employeeName === payload.employeeName &&
-    rec.quantity === payload.quantity &&
-    rec.startTime === payload.startTime &&
-    rec.endTime === payload.endTime &&
-    rec.operationType === payload.operationType &&
-    rec.orderNumber === payload.orderNumber &&
-    rec.setNumber === payload.setNumber;
-
-  if (!isSame) return false;
-
-  // для операций кроме "Сборка Набора" сравниваем объём
-  if (payload.operationType !== 'Сборка "Набора"') {
-    return rec.volume === payload.volume;
+  const start = formData.get("startTime");
+  const end = formData.get("endTime");
+  if (start && end) {
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let minutes = (eh * 60 + em) - (sh * 60 + sm);
+    if (minutes < 0) minutes += 1440;
+    const duration = `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
+    formData.set("duration", duration);
+    document.querySelector('[name="duration"]').value = duration;
   }
 
-  return true;
+  formData.append("shiftType", currentShift);
+  formData.append("employeeStatus", currentStatus);
+  if (formData.get("operationType") === "Маркировка продукции ш/к") {
+    formData.set("volume", "Общая");
+  }
+
+  const payload = {
+    employeeName: formData.get("employeeName")?.trim(),
+    quantity: formData.get("quantity")?.trim(),
+    startTime: formData.get("startTime")?.trim(),
+    endTime: formData.get("endTime")?.trim(),
+    volume: formData.get("volume")?.trim(),
+    operationType: formData.get("operationType")?.trim(),
+    orderNumber: formData.get("orderNumber")?.trim(),
+    setNumber: formData.get("setNumber")?.trim(),
+    shiftType: currentShift,
+    employeeStatus: currentStatus
+  };
+
+  const isDuplicate = todayRecords.some(rec => {
+    const isSame =
+      rec.employeeName === payload.employeeName &&
+      rec.quantity === payload.quantity &&
+      rec.startTime === payload.startTime &&
+      rec.endTime === payload.endTime &&
+      rec.operationType === payload.operationType &&
+      rec.orderNumber === payload.orderNumber &&
+      rec.setNumber === payload.setNumber;
+
+    if (!isSame) return false;
+    if (payload.operationType !== 'Сборка "Набора"') {
+      return rec.volume === payload.volume;
+    }
+    return true;
+  });
+
+  if (isDuplicate) {
+    result.textContent = "⚠️ Такая запись уже существует (локальная проверка)";
+    result.style.display = "block";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+
+    form.reset();
+    document.querySelector('[name="employeeName"]').value = currentUser;
+    handleOperationChange("");
+    updateRateDisplay();
+    return;
+  }
+
+  try {
+    const response = await fetch(scriptURL, {
+      method: "POST",
+      body: formData
+    });
+    const resultData = await response.json();
+    result.textContent = resultData.message;
+    result.style.display = "block";
+
+    if (resultData.status === "success") {
+      form.reset();
+      document.querySelector('[name="employeeName"]').value = currentUser;
+      handleOperationChange("");
+      updateRateDisplay();
+      await loadTodayRecords();
+    }
+  } catch (error) {
+    result.textContent = "❌ Ошибка отправки: " + error.message;
+    result.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+  }
 });
 
-    if (isDuplicate) {
-  result.textContent = "⚠️ Такая запись уже существует (локальная проверка)";
-  result.style.display = "block";
-
-  // сбросить форму
-  form.reset();
-  document.querySelector('[name="employeeName"]').value = currentUser;
-  handleOperationChange("");
-  updateRateDisplay();
-  return;
-}
-
-    try {
-      const response = await fetch(scriptURL, {
-        method: "POST",
-        body: formData
-      });
-      const resultData = await response.json();
-      result.textContent = resultData.message;
-      result.style.display = "block";
-
-      if (resultData.status === "success") {
-  form.reset();
-  document.querySelector('[name="employeeName"]').value = currentUser;
-  handleOperationChange("");
-  updateRateDisplay();
-  await loadTodayRecords();
-}
-    } catch (error) {
-      result.textContent = "❌ Ошибка отправки: " + error.message;
-      result.style.display = "block";
-    }
-  });
 
 async function loadRatesTable() {
   const res = await fetch(`${scriptURL}?type=rates`);
@@ -1588,14 +1676,23 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 async function manualExport() {
   withLoading("exportBtn", async () => {
-    const date = document.getElementById("unifiedStart").value;
-    if (!date) {
-      alert("⚠️ Укажите дату");
+    const start = document.getElementById("unifiedStart").value;
+    const end = document.getElementById("unifiedEnd").value;
+
+    if (!start) {
+      alert("⚠️ Укажите хотя бы начальную дату");
       return;
     }
 
+    let url = `${scriptURL}?type=exportNow&date=${encodeURIComponent(start)}`;
+
+    // ✅ Добавляем конец периода, если он указан
+    if (end) {
+      url += `&endDate=${encodeURIComponent(end)}`;
+    }
+
     try {
-      const res = await fetch(`${scriptURL}?type=exportNow&date=${encodeURIComponent(date)}`);
+      const res = await fetch(url);
       const result = await res.text();
       alert(result || "✅ Экспорт завершён");
     } catch (err) {
@@ -1603,6 +1700,7 @@ async function manualExport() {
     }
   });
 }
+
 
 
 async function runCustomReport() {
@@ -1626,75 +1724,79 @@ const end = document.getElementById("unifiedEnd").value;
   });
 }
 
+// 👇 Функция анализа упаковщиков с учётом всех правок:
 async function analyzePackers() {
   const start = document.getElementById("unifiedStart").value;
   const end = document.getElementById("unifiedEnd").value;
-  const output = document.getElementById("reportContainer");
-
-  // Очищаем другие отчёты
-  document.getElementById("shiftStatsOutput").innerHTML = "";
+  const container = document.getElementById("reportContainer");
 
   if (!start || !end) {
-    output.innerHTML = "<p style='color:red;'>⚠️ Укажите обе даты</p>";
+    container.innerHTML = "<p style='color:red;'>⚠️ Укажите период для анализа</p>";
     return;
   }
 
-  output.innerHTML = "⌛ Загружается...";
+  container.innerHTML = "<p>⌛ Загрузка отчёта по упаковщикам...</p>";
 
   try {
     const res = await fetch(`${scriptURL}?type=packerAnalytics&start=${start}&end=${end}`);
-    const data = await res.json();
+    const json = await res.json();
 
-    if (!data.ok || !data.list || !data.list.length) {
-      output.innerHTML = "<p>Нет данных за указанный период</p>";
+    if (!json.ok) {
+      container.innerHTML = "<p style='color:red;'>❌ Ошибка при загрузке данных</p>";
       return;
     }
 
-    const best = data.best || {};
-    let html = "";
+    const { list, best } = json;
 
-    // 🔴 Красная кнопка закрытия
-    html += `
-      <button class="danger" style="margin-bottom: 16px;" onclick="document.getElementById('reportContainer').innerHTML = ''">
-        ❌ Закрыть отчёт
-      </button>
-    `;
+    const rows = list.map(row => {
+      let style = "";
+      if (row.name === best.name) style = "background:#d1fae5;";        // 🟩 лучший по количеству
+      if (row.name === best.bestEffName) style = "background:#dbf4ff;"; // 🟦 лучший по эффективности
+      if (row.name === best.worstEffName) style = "background:#fee2e2;"; // 🟥 худший по эффективности
 
-    html += "<table style='width:100%; border-collapse:collapse;'>"
-    html += `
-      <thead><tr style="background:#f3f4f6;">
-        <th style="border:1px solid #ccc; padding:6px;">Сотрудник</th>
-        <th style="border:1px solid #ccc; padding:6px;">Кол-во</th>
-        <th style="border:1px solid #ccc; padding:6px;">Эффективность</th>
-        <th style="border:1px solid #ccc; padding:6px;">Зарплата</th>
-      </tr></thead><tbody>
-    `;
-
-    data.list.forEach(row => {
-      html += `
-        <tr>
-          <td style="border:1px solid #ccc; padding:6px;">${row.name}</td>
-          <td style="border:1px solid #ccc; padding:6px;">${row.qty}</td>
-          <td style="border:1px solid #ccc; padding:6px;">${row.efficiency}%</td>
-          <td style="border:1px solid #ccc; padding:6px;">${row.wage.toFixed(2)} ₽</td>
+      return `
+        <tr style="${style}">
+          <td>${row.name}</td>
+          <td>${row.qty}</td>
+          <td>${row.efficiency}%</td>
+          <td>${row.wage} ₽</td>
         </tr>
       `;
-    });
+    }).join("");
 
-    html += "</tbody></table>";
+    const table = `
+      <h3>📊 Анализ упаковщиков</h3>
+      <button class="danger" onclick="clearReports()" style="margin-bottom: 12px;">❌ Закрыть отчёт</button>
+      <table border="1" cellpadding="6" style="border-collapse: collapse; width: 100%;">
+        <thead style="background:#f3f4f6;">
+          <tr>
+            <th>Упаковщик</th>
+            <th>Количество</th>
+            <th>Эффективность</th>
+            <th>Зарплата</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <br/>
+      <p>
+        🥇 <strong>Лучший по количеству:</strong> ${best.name} — ${best.qty} шт.<br/>
+        💯 <strong>Лучший по эффективности:</strong> ${best.bestEffName} — ${best.bestEffValue}%<br/>
+        🔻 <strong>Худший по эффективности:</strong> ${best.worstEffName} — ${best.worstEffValue}%
+      </p>
+    `;
 
-    if (best.name) {
-      html += `
-        <p style="margin-top:12px;">
-          <strong>🏆 Лучший упаковщик:</strong> ${best.name} (${best.qty} шт, ${best.efficiency}% эффективность)
-        </p>
-      `;
-    }
+    container.innerHTML = table;
 
-    output.innerHTML = html;
   } catch (err) {
-    output.innerHTML = `<p style="color:red;">Ошибка загрузки: ${err.message}</p>`;
+    container.innerHTML = `<p style='color:red;'>Ошибка: ${err.message}</p>`;
   }
+}
+
+// 👇 Вспомогательная функция очистки отчётов
+function clearReports() {
+  const container = document.getElementById("reportContainer");
+  container.innerHTML = "";
 }
 
 
@@ -1757,30 +1859,26 @@ function clearReports() {
 }
 
 async function loadShiftStats() {
-  const date = document.getElementById("unifiedStart").value;
+  const start = document.getElementById("unifiedStart").value;
+  const end = document.getElementById("unifiedEnd").value;
   const container = document.getElementById("reportContainer");
 
-  if (!date) {
-    container.innerHTML = "<p style='color:red;'>⚠️ Укажите дату</p>";
+  if (!start || !end) {
+    container.innerHTML = "<p style='color:red;'>⚠️ Укажите обе даты</p>";
     return;
   }
 
-  // 🧼 Очистим предыдущий отчёт
-  container.innerHTML = "";
-
-  // ⌛ Загрузка...
   container.innerHTML = "<p>⌛ Загрузка отчёта по сменам...</p>";
 
   try {
-    const res = await fetch(`${scriptURL}?type=shiftStats&date=${encodeURIComponent(date)}`);
+    const res = await fetch(`${scriptURL}?type=shiftStats&start=${start}&end=${end}`);
     const data = await res.json();
 
     if (!data || !data.data || !data.data.length) {
-      container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранной дате</p>";
+      container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранному периоду</p>";
       return;
     }
 
-    // 🔘 Кнопка закрытия
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "❌ Закрыть отчёт";
     closeBtn.className = "danger";
@@ -1789,7 +1887,7 @@ async function loadShiftStats() {
       container.innerHTML = "";
     };
 
-    container.innerHTML = ""; // очистка "Загрузка..."
+    container.innerHTML = "";
     container.appendChild(closeBtn);
 
     data.data.forEach(group => {
