@@ -585,6 +585,8 @@ button.danger:hover {
   <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ упаковщиков</button>
   <button onclick="manualExport()" id="exportBtn">💾 Экспорт</button>
   <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт за период</button>
+<button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты</button>
+
 </div>
 
 <!-- 🧾 Единый контейнер для отчётов -->
@@ -613,7 +615,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbzzTK1FovTpISyOEUpftECPahmv5s-ezHmdgl6OFEBODWv858JLSUoQzLVbB48AHQ/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzoeb8nIzPwQeL6eXV2p1xWRxLlvpGhdDF72Mo6H5JXdbuIXMO8R8LYe_KHH9cgXWU/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -1989,6 +1991,94 @@ document.getElementById("password").addEventListener("keydown", e => {
   }
 });
 
+function openSalaryExportModal() {
+  // Очистка
+  document.getElementById("salaryExportResult").textContent = "";
+  document.getElementById("salaryExportModal").style.display = "flex";
+  // Установка дат по умолчанию (сегодня)
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("salaryExportStart").value = today;
+  document.getElementById("salaryExportEnd").value = today;
+  // Загрузка сотрудников
+  loadSalaryExportEmployees();
+}
+
+function closeSalaryExportModal() {
+  document.getElementById("salaryExportModal").style.display = "none";
+}
+
+async function loadSalaryExportEmployees() {
+  try {
+    const res = await fetch(`${scriptURL}?type=employees`);
+    const data = await res.json();
+
+    const names = Array.from(new Set((data.employees || []))).sort();
+    const select = document.getElementById("salaryExportEmployee");
+
+    select.innerHTML = `<option value="">-- Все --</option>`;
+    names.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    document.getElementById("salaryExportResult").textContent = "Ошибка загрузки сотрудников!";
+    console.error("Ошибка при загрузке сотрудников:", err);
+  }
+}
+
+async function submitSalaryExport() {
+  const btn = document.getElementById("submitSalaryExportBtn");
+  const resultBox = document.getElementById("salaryExportResult");
+
+  // Блокировка кнопки и индикатор
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = "⏳ Отправка...";
+  resultBox.textContent = "";
+
+  const start = document.getElementById("salaryExportStart").value;
+  const end = document.getElementById("salaryExportEnd").value;
+  const employee = document.getElementById("salaryExportEmployee").value;
+
+  if (!start || !end) {
+    resultBox.textContent = "❗ Укажите обе даты!";
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  const params = new URLSearchParams({
+    type: "exportForAccounting",
+    start,
+    end
+  });
+
+  if (employee) {
+    params.append("employees", employee);
+  }
+
+  try {
+    const res = await fetch(`${scriptURL}?${params.toString()}`);
+    const text = await res.text();
+    resultBox.textContent = text;
+
+    // ⏳ Автоматическое закрытие окна при успехе
+    if (text.includes("✅")) {
+      setTimeout(() => {
+        closeSalaryExportModal();
+      }, 3000);
+    }
+  } catch (err) {
+    console.error(err);
+    resultBox.textContent = "❌ Ошибка при отправке запроса";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
 </script>
 <div id="editModal" style="display:none; position:fixed; top:10%; left:0; right:0; margin:auto; max-width:500px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:1000;">
   <h3>✏️ Редактировать запись</h3>
@@ -2021,6 +2111,23 @@ document.getElementById("password").addEventListener("keydown", e => {
   <button type="button" onclick="submitEditForm()">💾 Сохранить</button>
   <button type="button" onclick="closeEditModal()" class="danger">❌ Отмена</button>
 </form>
+</div>
+<div id="salaryExportModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.18); z-index:2000; align-items:center; justify-content:center;">
+  <div style="background:white; max-width:420px; margin:60px auto; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.15); padding:28px; position:relative;">
+    <h3 style="margin-top:0;">💵 Выгрузка зарплаты</h3>
+    <label>Период с: <input type="date" id="salaryExportStart" /></label><br>
+    <label>по: <input type="date" id="salaryExportEnd" /></label><br>
+    <label>Сотрудник:
+      <select id="salaryExportEmployee" style="width:100%;margin-top:7px;">
+        <option value="">-- Все --</option>
+      </select>
+    </label>
+    <div style="margin-top:18px;display:flex;gap:10px;">
+      <button onclick="submitSalaryExport()" id="submitSalaryExportBtn" style="flex:1;">📤 Отправить</button>
+      <button onclick="closeSalaryExportModal()" style="flex:1;background:#ef4444;">❌ Отмена</button>
+    </div>
+    <div id="salaryExportResult" style="margin-top:16px; color:#059669;"></div>
+  </div>
 </div>
 </body>
 </html>
