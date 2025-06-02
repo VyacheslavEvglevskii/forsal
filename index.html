@@ -400,6 +400,17 @@ button.danger:hover {
   </style>
 </head>
 <body>
+<!-- Загрузочный экран Forsal -->
+<div id="loadingScreen" style="
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;">
+  <img src="forsal-loading-final.png" alt="Загрузка Forsal" style="width:100%; height:100%; object-fit:cover;">
+</div>
   <nav id="bottomNav" class="top-nav" style="display: none;">
     <button id="tabProfile" onclick="switchTab('profile')">👤</button>
     <button id="tabApp" onclick="switchTab('app')" disabled>📋</button>
@@ -2129,5 +2140,17 @@ async function submitSalaryExport() {
     <div id="salaryExportResult" style="margin-top:16px; color:#059669;"></div>
   </div>
 </div>
+<script>
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      const screen = document.getElementById("loadingScreen");
+      if (screen) {
+        screen.style.opacity = "0";
+        screen.style.transition = "opacity 0.5s ease";
+        setTimeout(() => screen.remove(), 500); // Удаление после анимации
+      }
+    }, 5000); // ЗАДЕРЖКА 3 секунды
+  });
+</script>
 </body>
 </html>
