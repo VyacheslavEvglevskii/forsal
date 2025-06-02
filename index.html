@@ -404,12 +404,19 @@ button.danger:hover {
 <div id="loadingScreen" style="
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ffffff;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;">
-  <img src="forsal-loading-final.png" alt="Загрузка Forsal" style="width:100%; height:100%; object-fit:cover;">
+  z-index: 9999;
+">
+  <img src="forsal-loading-final.png" alt="Загрузка Forsal" style="
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    object-fit: contain;
+    padding: 20px;
+  ">
 </div>
   <nav id="bottomNav" class="top-nav" style="display: none;">
     <button id="tabProfile" onclick="switchTab('profile')">👤</button>
