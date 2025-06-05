@@ -633,7 +633,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbyJ93PgU7zCgAEAExfegalxb7VPqt9f7ruGxWc-F_Xu5v9HFbtuQ_1safjkf9wXXvQ/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbydzjM_H053oNckaOfj2OZlIXwbgxksOm3koFkFXTQEQOGmroV0WOovCt4S_jAh2_I/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -1550,6 +1550,7 @@ async function loadStats() {
         <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
         <p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>
         <p><strong>💰 Тариф за шт:</strong> ${rec.ratePerUnit?.toFixed(2) ?? "-"} ₽</p>
+        ${rec.bonusPercent ? `<p><strong>🎁 Бонус:</strong> ${rec.bonusIcon || "🎁"} ${rec.bonusPercent}</p>` : ""}
         <p><strong>💸 Заработано:</strong> ${wage.toFixed(2)} ₽</p>
       `;
 
@@ -1585,7 +1586,6 @@ async function loadStats() {
       `;
     }
 
-    // ✅ Показываем кнопку "❌ Закрыть"
     const closeBtn = document.getElementById("closeStatsBtn");
     if (closeBtn) closeBtn.style.display = "inline-block";
 
@@ -1597,6 +1597,7 @@ async function loadStats() {
     if (showBtn) showBtn.disabled = false;
   }
 }
+
 
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -1744,7 +1745,7 @@ const end = document.getElementById("unifiedEnd").value;
   });
 }
 
-// 👇 Функция анализа упаковщиков с учётом всех правок:
+// ✅ analyzePackers: Основная функция анализа упаковщиков
 async function analyzePackers() {
   const start = document.getElementById("unifiedStart").value;
   const end = document.getElementById("unifiedEnd").value;
@@ -1770,16 +1771,20 @@ async function analyzePackers() {
 
     const rows = list.map(row => {
       let style = "";
-      if (row.name === best.name) style = "background:#d1fae5;";        // 🟩 лучший по количеству
-      if (row.name === best.bestEffName) style = "background:#dbf4ff;"; // 🟦 лучший по эффективности
+      if (row.name === best.name) style = "background:#fef9c3;";          // 🟨 лучший по количеству
+      if (row.name === best.bestEffName) style = "background:#d1fae5;";   // 🟩 лучший по эффективности
       if (row.name === best.worstEffName) style = "background:#fee2e2;"; // 🟥 худший по эффективности
+
+      const [met, total] = row.normsText.split("/").map(Number);
+      const normIcon = total === 0 ? "—" : (met / total >= 0.85 ? "✅" : "⚠️");
 
       return `
         <tr style="${style}">
           <td>${row.name}</td>
           <td>${row.qty}</td>
           <td>${row.efficiency}%</td>
-          <td>${row.wage} ₽</td>
+          <td>${row.wage.toLocaleString("ru-RU")} ₽</td>
+          <td>${row.normsText} ${normIcon}</td>
         </tr>
       `;
     }).join("");
@@ -1794,6 +1799,7 @@ async function analyzePackers() {
             <th>Количество</th>
             <th>Эффективность</th>
             <th>Зарплата</th>
+            <th>Нормы</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1812,6 +1818,8 @@ async function analyzePackers() {
     container.innerHTML = `<p style='color:red;'>Ошибка: ${err.message}</p>`;
   }
 }
+
+
 
 // 👇 Вспомогательная функция очистки отчётов
 function clearReports() {
@@ -1894,33 +1902,30 @@ async function loadShiftStats() {
     const res = await fetch(`${scriptURL}?type=shiftStats&start=${start}&end=${end}`);
     const data = await res.json();
 
-    if (!data || !data.data || !data.data.length) {
+    if (!data || !data.data || !Array.isArray(data.data) || !data.data.length) {
       container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранному периоду</p>";
       return;
     }
+
+    container.innerHTML = "";
 
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "❌ Закрыть отчёт";
     closeBtn.className = "danger";
     closeBtn.style.marginBottom = "12px";
-    closeBtn.onclick = () => {
-      container.innerHTML = "";
-    };
-
-    container.innerHTML = "";
+    closeBtn.onclick = () => (container.innerHTML = "");
     container.appendChild(closeBtn);
 
-    data.data.forEach(group => {
+    data.data.forEach(shiftBlock => {
+      const shiftTitle = document.createElement("div");
+      shiftTitle.innerHTML = `🕐 <strong>Смена:</strong> ${shiftBlock.shift}`;
+      shiftTitle.style.marginTop = "16px";
+      container.appendChild(shiftTitle);
+
       const table = document.createElement("table");
       table.style.width = "100%";
-      table.style.marginTop = "16px";
+      table.style.marginTop = "8px";
       table.style.borderCollapse = "collapse";
-
-      const caption = document.createElement("caption");
-      caption.textContent = `🕐 Смена: ${group.shift}`;
-      caption.style.fontWeight = "bold";
-      caption.style.marginBottom = "8px";
-      table.appendChild(caption);
 
       const thead = document.createElement("thead");
       thead.innerHTML = `
@@ -1928,46 +1933,81 @@ async function loadShiftStats() {
           <th style="padding:6px; border:1px solid #ccc;">Сотрудник</th>
           <th style="padding:6px; border:1px solid #ccc;">Кол-во</th>
           <th style="padding:6px; border:1px solid #ccc;">Эффективность</th>
-          <th style="padding:6px; border:1px solid #ccc;">Зарплата</th>
         </tr>
       `;
       table.appendChild(thead);
 
       const tbody = document.createElement("tbody");
-      group.employees.forEach(e => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td style="padding:6px; border:1px solid #ccc;">${e.name}</td>
-          <td style="padding:6px; border:1px solid #ccc;">${e.quantity}</td>
-          <td style="padding:6px; border:1px solid #ccc;">${e.efficiency}%</td>
-          <td style="padding:6px; border:1px solid #ccc;">${e.wage.toFixed(2)} ₽</td>
+
+      const staff = shiftBlock?.staff?.employees || [];
+      const outsource = shiftBlock?.outsource?.employees || [];
+
+      if (staff.length) {
+        const staffTitleRow = document.createElement("tr");
+        staffTitleRow.innerHTML = `
+          <td colspan="3" style="padding:6px; font-weight:bold; color:#1f2937;">
+            👨‍🔧 Штат (средняя эффективность: ${shiftBlock.staff.averageEfficiency}%)
+          </td>
         `;
-        tbody.appendChild(tr);
-      });
+        tbody.appendChild(staffTitleRow);
+
+        staff.forEach(emp => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      if (outsource.length) {
+        const outTitleRow = document.createElement("tr");
+        outTitleRow.innerHTML = `
+          <td colspan="3" style="padding:6px; font-weight:bold; color:#6b21a8;">
+            📄 Аутсорсинг (средняя эффективность: ${shiftBlock.outsource.averageEfficiency}%)
+          </td>
+        `;
+        tbody.appendChild(outTitleRow);
+
+        outsource.forEach(emp => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
       table.appendChild(tbody);
       container.appendChild(table);
 
-      const totalQty = group.employees.reduce((sum, e) => sum + e.quantity, 0);
-      const totalWage = group.employees.reduce((sum, e) => sum + e.wage, 0);
-      const avgEff = Math.round(
-        group.employees.reduce((sum, e) => sum + e.efficiency, 0) / group.employees.length
-      );
-
-      const summary = document.createElement("div");
-      summary.style.marginTop = "8px";
-      summary.style.padding = "8px";
-      summary.style.background = "#fef3c7";
-      summary.style.borderRadius = "6px";
-      summary.style.fontWeight = "bold";
-      summary.textContent = `📊 Итого: 🔢 ${totalQty} шт | ⚙️ ${avgEff}% | 💰 ${totalWage.toFixed(2)} ₽`;
-
-      container.appendChild(summary);
+      // === Блок общей эффективности (по текущей смене)
+      const totalEff = shiftBlock.total || {};
+      const footer = document.createElement("div");
+      footer.style.marginTop = "12px";
+      footer.style.padding = "12px";
+      footer.style.background = "#ecfdf5";
+      footer.style.borderRadius = "8px";
+      footer.style.fontWeight = "500";
+      footer.innerHTML = `
+        📊 <b>Эффективность за смену:</b><br>
+        👨‍🔧 Штат — ${totalEff.staff || 0}% |
+        🤝 Аутсорсинг — ${totalEff.outsource || 0}% |
+        📦 Общая — ${totalEff.overall || 0}%
+      `;
+      container.appendChild(footer);
     });
 
   } catch (err) {
     container.innerHTML = `<p style='color:red;'>Ошибка загрузки: ${err.message}</p>`;
   }
 }
+
+
 
 
 // 📡 Проверка подключения к интернету
