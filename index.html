@@ -541,8 +541,6 @@ button.danger:hover {
 </div>
 <div class="container" style="display:none;" id="profileContainer">
   <h2>👤 Личный профиль</h2>
-
-
   <label>Тип смены:
     <select id="shiftType">
       <option value="">-- Выберите смену --</option>
@@ -560,12 +558,20 @@ button.danger:hover {
     </select>
   </label>
 
+  <!-- ВСТАВЬ СЮДА: -->
+  <label>Модель упаковки:
+    <select id="profilePackingModel" name="profilePackingModel" required>
+      <option value="">-- Выберите --</option>
+      <!-- Опции будут подгружены из справочника -->
+    </select>
+  </label>
+
   <button onclick="saveProfile()">💾 Сохранить</button>
-<p id="profileSaved" style="color:green; text-align:center; display:none;">✅ Сохранено</p>
-<p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
-  ⚠️ Укажите тип смены и статус, затем нажмите «Сохранить», чтобы разблокировать вкладку "Учёт".
+  <p id="profileSaved" style="color:green; text-align:center; display:none;">✅ Сохранено</p>
+  <p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
+  ⚠️ Укажите тип смены, статус и модель упаковки, затем нажмите «Сохранить», чтобы разблокировать вкладку "Учёт".
 </p>
-<button id="logoutBtn" onclick="handleLogout()" class="danger">🚪 Выйти</button>
+  <button id="logoutBtn" onclick="handleLogout()" class="danger">🚪 Выйти</button>
 </div>
 <div class="container" style="display:none;" id="ratesContainer">
   <h2>💰 Тарифы и нормативы</h2>
@@ -633,7 +639,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbydzjM_H053oNckaOfj2OZlIXwbgxksOm3koFkFXTQEQOGmroV0WOovCt4S_jAh2_I/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbyoan1HBoNe2SoBp2eiafmFfYmv85qgpNwrQuQ0neUjXawNpskXmsS8rSRXk2TcDIg/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -644,7 +650,8 @@ let currentUserRole = "user"; // ← добавляем сюда
 
 
 function isProfileComplete() {
-  return currentShift && currentStatus;
+  const packingModel = document.getElementById("profilePackingModel").value;
+  return currentShift && currentStatus && packingModel;
 }
 
 function requireProfile() {
@@ -660,20 +667,23 @@ function requireProfile() {
 function saveProfile() {
   const shiftSelect = document.getElementById("shiftType");
   const statusSelect = document.getElementById("employeeStatus");
+  const packingModelSelect = document.getElementById("profilePackingModel");
 
   const shiftValue = shiftSelect.value;
   const statusValue = statusSelect.value;
+  const packingModel = packingModelSelect.value;
 
   // Обновляем глобальные переменные
   currentShift = shiftValue;
   currentStatus = statusValue;
 
-  const isFilled = shiftValue && statusValue;
+  // Теперь все три поля обязательны
+  const isFilled = shiftValue && statusValue && packingModel;
 
   const hint = document.getElementById("profileHint");
   const msg = document.getElementById("profileSaved");
   const tabApp = document.getElementById("tabApp");
-  const tabMySalary = document.getElementById("tabMySalary"); // ✅ добавлено
+  const tabMySalary = document.getElementById("tabMySalary");
 
   // Отображение подсказок
   hint.style.display = isFilled ? "none" : "block";
@@ -1134,6 +1144,9 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   const form = e.target;
   const formData = new FormData(form);
   const result = document.getElementById("result");
+
+const packingModel = document.getElementById("profilePackingModel").value;
+  formData.append("packingModel", packingModel);
 
   const submitBtn = form.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
@@ -1602,6 +1615,7 @@ async function loadStats() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   await loadEditFormDictionaries();
+  await loadPackingModels();
 
   const savedUser = localStorage.getItem("currentUser");
   const savedRole = localStorage.getItem("currentUserRole");
@@ -1695,6 +1709,24 @@ window.addEventListener("DOMContentLoaded", async () => {
   setTimeout(saveProfile, 0);
 });
 
+async function loadPackingModels() {
+  const select = document.getElementById("profilePackingModel");
+  if (!select) return;
+  select.innerHTML = '<option value="">-- Выберите --</option>';
+  try {
+    const res = await fetch(`${scriptURL}?type=packingModels`);
+    const data = await res.json();
+    (data.models || []).forEach(model => {
+      const opt = document.createElement("option");
+      opt.value = model;
+      opt.textContent = model;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    select.innerHTML = '<option value="">Ошибка загрузки</option>';
+  }
+}
+
 async function manualExport() {
   withLoading("exportBtn", async () => {
     const start = document.getElementById("unifiedStart").value;
@@ -1745,7 +1777,6 @@ const end = document.getElementById("unifiedEnd").value;
   });
 }
 
-// ✅ analyzePackers: Основная функция анализа упаковщиков
 async function analyzePackers() {
   const start = document.getElementById("unifiedStart").value;
   const end = document.getElementById("unifiedEnd").value;
@@ -1767,7 +1798,7 @@ async function analyzePackers() {
       return;
     }
 
-    const { list, best } = json;
+    const { list, best, totalNormsMet, totalNormsTotal, totalNormsPercent } = json;
 
     const rows = list.map(row => {
       let style = "";
@@ -1775,8 +1806,14 @@ async function analyzePackers() {
       if (row.name === best.bestEffName) style = "background:#d1fae5;";   // 🟩 лучший по эффективности
       if (row.name === best.worstEffName) style = "background:#fee2e2;"; // 🟥 худший по эффективности
 
-      const [met, total] = row.normsText.split("/").map(Number);
-      const normIcon = total === 0 ? "—" : (met / total >= 0.85 ? "✅" : "⚠️");
+      // Для нормы
+      const met = Number(row.normsMet);
+      const total = Number(row.normsTotal);
+      const percent = total > 0 ? Math.round((met / total) * 100) : 0;
+      let normIcon = "⚠️";
+      if (total === 0) normIcon = "—";
+      else if (percent >= 85) normIcon = "✅";
+      else if (percent > 0) normIcon = "⚠️";
 
       return `
         <tr style="${style}">
@@ -1784,7 +1821,7 @@ async function analyzePackers() {
           <td>${row.qty}</td>
           <td>${row.efficiency}%</td>
           <td>${row.wage.toLocaleString("ru-RU")} ₽</td>
-          <td>${row.normsText} ${normIcon}</td>
+          <td>${met}/${total} (${percent}%) ${normIcon}</td>
         </tr>
       `;
     }).join("");
@@ -1810,6 +1847,11 @@ async function analyzePackers() {
         💯 <strong>Лучший по эффективности:</strong> ${best.bestEffName} — ${best.bestEffValue}%<br/>
         🔻 <strong>Худший по эффективности:</strong> ${best.worstEffName} — ${best.worstEffValue}%
       </p>
+      <div style="margin-top:16px; padding:10px; background:#f3f4f6; border-radius:8px; font-weight:500;">
+        📊 <b>Итого по выполнению норм за смену:</b>
+        <br>
+        ${totalNormsMet}/${totalNormsTotal} (${totalNormsPercent}%)
+      </div>
     `;
 
     container.innerHTML = table;
@@ -1818,7 +1860,6 @@ async function analyzePackers() {
     container.innerHTML = `<p style='color:red;'>Ошибка: ${err.message}</p>`;
   }
 }
-
 
 
 // 👇 Вспомогательная функция очистки отчётов
@@ -1918,7 +1959,12 @@ async function loadShiftStats() {
 
     data.data.forEach(shiftBlock => {
       const shiftTitle = document.createElement("div");
-      shiftTitle.innerHTML = `🕐 <strong>Смена:</strong> ${shiftBlock.shift}`;
+      shiftTitle.innerHTML = `
+        🕐 <strong>Смена:</strong> ${shiftBlock.shift}
+        <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
+        <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт.
+        <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт.
+      `;
       shiftTitle.style.marginTop = "16px";
       container.appendChild(shiftTitle);
 
@@ -2006,9 +2052,6 @@ async function loadShiftStats() {
     container.innerHTML = `<p style='color:red;'>Ошибка загрузки: ${err.message}</p>`;
   }
 }
-
-
-
 
 // 📡 Проверка подключения к интернету
 window.addEventListener('offline', () => {
