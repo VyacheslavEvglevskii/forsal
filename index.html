@@ -2018,10 +2018,11 @@ async function loadShiftStats() {
       shiftTitle.style.marginTop = "16px";
       container.appendChild(shiftTitle);
 
-      const scrollDiv = document.createElement("div");
-scrollDiv.className = "table-scroll";
-scrollDiv.appendChild(table);
-container.appendChild(scrollDiv);
+      // === ВАЖНО: создаём table ===
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.borderCollapse = "collapse";
+      table.style.marginTop = "10px";
 
       const thead = document.createElement("thead");
       thead.innerHTML = `
@@ -2079,7 +2080,12 @@ container.appendChild(scrollDiv);
       }
 
       table.appendChild(tbody);
-      container.appendChild(table);
+
+      // === Оборачиваем таблицу в scrollDiv ===
+      const scrollDiv = document.createElement("div");
+      scrollDiv.className = "table-scroll";
+      scrollDiv.appendChild(table);
+      container.appendChild(scrollDiv);
 
       // === Блок общей эффективности (по текущей смене)
       const totalEff = shiftBlock.total || {};
