@@ -688,7 +688,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwHyQAWurl_3qsLps6odWZjmnG24O2mgZEDHSyF558WQ16cbf0UFCr3eBtV6_ArkGs/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbx1tA4l6Buc4nunawBSwXwdhf0_mnporlG0HILylZmri8qCw3f7HU9IJAei0Qqc6fI/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -1151,9 +1151,15 @@ function updateRateDisplay() {
 
   if (matched) {
     norm.textContent = matched.normPerHour;
-    rate.textContent = matched.ratePerUnit.toFixed(2) + " ₽";
+    // --- Выбор тарифа с учётом модели упаковки ---
+    const packingModel = (document.getElementById("profilePackingModel")?.value || "").toLowerCase();
+    let ratePerUnit = matched.ratePerUnit;
+    if (packingModel.includes("fbs") && matched.rateFBS) {
+      ratePerUnit = matched.rateFBS;
+    }
+    rate.textContent = ratePerUnit.toFixed(2) + " ₽";
 
-    const totalPay = quantity * matched.ratePerUnit;
+    const totalPay = quantity * ratePerUnit;
 
     let durationMin = 0;
     if (startTime && endTime) {
@@ -1187,6 +1193,7 @@ document.querySelector('[name="setNumber"]').addEventListener("change", updateRa
 document.querySelector('[name="quantity"]').addEventListener("input", updateRateDisplay);
 document.querySelector('[name="startTime"]').addEventListener("change", updateRateDisplay);
 document.querySelector('[name="endTime"]').addEventListener("change", updateRateDisplay);
+document.getElementById("profilePackingModel").addEventListener("change", updateRateDisplay);
 
 document.getElementById("dataForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -2008,15 +2015,15 @@ async function loadShiftStats() {
     container.appendChild(closeBtn);
 
     data.data.forEach(shiftBlock => {
-      const shiftTitle = document.createElement("div");
-      shiftTitle.innerHTML = `
-        🕐 <strong>Смена:</strong> ${shiftBlock.shift}
-        <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
-        <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт.
-        <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт.
-      `;
-      shiftTitle.style.marginTop = "16px";
-      container.appendChild(shiftTitle);
+  const shiftTitle = document.createElement("div");
+  shiftTitle.innerHTML = `
+    🕐 <strong>Смена:</strong> ${shiftBlock.shift}
+    <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
+    <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт.
+    <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт.
+  `;
+  shiftTitle.style.marginTop = "16px";
+  container.appendChild(shiftTitle);
 
       // === ВАЖНО: создаём table ===
       const table = document.createElement("table");
@@ -2088,7 +2095,13 @@ async function loadShiftStats() {
       container.appendChild(scrollDiv);
 
       // === Блок общей эффективности (по текущей смене)
-      const totalEff = shiftBlock.total || {};
+      const staffEff = shiftBlock?.staff?.averageEfficiency;
+      const outsourceEff = shiftBlock?.outsource?.averageEfficiency;
+      const overallEff = shiftBlock?.total?.overall;
+      // Для красивого отображения "—" если нет данных
+      function effVal(val) {
+        return (val === undefined || val === null) ? "—" : val + "%";
+      }
       const footer = document.createElement("div");
       footer.style.marginTop = "12px";
       footer.style.padding = "12px";
@@ -2097,9 +2110,9 @@ async function loadShiftStats() {
       footer.style.fontWeight = "500";
       footer.innerHTML = `
         📊 <b>Эффективность за смену:</b><br>
-        👨‍🔧 Штат — ${totalEff.staff || 0}% |
-        🤝 Аутсорсинг — ${totalEff.outsource || 0}% |
-        📦 Общая — ${totalEff.overall || 0}%
+        👨‍🔧 Штат — ${effVal(staffEff)} |
+        🤝 Аутсорсинг — ${effVal(outsourceEff)} |
+        📦 Общая — ${effVal(overallEff)}
       `;
       container.appendChild(footer);
     });
