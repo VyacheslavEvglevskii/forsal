@@ -20,6 +20,20 @@ body {
   background-color: #f1f5f9;
 }
 
+.table-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  #ratesTable table, .table-scroll table {
+    font-size: 12px;
+    min-width: 600px;
+  }
+  #ratesTable th, #ratesTable td {
+    padding: 6px 8px;
+  }
+}
+
 h2 {
   font-size: 22px;
   font-weight: 600;
@@ -606,7 +620,18 @@ button.danger:hover {
       <option>Стажёр</option>
     </select>
   </label>
-
+<label>Тип оплаты:
+  <select id="profilePayType" required>
+    <option value="">-- Выберите --</option>
+    <option value="Сделка">Сделка</option>
+    <option value="Оклад + сделка">Оклад + сделка</option>
+  </select>
+</label>
+<div id="salaryBlock" style="display:none;">
+  <label>Оклад:
+    <input id="profileSalary" type="number" readonly />
+  </label>
+</div>
   <!-- ВСТАВЬ СЮДА: -->
   <label>Модель упаковки:
     <select id="profilePackingModel" name="profilePackingModel" required>
@@ -654,11 +679,11 @@ button.danger:hover {
 
   <!-- 🔘 Действия -->
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
-  <button onclick="loadShiftStats()">📊 Сводка по сменам</button>
-  <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ упаковщиков</button>
-  <button onclick="manualExport()" id="exportBtn">💾 Экспорт</button>
-  <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт за период</button>
-<button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты</button>
+  <button onclick="loadShiftStats()">📊 Сводка по смене</button>
+  <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ штатных упаковщиков</button>
+  <button onclick="manualExport()" id="exportBtn">💾 Экспорт данных на сервер</button>
+  <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт показателей за период</button>
+<button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты HR</button>
 
 </div>
 
@@ -688,7 +713,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbx1tA4l6Buc4nunawBSwXwdhf0_mnporlG0HILylZmri8qCw3f7HU9IJAei0Qqc6fI/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbz2ZjHzOD6UuEOi5pxmXYcfTt_3deKGMpYqp_jJYb4VCZUdqbXmpo3ZLS0CgboCzlU/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -696,6 +721,59 @@ let currentStatus = "";
  let allRates = [];
 let allVolumes = []; // ← добавь это!
 let currentUserRole = "user"; // ← добавляем сюда
+
+// === ЛОГИКА: Ограничение типа оплаты для аутсорсинга ===
+document.getElementById("employeeStatus").addEventListener("change", function() {
+  const status = this.value;
+  const payTypeSelect = document.getElementById("profilePayType");
+  const salaryBlock = document.getElementById("salaryBlock");
+
+  if (status === "Аутсорсинг") {
+    // Оставляем только "Сделка"
+    payTypeSelect.innerHTML = '<option value="Сделка">Сделка</option>';
+    payTypeSelect.value = "Сделка";
+    salaryBlock.style.display = "none";
+    localStorage.setItem("profilePayType", "Сделка");
+    localStorage.removeItem("profileSalary");
+  } else {
+    // Восстанавливаем оба варианта
+    payTypeSelect.innerHTML = '<option value="">-- Выберите --</option><option value="Сделка">Сделка</option><option value="Оклад + сделка">Оклад + сделка</option>';
+    // Восстановить выбранное ранее значение, если есть
+    const savedPayType = localStorage.getItem("profilePayType") || "";
+    payTypeSelect.value = savedPayType;
+    // Показывать блок оклада только если "Оклад + сделка"
+    if (payTypeSelect.value === "Оклад + сделка") {
+      salaryBlock.style.display = "block";
+    } else {
+      salaryBlock.style.display = "none";
+    }
+  }
+});
+
+// === ЛОГИКА: Показывать блок оклада только для "Оклад + сделка" ===
+document.getElementById("profilePayType").addEventListener("change", async function() {
+  const salaryBlock = document.getElementById("salaryBlock");
+  const salaryInput = document.getElementById("profileSalary");
+  if (this.value === "Оклад + сделка") {
+    salaryBlock.style.display = "block";
+    // Подгружаем оклад с сервера
+    const currentUser = localStorage.getItem("currentUser") || "";
+    try {
+      const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(currentUser)}`);
+      const data = await res.json();
+      const salary = data.salary || "";
+      salaryInput.value = salary;
+      localStorage.setItem("profileSalary", salary);
+    } catch (err) {
+      salaryInput.value = "";
+    }
+  } else {
+    salaryBlock.style.display = "none";
+    salaryInput.value = "";
+    localStorage.removeItem("profileSalary");
+  }
+});
+
 
 
 function isProfileComplete() {
@@ -713,44 +791,70 @@ function requireProfile() {
 }
 
 
-function saveProfile() {
+async function saveProfile() {
   const shiftSelect = document.getElementById("shiftType");
   const statusSelect = document.getElementById("employeeStatus");
   const packingModelSelect = document.getElementById("profilePackingModel");
+  const payTypeSelect = document.getElementById("profilePayType");
+  const salaryInput = document.getElementById("profileSalary");
 
   const shiftValue = shiftSelect.value;
   const statusValue = statusSelect.value;
   const packingModel = packingModelSelect.value;
+  const payType = payTypeSelect.value;
 
-  // Обновляем глобальные переменные
-  currentShift = shiftValue;
-  currentStatus = statusValue;
+  // Сохраняем в localStorage
+  localStorage.setItem("profileShiftType", shiftValue);
+  localStorage.setItem("profileStatus", statusValue);
+  localStorage.setItem("profilePackingModel", packingModel);
+  localStorage.setItem("profilePayType", payType);
 
-  // Теперь все три поля обязательны
-  const isFilled = shiftValue && statusValue && packingModel;
+  // Если выбран "Оклад + сделка", подтягиваем оклад с сервера
+  let salary = "";
+  if (payType === "Оклад + сделка") {
+    try {
+      const currentUser = localStorage.getItem("currentUser") || "";
+      const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(currentUser)}`);
+      const data = await res.json();
+      salary = data.salary || "";
+    } catch (err) {
+      salary = "";
+    }
+    salaryInput.value = salary;
+    localStorage.setItem("profileSalary", salary);
+    document.getElementById("salaryBlock").style.display = "block";
+  } else {
+    salaryInput.value = "";
+    localStorage.removeItem("profileSalary");
+    document.getElementById("salaryBlock").style.display = "none";
+  }
 
+  // Проверка заполненности профиля
+  const isFilled = shiftValue && statusValue && packingModel && payType;
   const hint = document.getElementById("profileHint");
   const msg = document.getElementById("profileSaved");
   const tabApp = document.getElementById("tabApp");
   const tabMySalary = document.getElementById("tabMySalary");
 
-  // Отображение подсказок
   hint.style.display = isFilled ? "none" : "block";
   msg.style.display = isFilled ? "block" : "none";
   tabApp.disabled = !isFilled;
   tabApp.innerHTML = isFilled ? "📋" : "🔒";
 
-  // 👇 Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
+  // Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
   if (tabMySalary) {
     tabMySalary.style.display = (statusValue === "Аутсорсинг") ? "none" : "inline-block";
   }
 
-  // ⏳ Автоскрытие уведомления
+  // Автоскрытие уведомления
   if (isFilled) {
     setTimeout(() => msg.style.display = "none", 2000);
   }
-}
 
+  // <<< ВАЖНО: обновляем переменные для проверки профиля >>>
+  currentShift = shiftValue;
+  currentStatus = statusValue;
+}
 
 function switchTab(tabName) {
   // 🔐 Блокировка, если профиль не заполнен
@@ -1139,6 +1243,7 @@ function updateRateDisplay() {
 
   const key = (operationType.includes("Сборка")) ? setNumber : volume;
 
+  // Найти нужный тариф
   const matched = allRates.find(r => r.operation === operationType && r.key === key);
 
   const block = document.getElementById("rateInfo");
@@ -1151,13 +1256,29 @@ function updateRateDisplay() {
 
   if (matched) {
     norm.textContent = matched.normPerHour;
-    // --- Выбор тарифа с учётом модели упаковки ---
+
+    // --- Выбор тарифа с учётом типа оплаты и FBS ---
     const packingModel = (document.getElementById("profilePackingModel")?.value || "").toLowerCase();
-    let ratePerUnit = matched.ratePerUnit;
-    if (packingModel.includes("fbs") && matched.rateFBS) {
-      ratePerUnit = matched.rateFBS;
+    const payType = localStorage.getItem("profilePayType") || "Сделка";
+    let ratePerUnit = 0;
+
+    if (payType === "Оклад + сделка") {
+      // Оклад+сделка: отдельные тарифы
+      if (packingModel.includes("fbs") && matched.rateFBSDeal !== undefined) {
+        ratePerUnit = Number(matched.rateFBSDeal);
+      } else if (matched.rateDeal !== undefined) {
+        ratePerUnit = Number(matched.rateDeal);
+      }
+    } else {
+      // Обычная сделка
+      if (packingModel.includes("fbs") && matched.rateFBS !== undefined) {
+        ratePerUnit = Number(matched.rateFBS);
+      } else if (matched.ratePerUnit !== undefined) {
+        ratePerUnit = Number(matched.ratePerUnit);
+      }
     }
-    rate.textContent = ratePerUnit.toFixed(2) + " ₽";
+
+    rate.textContent = ratePerUnit ? ratePerUnit.toFixed(2) + " ₽" : "-";
 
     const totalPay = quantity * ratePerUnit;
 
@@ -1187,6 +1308,7 @@ function updateRateDisplay() {
     calcBlock.style.display = "none";
   }
 }
+
 document.querySelector('[name="operationType"]').addEventListener("change", updateRateDisplay);
 document.querySelector('[name="volume"]').addEventListener("change", updateRateDisplay);
 document.querySelector('[name="setNumber"]').addEventListener("change", updateRateDisplay);
@@ -1201,16 +1323,11 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   const formData = new FormData(form);
   const result = document.getElementById("result");
 
-const packingModel = document.getElementById("profilePackingModel").value;
+  // Добавляем модель упаковки из профиля
+  const packingModel = document.getElementById("profilePackingModel").value;
   formData.append("packingModel", packingModel);
 
-  const submitBtn = form.querySelector('button[type="submit"]');
-  submitBtn.disabled = true;
-  submitBtn.textContent = "⏳ Отправка...";
-  result.style.display = "none";
-
-  await loadTodayRecords();
-
+  // Пересчёт продолжительности (если нужно)
   const start = formData.get("startTime");
   const end = formData.get("endTime");
   if (start && end) {
@@ -1223,12 +1340,16 @@ const packingModel = document.getElementById("profilePackingModel").value;
     document.querySelector('[name="duration"]').value = duration;
   }
 
+  // Добавляем данные профиля
   formData.append("shiftType", currentShift);
   formData.append("employeeStatus", currentStatus);
-  if (formData.get("operationType") === "Маркировка продукции ш/к") {
-    formData.set("volume", "Общая");
-  }
 
+  // === ВАЖНО: добавляем тип оплаты и оклад из профиля ===
+  formData.append("payType", localStorage.getItem("profilePayType") || "");
+  formData.append("salary", localStorage.getItem("profileSalary") || "");
+
+  // Проверка на дубликаты (локальная)
+  await loadTodayRecords();
   const payload = {
     employeeName: formData.get("employeeName")?.trim(),
     quantity: formData.get("quantity")?.trim(),
@@ -1259,18 +1380,23 @@ const packingModel = document.getElementById("profilePackingModel").value;
     return true;
   });
 
+  const submitBtn = form.querySelector('button[type="submit"]');
   if (isDuplicate) {
     result.textContent = "⚠️ Такая запись уже существует (локальная проверка)";
     result.style.display = "block";
     submitBtn.disabled = false;
     submitBtn.textContent = "💾 Сохранить";
-
     form.reset();
     document.querySelector('[name="employeeName"]').value = currentUser;
     handleOperationChange("");
     updateRateDisplay();
     return;
   }
+
+  // Отправка на сервер
+  submitBtn.disabled = true;
+  submitBtn.textContent = "⏳ Отправка...";
+  result.style.display = "none";
 
   try {
     const response = await fetch(scriptURL, {
@@ -1311,8 +1437,13 @@ async function loadRatesTable() {
   opFilter.innerHTML = '<option value="">-- Все операции --</option>';
   keyFilter.innerHTML = '<option value="">-- Все объёмы / артикулы --</option>';
 
-  const operations = [...new Set(allRates.map(r => r.operation))];
-  const keys = [...new Set(allRates.map(r => r.key))];
+  // Фильтруем лишние ставки
+  const filteredRates = allRates.filter(r =>
+    r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат"
+  );
+
+  const operations = [...new Set(filteredRates.map(r => r.operation))];
+  const keys = [...new Set(filteredRates.map(r => r.key))];
 
   operations.forEach(op => {
     const opt = document.createElement("option");
@@ -1332,73 +1463,49 @@ async function loadRatesTable() {
     const selectedOp = opFilter.value;
     const selectedKey = keyFilter.value;
 
-    const filtered = allRates.filter(r =>
+    const filtered = filteredRates.filter(r =>
       (!selectedOp || r.operation === selectedOp) &&
       (!selectedKey || r.key === selectedKey)
     );
 
-    const grouped = {};
-    filtered.forEach(r => {
-      if (!grouped[r.operation]) grouped[r.operation] = [];
-      grouped[r.operation].push(r);
-    });
-
-    container.innerHTML = "";
-
-    if (!Object.keys(grouped).length) {
+    if (!filtered.length) {
       container.innerHTML = "<p style='text-align:center;'>Нет совпадений</p>";
       return;
     }
 
-    Object.entries(grouped).forEach(([operation, entries]) => {
-      const wrapper = document.createElement("div");
-      wrapper.style.marginBottom = "14px";
-      wrapper.style.border = "1px solid #ccc";
-      wrapper.style.borderRadius = "10px";
-      wrapper.style.overflow = "hidden";
-      wrapper.style.background = "#fff";
+    let html = `
+      <div class="table-scroll">
+      <table style="width:100%; border-collapse:collapse; font-size:14px; min-width:700px;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th>🏷️ Операция</th>
+            <th>📦 Объём / Артикул</th>
+            <th>⏱️ Норма в час</th>
+            <th>💰 Тариф/шт (сдельная)</th>
+            <th>🚚 Тариф FBS/шт (сдельная)</th>
+            <th>🧾 Тариф/шт (оклад+сделка)</th>
+            <th>🚚🧾 Тариф FBS/шт (оклад+сделка)</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
 
-      // Аккордеон-кнопка
-      const toggle = document.createElement("button");
-      toggle.textContent = `📌 ${operation}`;
-      toggle.style.width = "100%";
-      toggle.style.padding = "14px";
-      toggle.style.textAlign = "left";
-      toggle.style.fontWeight = "600";
-      toggle.style.fontSize = "15px";
-      toggle.style.border = "none";
-      toggle.style.background = "#2563eb";
-      toggle.style.color = "white";
-      toggle.style.cursor = "pointer";
-      toggle.style.outline = "none";
-
-      // Контент
-      const content = document.createElement("div");
-      content.style.display = "none";
-      content.style.padding = "10px 16px";
-      content.style.fontSize = "14px";
-      content.style.color = "#1f2937";
-      content.style.background = "#f9fafb";
-
-      entries.forEach(r => {
-        const row = document.createElement("div");
-        row.style.marginBottom = "8px";
-        row.innerHTML = `
-          🔸 <strong>Объём:</strong> ${r.key}<br>
-          ⚙️ <strong>Норма:</strong> ${r.normPerHour} шт/ч<br>
-          💰 <strong>Тариф:</strong> ${r.ratePerUnit.toFixed(2)} ₽/шт
-        `;
-        content.appendChild(row);
-      });
-
-      toggle.onclick = () => {
-        content.style.display = (content.style.display === "none") ? "block" : "none";
-      };
-
-      wrapper.appendChild(toggle);
-      wrapper.appendChild(content);
-      container.appendChild(wrapper);
+    filtered.forEach(r => {
+      html += `
+        <tr>
+          <td>${r.operation}</td>
+          <td>${r.key}</td>
+          <td>${r.normPerHour}</td>
+          <td>${r.ratePerUnit.toFixed(2)} ₽</td>
+          <td>${r.rateFBS.toFixed(2)} ₽</td>
+          <td>${r.rateDeal.toFixed(2)} ₽</td>
+          <td>${r.rateFBSDeal.toFixed(2)} ₽</td>
+        </tr>
+      `;
     });
+
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
   }
 
   opFilter.onchange = renderFilteredRates;
@@ -1406,7 +1513,6 @@ async function loadRatesTable() {
 
   renderFilteredRates(); // первая отрисовка
 }
-
 
 async function loadOperationFilter() {
   const res = await fetch(`${scriptURL}?type=operations`);
