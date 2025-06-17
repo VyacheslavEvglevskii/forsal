@@ -713,7 +713,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbz2ZjHzOD6UuEOi5pxmXYcfTt_3deKGMpYqp_jJYb4VCZUdqbXmpo3ZLS0CgboCzlU/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwNk0Tp339Qauzh4EWlxzicescfTlX7B-2tR_g_NCtHPv1DrU5xgFfC1EvZwjzEMME/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -1202,12 +1202,12 @@ async function deleteRecord(index) {
   }
 
   // === 🔒 Маркировка продукции — объём фиксированный ===
-  if (operation === "Маркировка продукции ш/к") {
-    volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
-    volumeSelect.value = "Общая";
-    volumeSelect.disabled = true;
-    return;
-  }
+ if (operation === "Маркировка продукции ш/к") {
+  volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
+  volumeSelect.value = "Общая";
+  volumeSelect.readOnly = true; // или просто не делайте ничего, чтобы поле было доступно для отправки
+  return;
+}
 
   // === 📂 Подгрузка объёмов по операции ===
   volumeSelect.disabled = false;
@@ -1343,8 +1343,6 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   // Добавляем данные профиля
   formData.append("shiftType", currentShift);
   formData.append("employeeStatus", currentStatus);
-
-  // === ВАЖНО: добавляем тип оплаты и оклад из профиля ===
   formData.append("payType", localStorage.getItem("profilePayType") || "");
   formData.append("salary", localStorage.getItem("profileSalary") || "");
 
@@ -1393,7 +1391,12 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
     return;
   }
 
-  // Отправка на сервер
+  // === КЛЮЧЕВОЕ: отправляем через URLSearchParams ===
+  const params = new URLSearchParams();
+  formData.forEach((value, key) => {
+    params.append(key, value);
+  });
+
   submitBtn.disabled = true;
   submitBtn.textContent = "⏳ Отправка...";
   result.style.display = "none";
@@ -1401,7 +1404,7 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   try {
     const response = await fetch(scriptURL, {
       method: "POST",
-      body: formData
+      body: params
     });
     const resultData = await response.json();
     result.textContent = resultData.message;
