@@ -719,7 +719,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbxusNkTQrSYtisZY6kid-1I7H7O7TBFZetFmPANyI_FzKFFNuDw43Og0fIs8JOOJk0/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwl2_vb1SHhWUCUp95WqdmcqVOT-3KRQe39E6ofNxGejEpjzf6IYYV-rEtT9N1We9A/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -1508,6 +1508,11 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
       method: "POST",
       body: params
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const resultData = await response.json();
     result.textContent = resultData.message;
     result.style.display = "block";
@@ -1520,6 +1525,7 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
       await loadTodayRecords();
     }
   } catch (error) {
+    console.error("❌ Ошибка отправки данных:", error);
     result.textContent = "❌ Ошибка отправки: " + error.message;
     result.style.display = "block";
   } finally {
