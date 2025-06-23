@@ -787,6 +787,59 @@ function isProfileComplete() {
   return currentShift && currentStatus && packingModel;
 }
 
+// 🔄 Функция восстановления профиля из localStorage
+function restoreProfile() {
+  const shiftType = localStorage.getItem("profileShiftType") || "";
+  const status = localStorage.getItem("profileStatus") || "";
+  const packingModel = localStorage.getItem("profilePackingModel") || "";
+  const payType = localStorage.getItem("profilePayType") || "";
+  const salary = localStorage.getItem("profileSalary") || "";
+
+  // Восстанавливаем значения в полях
+  const shiftSelect = document.getElementById("shiftType");
+  const statusSelect = document.getElementById("employeeStatus");
+  const packingModelSelect = document.getElementById("profilePackingModel");
+  const payTypeSelect = document.getElementById("profilePayType");
+  const salaryInput = document.getElementById("profileSalary");
+
+  if (shiftSelect) shiftSelect.value = shiftType;
+  if (statusSelect) statusSelect.value = status;
+  if (packingModelSelect) packingModelSelect.value = packingModel;
+  if (payTypeSelect) payTypeSelect.value = payType;
+  if (salaryInput) salaryInput.value = salary;
+
+  // Обновляем переменные для проверки профиля
+  currentShift = shiftType;
+  currentStatus = status;
+
+  // Показываем/скрываем блок оклада
+  const salaryBlock = document.getElementById("salaryBlock");
+  if (salaryBlock) {
+    salaryBlock.style.display = (payType === "Оклад + сделка") ? "block" : "none";
+  }
+
+  // Обновляем доступность вкладок
+  if (currentUserRole !== "admin") {
+    const isFilled = shiftType && status && packingModel && payType;
+    const hint = document.getElementById("profileHint");
+    const msg = document.getElementById("profileSaved");
+    const tabApp = document.getElementById("tabApp");
+    const tabMySalary = document.getElementById("tabMySalary");
+
+    if (hint) hint.style.display = isFilled ? "none" : "block";
+    if (msg) msg.style.display = isFilled ? "block" : "none";
+    if (tabApp) {
+      tabApp.disabled = !isFilled;
+      tabApp.innerHTML = isFilled ? "📋" : "🔒";
+    }
+
+    // Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
+    if (tabMySalary) {
+      tabMySalary.style.display = (status === "Аутсорсинг") ? "none" : "inline-block";
+    }
+  }
+}
+
 function requireProfile() {
   if (!isProfileComplete()) {
     alert("⚠️ Сначала заполните профиль и нажмите «Сохранить»");
@@ -972,11 +1025,26 @@ async function handleLogin() {
         // Для обычных пользователей - обычная логика
         document.getElementById("bottomNav").style.display = "flex";
         switchTab("profile"); // ✅ Мгновенно открываем профиль
-        saveProfile();        // 🔄 Обновляем доступность вкладок
+        
+        // 🔄 Загружаем справочники и восстанавливаем профиль
+        await Promise.all([
+          loadVolumes(),
+          loadOperations(),
+          loadSetNumbers(),
+          loadTodayRecords(),
+          loadOperationFilter(),
+          loadRatesTable(),
+          loadPackingModels()
+        ]);
+        
+        restoreProfile(); // 🔄 Восстанавливаем профиль из localStorage
+        saveProfile();    // 🔄 Обновляем доступность вкладок
       }
 
-      // Асинхронная фоновая загрузка (ускорение)
-      loadAllDictionariesInBackground();
+      // Асинхронная фоновая загрузка (ускорение) - только для админов
+      if (currentUserRole === "admin") {
+        loadAllDictionariesInBackground();
+      }
 
     } else {
       errorElem.textContent = "❌ Неверный логин или PIN-код";
@@ -1877,6 +1945,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       loadOperationFilter(),
       loadRatesTable()
     ]);
+    
+    // 🔄 Восстанавливаем профиль из localStorage
+    restoreProfile();
   }
 
   // 📊 Автообновление при выборе фильтра (только для обычных пользователей)
@@ -2241,7 +2312,8 @@ async function loadAllDictionariesInBackground() {
           loadSetNumbers(),
           loadTodayRecords(),
           loadOperationFilter(),
-          loadRatesTable()
+          loadRatesTable(),
+          loadPackingModels()
         ]);
 
 
