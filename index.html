@@ -681,8 +681,9 @@ button.danger:hover {
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
   <button onclick="loadShiftStats()">📊 Сводка по смене</button>
   <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ штатных упаковщиков</button>
-  <button onclick="manualExport()" id="exportBtn">💾 Экспорт данных на сервер</button>
+  <button onclick="openUpdateAllModal()" id="updateAllBtn" style="background:#8b5cf6;">🔄 Выборочное обновление</button>
   <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт показателей за период</button>
+  <button onclick="loadSeniorsReport()" id="seniorsReportBtn" style="background:#8b5cf6;">👨‍💼 Анализ старших смен</button>
 <button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты HR</button>
 
 </div>
@@ -697,6 +698,11 @@ button.danger:hover {
   <!-- 📊 Результаты анализа -->
   <div id="shiftStatsOutput" style="margin-top:20px;"></div>
   <div id="packerAnalysis" style="margin-top:24px;"></div>
+
+  <!-- 🚪 Кнопка выхода для администратора -->
+  <div style="margin-top: 40px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+    <button onclick="handleLogout()" class="danger" style="background-color: #dc2626; width: auto; padding: 12px 24px;">🚪 Выйти из системы</button>
+  </div>
 </div>
 
 <!-- 💵 Моя зарплата — перемещён ВНЕ adminContainer -->
@@ -713,7 +719,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwNk0Tp339Qauzh4EWlxzicescfTlX7B-2tR_g_NCtHPv1DrU5xgFfC1EvZwjzEMME/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxusNkTQrSYtisZY6kid-1I7H7O7TBFZetFmPANyI_FzKFFNuDw43Og0fIs8JOOJk0/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -829,21 +835,23 @@ async function saveProfile() {
     document.getElementById("salaryBlock").style.display = "none";
   }
 
-  // Проверка заполненности профиля
-  const isFilled = shiftValue && statusValue && packingModel && payType;
-  const hint = document.getElementById("profileHint");
-  const msg = document.getElementById("profileSaved");
-  const tabApp = document.getElementById("tabApp");
-  const tabMySalary = document.getElementById("tabMySalary");
+  // Проверка заполненности профиля (только для обычных пользователей)
+  if (currentUserRole !== "admin") {
+    const isFilled = shiftValue && statusValue && packingModel && payType;
+    const hint = document.getElementById("profileHint");
+    const msg = document.getElementById("profileSaved");
+    const tabApp = document.getElementById("tabApp");
+    const tabMySalary = document.getElementById("tabMySalary");
 
-  hint.style.display = isFilled ? "none" : "block";
-  msg.style.display = isFilled ? "block" : "none";
-  tabApp.disabled = !isFilled;
-  tabApp.innerHTML = isFilled ? "📋" : "🔒";
+    hint.style.display = isFilled ? "none" : "block";
+    msg.style.display = isFilled ? "block" : "none";
+    tabApp.disabled = !isFilled;
+    tabApp.innerHTML = isFilled ? "📋" : "🔒";
 
-  // Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
-  if (tabMySalary) {
-    tabMySalary.style.display = (statusValue === "Аутсорсинг") ? "none" : "inline-block";
+    // Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
+    if (tabMySalary) {
+      tabMySalary.style.display = (statusValue === "Аутсорсинг") ? "none" : "inline-block";
+    }
   }
 
   // Автоскрытие уведомления
@@ -857,8 +865,13 @@ async function saveProfile() {
 }
 
 function switchTab(tabName) {
-  // 🔐 Блокировка, если профиль не заполнен
-  if (tabName !== "profile" && !requireProfile()) return;
+  // Для администратора: разрешаем только админ-панель
+  if (currentUserRole === "admin" && tabName !== "admin") {
+    return; // Не позволяем админу переключаться на другие вкладки
+  }
+  
+  // 🔐 Блокировка, если профиль не заполнен (только для обычных пользователей)
+  if (currentUserRole !== "admin" && tabName !== "profile" && !requireProfile()) return;
 
   // Скрываем все контейнеры
   document.getElementById("profileContainer").style.display = "none";
@@ -943,10 +956,24 @@ async function handleLogin() {
       document.getElementById("loginContainer").style.display = "none";
       document.getElementById("tabContainer").style.display = "block";
       document.querySelector('[name="employeeName"]').value = currentUser;
-      document.getElementById("bottomNav").style.display = "flex";
-
-      switchTab("profile"); // ✅ Мгновенно открываем профиль
-      saveProfile();        // 🔄 Обновляем доступность вкладок
+      
+      // Для администратора: скрываем все вкладки кроме админ-панели
+      if (currentUserRole === "admin") {
+        // Скрываем все навигационные кнопки кроме админ-панели
+        const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
+        tabButtons.forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) btn.style.display = "none";
+        });
+        
+        document.getElementById("bottomNav").style.display = "flex";
+        switchTab("admin"); // Открываем сразу админ-панель
+      } else {
+        // Для обычных пользователей - обычная логика
+        document.getElementById("bottomNav").style.display = "flex";
+        switchTab("profile"); // ✅ Мгновенно открываем профиль
+        saveProfile();        // 🔄 Обновляем доступность вкладок
+      }
 
       // Асинхронная фоновая загрузка (ускорение)
       loadAllDictionariesInBackground();
@@ -1016,6 +1043,13 @@ function handleLogout() {
   containers.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = (id === "loginContainer") ? "block" : "none";
+  });
+
+  // Восстанавливаем видимость всех навигационных кнопок
+  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
+  tabButtons.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.style.display = "inline-block";
   });
 
   // 🧽 Сброс модальных окон
@@ -1803,75 +1837,99 @@ window.addEventListener("DOMContentLoaded", async () => {
   // 👤 Отображаем интерфейс после входа
   if (currentUserRole === "admin") {
     document.getElementById("tabAdmin").style.display = "block";
-  }
-
-  document.querySelector('[name="employeeName"]').value = currentUser;
-  document.getElementById("loginContainer").style.display = "none";
-  document.getElementById("tabContainer").style.display = "block";
-  document.getElementById("profileContainer").style.display = "block";
-  document.getElementById("bottomNav").style.display = "flex";
-
-  // 💵 Скрываем вкладку «Моя зарплата» для аутсорсинга
-  const tabMySalary = document.getElementById("tabMySalary");
-  if (currentStatus === "Аутсорсинг" && tabMySalary) {
-    tabMySalary.style.display = "none";
-  }
-
-  // 📥 Загрузка справочников
-  await Promise.all([
-    loadVolumes(),
-    loadOperations(),
-    loadSetNumbers(),
-    loadTodayRecords(),
-    loadOperationFilter(),
-    loadRatesTable()
-  ]);
-
-  // 📊 Автообновление при выборе фильтра
-  document.getElementById("operationFilter").addEventListener("change", loadStats);
-
-  // 📋 Сохранение профиля при смене данных
-  ["change", "input"].forEach(event =>
-    ["shiftType", "employeeStatus"].forEach(id =>
-      document.getElementById(id).addEventListener(event, saveProfile)
-    )
-  );
-
-  // 📦 Логика блокировки объёма
-  const operationSelect = document.querySelector('[name="operationType"]');
-  const volumeSelect = document.querySelector('[name="volume"]');
-
-  if (operationSelect && volumeSelect) {
-    operationSelect.addEventListener("change", () => {
-      const selectedOp = operationSelect.value;
-
-      if (selectedOp === "Маркировка продукции ш/к") {
-        volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
-        volumeSelect.value = "Общая";
-        volumeSelect.disabled = true;
-      } else {
-        volumeSelect.disabled = false;
-        volumeSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
-
-        const relatedKeys = Array.from(
-          new Set(allRates.filter(r => r.operation === selectedOp).map(r => r.key))
-        );
-
-        relatedKeys.forEach(v => {
-          const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
-          volumeSelect.appendChild(opt);
-        });
-      }
+    
+    // Для администратора: скрываем все вкладки кроме админ-панели
+    const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
+    tabButtons.forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.style.display = "none";
     });
-
-    // 🟡 Обновить сразу, если операция уже выбрана
-    operationSelect.dispatchEvent(new Event("change"));
+    
+    document.querySelector('[name="employeeName"]').value = currentUser;
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("tabContainer").style.display = "block";
+    document.getElementById("adminContainer").style.display = "block";
+    document.getElementById("bottomNav").style.display = "flex";
+  } else {
+    // Для обычных пользователей
+    document.querySelector('[name="employeeName"]').value = currentUser;
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("tabContainer").style.display = "block";
+    document.getElementById("profileContainer").style.display = "block";
+    document.getElementById("bottomNav").style.display = "flex";
   }
 
-  // ⏱ Подсказка сохранения профиля
-  setTimeout(saveProfile, 0);
+  // 💵 Скрываем вкладку «Моя зарплата» для аутсорсинга (не для админа)
+  if (currentUserRole !== "admin") {
+    const tabMySalary = document.getElementById("tabMySalary");
+    if (currentStatus === "Аутсорсинг" && tabMySalary) {
+      tabMySalary.style.display = "none";
+    }
+  }
+
+  // 📥 Загрузка справочников (только для обычных пользователей)
+  if (currentUserRole !== "admin") {
+    await Promise.all([
+      loadVolumes(),
+      loadOperations(),
+      loadSetNumbers(),
+      loadTodayRecords(),
+      loadOperationFilter(),
+      loadRatesTable()
+    ]);
+  }
+
+  // 📊 Автообновление при выборе фильтра (только для обычных пользователей)
+  if (currentUserRole !== "admin") {
+    document.getElementById("operationFilter").addEventListener("change", loadStats);
+
+    // 📋 Сохранение профиля при смене данных
+    ["change", "input"].forEach(event =>
+      ["shiftType", "employeeStatus"].forEach(id =>
+        document.getElementById(id).addEventListener(event, saveProfile)
+      )
+    );
+  }
+
+  // 📦 Логика блокировки объёма (только для обычных пользователей)
+  if (currentUserRole !== "admin") {
+    const operationSelect = document.querySelector('[name="operationType"]');
+    const volumeSelect = document.querySelector('[name="volume"]');
+
+    if (operationSelect && volumeSelect) {
+      operationSelect.addEventListener("change", () => {
+        const selectedOp = operationSelect.value;
+
+        if (selectedOp === "Маркировка продукции ш/к") {
+          volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
+          volumeSelect.value = "Общая";
+          volumeSelect.disabled = true;
+        } else {
+          volumeSelect.disabled = false;
+          volumeSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
+
+          const relatedKeys = Array.from(
+            new Set(allRates.filter(r => r.operation === selectedOp).map(r => r.key))
+          );
+
+          relatedKeys.forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            volumeSelect.appendChild(opt);
+          });
+        }
+      });
+
+      // 🟡 Обновить сразу, если операция уже выбрана
+      operationSelect.dispatchEvent(new Event("change"));
+    }
+  }
+
+  // ⏱ Подсказка сохранения профиля (только для обычных пользователей)
+  if (currentUserRole !== "admin") {
+    setTimeout(saveProfile, 0);
+  }
 });
 
 async function loadPackingModels() {
@@ -1892,31 +1950,152 @@ async function loadPackingModels() {
   }
 }
 
-async function manualExport() {
-  withLoading("exportBtn", async () => {
-    const start = document.getElementById("unifiedStart").value;
-    const end = document.getElementById("unifiedEnd").value;
+function openUpdateAllModal() {
+  // Очистка
+  document.getElementById("updateAllResult").textContent = "";
+  document.getElementById("updateAllModal").style.display = "flex";
+  // Установка дат по умолчанию (последние 7 дней)
+  const today = new Date();
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  document.getElementById("updateAllStart").value = weekAgo.toISOString().split("T")[0];
+  document.getElementById("updateAllEnd").value = today.toISOString().split("T")[0];
+}
 
-    if (!start) {
-      alert("⚠️ Укажите хотя бы начальную дату");
-      return;
+function closeUpdateAllModal() {
+  document.getElementById("updateAllModal").style.display = "none";
+}
+
+// Функции управления чекбоксами выбора обновлений
+function selectAllUpdates() {
+  document.getElementById("updateSeniorsSalary").checked = true;
+  document.getElementById("updateStaffIndicators").checked = true;
+  document.getElementById("updateOutsourcingIndicators").checked = true;
+}
+
+function selectNoneUpdates() {
+  document.getElementById("updateSeniorsSalary").checked = false;
+  document.getElementById("updateStaffIndicators").checked = false;
+  document.getElementById("updateOutsourcingIndicators").checked = false;
+}
+
+function selectOnlySeniors() {
+  document.getElementById("updateSeniorsSalary").checked = true;
+  document.getElementById("updateStaffIndicators").checked = false;
+  document.getElementById("updateOutsourcingIndicators").checked = false;
+}
+
+// Новая функция выборочного обновления
+async function submitSelectiveUpdate() {
+  const btn = document.getElementById("submitUpdateAllBtn");
+  const resultBox = document.getElementById("updateAllResult");
+
+  // Блокировка кнопки и индикатор
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = "⏳ Обновление...";
+  resultBox.textContent = "";
+
+  const start = document.getElementById("updateAllStart").value;
+  const end = document.getElementById("updateAllEnd").value;
+
+  if (!start || !end) {
+    resultBox.textContent = "❗ Укажите обе даты!";
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  // Проверяем что выбрано для обновления
+  const updateSeniors = document.getElementById("updateSeniorsSalary").checked;
+  const updateStaff = document.getElementById("updateStaffIndicators").checked;
+  const updateOutsourcing = document.getElementById("updateOutsourcingIndicators").checked;
+
+  if (!updateSeniors && !updateStaff && !updateOutsourcing) {
+    resultBox.textContent = "❗ Выберите хотя бы один компонент для обновления!";
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  try {
+    let resultMessage = "🚀 Начинаю выборочное обновление...\n\n";
+    resultBox.textContent = resultMessage;
+    
+    // 1. Обновляем зарплату старших смен (если выбрано)
+    if (updateSeniors) {
+      resultBox.textContent = resultMessage + "🔄 Обновление зарплаты старших смен...";
+      
+      const seniorsResponse = await fetch(`${scriptURL}`, {
+        method: 'POST',
+        body: new URLSearchParams({
+          type: 'processAllSeniorsForPeriod',
+          start: start,
+          end: end
+        })
+      });
+      const seniorsData = await seniorsResponse.json();
+      
+      if (seniorsData.status === 'success') {
+        resultMessage += `✅ Старшие смены: обработано ${seniorsData.processedCount || 0} записей\n`;
+      } else {
+        resultMessage += `⚠️ Старшие смены: ${seniorsData.message || 'ошибка'}\n`;
+      }
+    } else {
+      resultMessage += "⏭️ Зарплаты старших смен: пропущено\n";
     }
-
-    let url = `${scriptURL}?type=exportNow&date=${encodeURIComponent(start)}`;
-
-    // ✅ Добавляем конец периода, если он указан
-    if (end) {
-      url += `&endDate=${encodeURIComponent(end)}`;
+    
+    // 2. Обновляем показатели (если выбрано что-то из показателей)
+    if (updateStaff || updateOutsourcing) {
+      resultBox.textContent = resultMessage + "🔄 Обновление показателей...";
+      
+      // Определяем тип обновления на основе выбранных чекбоксов
+      let updateType = "";
+      if (updateStaff && updateOutsourcing) {
+        updateType = "both"; // обновляем и штат и аутсорсинг
+      } else if (updateStaff) {
+        updateType = "staff"; // только штат
+      } else if (updateOutsourcing) {
+        updateType = "outsourcing"; // только аутсорсинг
+      }
+      
+      const exportResponse = await fetch(`${scriptURL}?type=exportNow&date=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}&components=${updateType}`);
+      const exportResult = await exportResponse.text();
+      
+      if (exportResult.includes("✅")) {
+        if (updateStaff && updateOutsourcing) {
+          resultMessage += "✅ Показатели штата и аутсорсинга обновлены\n";
+        } else if (updateStaff) {
+          resultMessage += "✅ Показатели штатных сотрудников обновлены\n";
+        } else if (updateOutsourcing) {
+          resultMessage += "✅ Показатели аутсорсинга обновлены\n";
+        }
+      } else {
+        resultMessage += `⚠️ Показатели: ${exportResult}\n`;
+      }
+    } else {
+      resultMessage += "⏭️ Показатели: пропущено\n";
     }
+    
+    resultBox.style.color = '#059669';
+    resultBox.textContent = resultMessage + "\n🎉 Выборочное обновление завершено!";
+    
+    setTimeout(closeUpdateAllModal, 5000);
+    
+  } catch (err) {
+    console.error(err);
+    resultBox.style.color = '#dc2626';
+    resultBox.textContent = "❌ Ошибка при обновлении данных: " + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
 
-    try {
-      const res = await fetch(url);
-      const result = await res.text();
-      alert(result || "✅ Экспорт завершён");
-    } catch (err) {
-      alert("❌ Ошибка экспорта: " + err.message);
-    }
-  });
+// Старая функция для обратной совместимости
+async function submitUpdateAll() {
+  // Выбираем все компоненты и запускаем выборочное обновление
+  selectAllUpdates();
+  await submitSelectiveUpdate();
 }
 
 
@@ -2146,6 +2325,7 @@ async function loadShiftStats() {
           <th style="padding:6px; border:1px solid #ccc;">Сотрудник</th>
           <th style="padding:6px; border:1px solid #ccc;">Кол-во</th>
           <th style="padding:6px; border:1px solid #ccc;">Эффективность</th>
+          <th style="padding:6px; border:1px solid #ccc;">Нормы</th>
         </tr>
       `;
       table.appendChild(thead);
@@ -2166,10 +2346,24 @@ async function loadShiftStats() {
 
         staff.forEach(emp => {
           const tr = document.createElement("tr");
+          
+          // Расчет данных о нормах
+          const normsMet = emp.opsMet || 0;
+          const normsTotal = emp.opsTotal || 0;
+          const normsPercent = normsTotal > 0 ? Math.round((normsMet / normsTotal) * 100) : 0;
+          
+          // Определение иконки для норм
+          let normIcon = "—";
+          if (normsTotal === 0) normIcon = "—";
+          else if (normsPercent >= 85) normIcon = "✅";
+          else if (normsPercent >= 60) normIcon = "⚠️";
+          else if (normsPercent > 0) normIcon = "❌";
+          
           tr.innerHTML = `
             <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
+            <td style="padding:6px; border:1px solid #ccc;">${normsMet}/${normsTotal} (${normsPercent}%) ${normIcon}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -2186,10 +2380,24 @@ async function loadShiftStats() {
 
         outsource.forEach(emp => {
           const tr = document.createElement("tr");
+          
+          // Расчет данных о нормах
+          const normsMet = emp.opsMet || 0;
+          const normsTotal = emp.opsTotal || 0;
+          const normsPercent = normsTotal > 0 ? Math.round((normsMet / normsTotal) * 100) : 0;
+          
+          // Определение иконки для норм
+          let normIcon = "—";
+          if (normsTotal === 0) normIcon = "—";
+          else if (normsPercent >= 85) normIcon = "✅";
+          else if (normsPercent >= 60) normIcon = "⚠️";
+          else if (normsPercent > 0) normIcon = "❌";
+          
           tr.innerHTML = `
             <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
+            <td style="padding:6px; border:1px solid #ccc;">${normsMet}/${normsTotal} (${normsPercent}%) ${normIcon}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -2203,10 +2411,24 @@ async function loadShiftStats() {
       scrollDiv.appendChild(table);
       container.appendChild(scrollDiv);
 
-      // === Блок общей эффективности (по текущей смене)
+      // === Блок общей эффективности и норм (по текущей смене)
       const staffEff = shiftBlock?.staff?.averageEfficiency;
       const outsourceEff = shiftBlock?.outsource?.averageEfficiency;
       const overallEff = shiftBlock?.total?.overall;
+      
+      // Подсчет общих норм по смене
+      const allEmployees = [...(shiftBlock?.staff?.employees || []), ...(shiftBlock?.outsource?.employees || [])];
+      const totalNormsMet = allEmployees.reduce((sum, emp) => sum + (emp.opsMet || 0), 0);
+      const totalNormsTotal = allEmployees.reduce((sum, emp) => sum + (emp.opsTotal || 0), 0);
+      const totalNormsPercent = totalNormsTotal > 0 ? Math.round((totalNormsMet / totalNormsTotal) * 100) : 0;
+      
+      // Определение иконки для общих норм
+      let totalNormIcon = "—";
+      if (totalNormsTotal === 0) totalNormIcon = "—";
+      else if (totalNormsPercent >= 85) totalNormIcon = "✅";
+      else if (totalNormsPercent >= 60) totalNormIcon = "⚠️";
+      else if (totalNormsPercent > 0) totalNormIcon = "❌";
+      
       // Для красивого отображения "—" если нет данных
       function effVal(val) {
         return (val === undefined || val === null) ? "—" : val + "%";
@@ -2221,10 +2443,194 @@ async function loadShiftStats() {
         📊 <b>Эффективность за смену:</b><br>
         👨‍🔧 Штат — ${effVal(staffEff)} |
         🤝 Аутсорсинг — ${effVal(outsourceEff)} |
-        📦 Общая — ${effVal(overallEff)}
+        📦 Общая — ${effVal(overallEff)}<br><br>
+        📋 <b>Выполнение норм за смену:</b><br>
+        ${totalNormsMet}/${totalNormsTotal} (${totalNormsPercent}%) ${totalNormIcon}
       `;
       container.appendChild(footer);
     });
+
+  } catch (err) {
+    container.innerHTML = `<p style='color:red;'>Ошибка загрузки: ${err.message}</p>`;
+  }
+}
+
+async function loadSeniorsReport() {
+  clearReports(); // Очищаем предыдущие отчеты
+  
+  const start = document.getElementById("unifiedStart").value;
+  const end = document.getElementById("unifiedEnd").value;
+  const container = document.getElementById("reportContainer");
+
+  if (!start || !end) {
+    container.innerHTML = "<p style='color:red;'>⚠️ Укажите обе даты</p>";
+    return;
+  }
+
+  container.innerHTML = "<p>⌛ Загрузка отчёта по старшим сменам...</p>";
+
+  try {
+    console.log('Отправляем запрос:', `${scriptURL}?type=seniorsReport&start=${start}&end=${end}`);
+    
+    const res = await fetch(`${scriptURL}?type=seniorsReport&start=${start}&end=${end}`);
+    console.log('Статус ответа:', res.status);
+    
+    if (!res.ok) {
+      container.innerHTML = `<p style='color:red;'>❌ Ошибка HTTP: ${res.status} ${res.statusText}</p>`;
+      return;
+    }
+    
+    const data = await res.json();
+    console.log('Ответ сервера:', data); // Диагностика
+
+    if (!data) {
+      container.innerHTML = "<p style='color:red;'>❌ Сервер не вернул данные</p>";
+      return;
+    }
+
+    if (data.status !== 'success') {
+      container.innerHTML = `<p style='color:red;'>❌ Ошибка сервера: ${data.message || 'Неизвестная ошибка'}</p>`;
+      return;
+    }
+
+    if (!data.data || !Array.isArray(data.data)) {
+      container.innerHTML = "<p style='color:red;'>❌ Неверный формат данных от сервера</p>";
+      return;
+    }
+
+    if (!data.data.length) {
+      container.innerHTML = "<p style='text-align:center;'>📭 Нет данных по старшим сменам за выбранный период</p>";
+      return;
+    }
+
+    container.innerHTML = "";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "❌ Закрыть отчёт";
+    closeBtn.className = "danger";
+    closeBtn.style.marginBottom = "12px";
+    closeBtn.onclick = () => (container.innerHTML = "");
+    container.appendChild(closeBtn);
+
+    // Создаем заголовок отчета
+    const reportTitle = document.createElement("div");
+    reportTitle.innerHTML = `
+      <h3 style="margin-top: 0; color: #8b5cf6;">👨‍💼 Анализ старших смен</h3>
+      <p style="color: #6b7280; margin-bottom: 16px;">Период: ${start} — ${end}</p>
+    `;
+    container.appendChild(reportTitle);
+
+    // Создаем таблицу
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+    table.style.marginTop = "10px";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML = `
+      <tr style="background:#f3f4f6;">
+        <th style="padding:8px; border:1px solid #d1d5db; text-align:left;">Дата</th>
+        <th style="padding:8px; border:1px solid #d1d5db; text-align:left;">Смена</th>
+        <th style="padding:8px; border:1px solid #d1d5db; text-align:left;">Старший смены</th>
+        <th style="padding:8px; border:1px solid #d1d5db; text-align:center;">Эффективность</th>
+        <th style="padding:8px; border:1px solid #d1d5db; text-align:center;">Выполнение нормы</th>
+        <th style="padding:8px; border:1px solid #d1d5db; text-align:right;">Зарплата</th>
+      </tr>
+    `;
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    // Группируем данные по сменам
+    const shiftsData = {};
+    data.data.forEach(item => {
+      const shiftKey = item.shift;
+      if (!shiftsData[shiftKey]) {
+        shiftsData[shiftKey] = [];
+      }
+      shiftsData[shiftKey].push(item);
+    });
+
+    // Сортируем смены
+    const sortedShifts = Object.keys(shiftsData).sort();
+
+    sortedShifts.forEach(shift => {
+      const shiftItems = shiftsData[shift];
+      
+      // Заголовок смены
+      const shiftHeader = document.createElement("tr");
+      shiftHeader.innerHTML = `
+        <td colspan="6" style="padding:8px; font-weight:bold; color:#8b5cf6; background:#f8f7ff; border:1px solid #d1d5db;">
+          🕐 ${shift}
+        </td>
+      `;
+      tbody.appendChild(shiftHeader);
+
+      // Сортируем записи по дате
+      shiftItems.sort((a, b) => new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-')));
+
+      shiftItems.forEach(item => {
+        const tr = document.createElement("tr");
+        
+        // Определяем цвет строки в зависимости от эффективности
+        let rowStyle = "";
+        if (item.efficiency >= 100) {
+          rowStyle = "background:#ecfdf5;"; // Зеленый для высокой эффективности
+        } else if (item.efficiency >= 80) {
+          rowStyle = "background:#fef3c7;"; // Желтый для средней эффективности
+        } else {
+          rowStyle = "background:#fef2f2;"; // Красный для низкой эффективности
+        }
+
+        tr.innerHTML = `
+          <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.date}</td>
+          <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.shift}</td>
+          <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.name}</td>
+          <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
+            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 80 ? '#d97706' : '#dc2626'}">
+              ${item.efficiency}%
+            </span>
+          </td>
+          <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
+            <span style="font-weight:bold; color:${item.norm >= 80 ? '#059669' : '#dc2626'}">
+              ${item.norm}%
+            </span>
+          </td>
+          <td style="padding:8px; border:1px solid #d1d5db; text-align:right; ${rowStyle}">
+            <strong>${item.salary.toLocaleString('ru-RU')} ₽</strong>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+
+    table.appendChild(tbody);
+
+    // Оборачиваем таблицу в scrollDiv
+    const scrollDiv = document.createElement("div");
+    scrollDiv.className = "table-scroll";
+    scrollDiv.appendChild(table);
+    container.appendChild(scrollDiv);
+
+    // Добавляем сводку
+    const totalSalary = data.data.reduce((sum, item) => sum + (item.salary || 0), 0);
+    const avgEfficiency = data.data.reduce((sum, item) => sum + (item.efficiency || 0), 0) / data.data.length;
+    const avgNorm = data.data.reduce((sum, item) => sum + (item.norm || 0), 0) / data.data.length;
+
+    const summary = document.createElement("div");
+    summary.style.marginTop = "16px";
+    summary.style.padding = "16px";
+    summary.style.background = "#f8f7ff";
+    summary.style.borderRadius = "8px";
+    summary.style.fontWeight = "500";
+    summary.innerHTML = `
+      📊 <b>Сводка по периоду:</b><br>
+      👨‍💼 <strong>Всего смен:</strong> ${data.data.length} |
+      💰 <strong>Общая зарплата:</strong> ${totalSalary.toLocaleString('ru-RU')} ₽ |
+      📈 <strong>Средняя эффективность:</strong> ${Math.round(avgEfficiency)}% |
+      ✅ <strong>Среднее выполнение нормы:</strong> ${Math.round(avgNorm)}%
+    `;
+    container.appendChild(summary);
 
   } catch (err) {
     container.innerHTML = `<p style='color:red;'>Ошибка загрузки: ${err.message}</p>`;
@@ -2278,12 +2684,28 @@ function openSalaryExportModal() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("salaryExportStart").value = today;
   document.getElementById("salaryExportEnd").value = today;
-  // Загрузка сотрудников
+  // Загрузка сотрудников и старших смен
   loadSalaryExportEmployees();
+  loadSalaryExportSeniors();
 }
 
 function closeSalaryExportModal() {
   document.getElementById("salaryExportModal").style.display = "none";
+}
+
+// Функция для переключения видимости селекторов
+function toggleEmployeeExportSelector() {
+    const type = document.querySelector('input[name="exportType"]:checked').value;
+    const packersSelector = document.getElementById("packersExportSelector");
+    const seniorsSelector = document.getElementById("seniorsExportSelector");
+    
+    if (type === 'seniors') {
+        packersSelector.style.display = 'none';
+        seniorsSelector.style.display = 'block';
+    } else {
+        packersSelector.style.display = 'block';
+        seniorsSelector.style.display = 'none';
+    }
 }
 
 async function loadSalaryExportEmployees() {
@@ -2307,6 +2729,28 @@ async function loadSalaryExportEmployees() {
   }
 }
 
+// Загрузка списка старших смен для селекта
+async function loadSalaryExportSeniors() {
+  try {
+    const res = await fetch(`${scriptURL}?type=getSeniorsList`);
+    const data = await res.json();
+
+    const seniors = Array.from(new Set((data.seniors || []))).sort();
+    const select = document.getElementById("salaryExportSenior");
+
+    select.innerHTML = `<option value="">-- Все --</option>`;
+    seniors.forEach(senior => {
+      const opt = document.createElement("option");
+      opt.value = senior;
+      opt.textContent = senior;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    document.getElementById("salaryExportResult").textContent = "Ошибка загрузки старших смен!";
+    console.error("Ошибка при загрузке старших смен:", err);
+  }
+}
+
 async function submitSalaryExport() {
   const btn = document.getElementById("submitSalaryExportBtn");
   const resultBox = document.getElementById("salaryExportResult");
@@ -2319,7 +2763,7 @@ async function submitSalaryExport() {
 
   const start = document.getElementById("salaryExportStart").value;
   const end = document.getElementById("salaryExportEnd").value;
-  const employee = document.getElementById("salaryExportEmployee").value;
+  const exportType = document.querySelector('input[name="exportType"]:checked').value;
 
   if (!start || !end) {
     resultBox.textContent = "❗ Укажите обе даты!";
@@ -2328,29 +2772,48 @@ async function submitSalaryExport() {
     return;
   }
 
-  const params = new URLSearchParams({
-    type: "exportForAccounting",
-    start,
-    end
-  });
+  let scriptUrl = scriptURL;
+  let fetchOptions = {};
 
-  if (employee) {
-    params.append("employees", employee);
+  if (exportType === 'seniors') {
+    // Для старших смен используем GET-запрос к exportSeniorsForAccounting
+    const senior = document.getElementById("salaryExportSenior").value;
+    const params = new URLSearchParams({
+        type: "exportSeniorsForAccounting",
+        start,
+        end
+    });
+    if (senior) {
+        params.append("seniors", senior);
+    }
+    scriptUrl = `${scriptURL}?${params.toString()}`;
+  } else { 
+    // Для упаковщиков используем GET-запрос к exportForAccounting
+    const employee = document.getElementById("salaryExportEmployee").value;
+    const params = new URLSearchParams({
+        type: "exportForAccounting",
+        start,
+        end
+    });
+    if (employee) {
+        params.append("employees", employee);
+    }
+    scriptUrl = `${scriptURL}?${params.toString()}`;
   }
-
+  
   try {
-    const res = await fetch(`${scriptURL}?${params.toString()}`);
+    const res = await fetch(scriptUrl);
     const text = await res.text();
+    
+    resultBox.style.color = text.includes("✅") ? '#059669' : '#dc2626';
     resultBox.textContent = text;
-
-    // ⏳ Автоматическое закрытие окна при успехе
+    
     if (text.includes("✅")) {
-      setTimeout(() => {
-        closeSalaryExportModal();
-      }, 3000);
+        setTimeout(closeSalaryExportModal, 3000);
     }
   } catch (err) {
     console.error(err);
+    resultBox.style.color = '#dc2626';
     resultBox.textContent = "❌ Ошибка при отправке запроса";
   } finally {
     btn.disabled = false;
@@ -2396,18 +2859,104 @@ async function submitSalaryExport() {
     <h3 style="margin-top:0;">💵 Выгрузка зарплаты</h3>
     <label>Период с: <input type="date" id="salaryExportStart" /></label><br>
     <label>по: <input type="date" id="salaryExportEnd" /></label><br>
-    <label>Сотрудник:
-      <select id="salaryExportEmployee" style="width:100%;margin-top:7px;">
-        <option value="">-- Все --</option>
-      </select>
-    </label>
+    
+    <!-- Переключатель типа выгрузки -->
+    <label style="margin-top:16px; display:block;">Тип выгрузки:</label>
+    <div id="exportTypeSelector" style="display: flex; gap: 10px; margin-top: 8px;">
+        <style>
+            #exportTypeSelector label { display: block; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; flex-grow: 1; text-align: center; transition: all 0.2s ease-in-out; }
+            #exportTypeSelector input[type="radio"] { display: none; }
+            #exportTypeSelector input[type="radio"]:checked + label { background-color: #e0e7ff; border-color: #4f46e5; color: #4f46e5; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        </style>
+        <input type="radio" id="exportTypePackers" name="exportType" value="packers" checked onchange="toggleEmployeeExportSelector()">
+        <label for="exportTypePackers">📦 Упаковщики</label>
+        <input type="radio" id="exportTypeSeniors" name="exportType" value="seniors" onchange="toggleEmployeeExportSelector()">
+        <label for="exportTypeSeniors">👨‍💼 Старшие смен</label>
+    </div>
+
+    <!-- Селектор сотрудников для упаковщиков -->
+    <div id="packersExportSelector" style="margin-top:16px;">
+        <label>Сотрудник:
+          <select id="salaryExportEmployee" style="width:100%;margin-top:7px;">
+            <option value="">-- Все --</option>
+          </select>
+        </label>
+    </div>
+
+    <!-- Селектор старших смен -->
+    <div id="seniorsExportSelector" style="margin-top:16px; display:none;">
+        <label>Старший смены:
+          <select id="salaryExportSenior" style="width:100%;margin-top:7px;">
+            <option value="">-- Все --</option>
+          </select>
+        </label>
+    </div>
+
     <div style="margin-top:18px;display:flex;gap:10px;">
       <button onclick="submitSalaryExport()" id="submitSalaryExportBtn" style="flex:1;">📤 Отправить</button>
       <button onclick="closeSalaryExportModal()" style="flex:1;background:#ef4444;">❌ Отмена</button>
     </div>
-    <div id="salaryExportResult" style="margin-top:16px; color:#059669;"></div>
+    <div id="salaryExportResult" style="margin-top:16px; font-weight:500; text-align:center;"></div>
   </div>
 </div>
+
+<!-- Модальное окно обновления всех данных -->
+<div id="updateAllModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.18); z-index:2000; align-items:center; justify-content:center;">
+  <div style="background:white; max-width:500px; margin:60px auto; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.15); padding:28px; position:relative;">
+    <h3 style="margin-top:0;">🔄 Выборочное обновление данных</h3>
+    <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">
+      Выберите какие данные обновить за указанный период. Старые данные не удаляются, только заменяются/дополняются.
+    </p>
+    
+    <label>Период с: <input type="date" id="updateAllStart" /></label><br>
+    <label>по: <input type="date" id="updateAllEnd" /></label><br>
+    
+    <!-- Блок выбора компонентов для обновления -->
+    <div style="margin-top:20px; border:1px solid #e5e7eb; border-radius:8px; padding:16px; background:#f9fafb;">
+      <h4 style="margin:0 0 12px 0; font-size:16px; color:#374151;">Что обновлять:</h4>
+      
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px; border-radius:6px; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+          <input type="checkbox" id="updateSeniorsSalary" checked style="width:16px; height:16px;">
+          <div>
+            <strong>👨‍💼 Зарплаты старших смен</strong>
+            <div style="font-size:12px; color:#6b7280;">Обновление расчета зарплат старших смен за период</div>
+          </div>
+        </label>
+        
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px; border-radius:6px; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+          <input type="checkbox" id="updateStaffIndicators" checked style="width:16px; height:16px;">
+          <div>
+            <strong>📊 Показатели штатных сотрудников</strong>
+            <div style="font-size:12px; color:#6b7280;">Обновление эффективности и норм штата</div>
+          </div>
+        </label>
+        
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px; border-radius:6px; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+          <input type="checkbox" id="updateOutsourcingIndicators" checked style="width:16px; height:16px;">
+          <div>
+            <strong>🏢 Показатели аутсорсинга</strong>
+            <div style="font-size:12px; color:#6b7280;">Обновление данных внешних подрядчиков</div>
+          </div>
+        </label>
+      </div>
+      
+      <!-- Кнопки быстрого выбора -->
+      <div style="margin-top:16px; display:flex; gap:8px; border-top:1px solid #e5e7eb; padding-top:12px;">
+        <button type="button" onclick="selectAllUpdates()" style="flex:1; background:#e5e7eb; color:#374151; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">✅ Все</button>
+        <button type="button" onclick="selectNoneUpdates()" style="flex:1; background:#e5e7eb; color:#374151; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">❌ Ничего</button>
+        <button type="button" onclick="selectOnlySeniors()" style="flex:1; background:#e5e7eb; color:#374151; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">👨‍💼 Только старшие</button>
+      </div>
+    </div>
+    
+    <div style="margin-top:18px;display:flex;gap:10px;">
+      <button onclick="submitSelectiveUpdate()" id="submitUpdateAllBtn" style="flex:1; background:#8b5cf6;">🔄 Обновить выбранное</button>
+      <button onclick="closeUpdateAllModal()" style="flex:1;background:#ef4444;">❌ Отмена</button>
+    </div>
+    <div id="updateAllResult" style="margin-top:16px; font-weight:500; text-align:center; white-space:pre-line;"></div>
+  </div>
+</div>
+
 <script>
   window.addEventListener("load", () => {
     setTimeout(() => {
