@@ -102,6 +102,57 @@ button:active {
   transform: scale(0.97);
 }
 
+/* Анимация для кнопки сохранения при изменениях */
+@keyframes pulseButton {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+.save-button-pulse {
+  animation: pulseButton 2s infinite;
+}
+
+/* Анимация для кнопки входа */
+#loginBtn {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+#loginBtn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+#loginBtn:active {
+  transform: translateY(0);
+}
+
+/* Стиль для состояния загрузки */
+#loginBtn.loading {
+  background-color: #6b7280 !important;
+  cursor: not-allowed !important;
+}
+
+/* Анимация для уведомлений о кэше */
+@keyframes slideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 button.danger {
   background-color: #dc2626;
 }
@@ -365,6 +416,246 @@ button.danger:hover {
   }
 }
 
+/* ===== СТИЛИ ДЛЯ СИСТЕМЫ ЗАЩИТЫ ОТ ДУБЛИКАТОВ ===== */
+.duplicate-warnings {
+  margin: 16px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: none;
+}
+
+.warning-section {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.warning-section.critical {
+  background: #fef2f2;
+  border-left: 4px solid #dc2626;
+}
+
+.warning-section.warning {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+}
+
+.warning-section.info {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+}
+
+.warning-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.warning-section.critical h4 {
+  color: #dc2626;
+}
+
+.warning-section.warning h4 {
+  color: #d97706;
+}
+
+.warning-section.info h4 {
+  color: #2563eb;
+}
+
+.warning-item {
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.warning-item.critical {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+.warning-item.warning {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.warning-item.info {
+  background: #bfdbfe;
+  color: #1e40af;
+}
+
+.warning-item small {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 11px;
+  display: block;
+  margin-top: 4px;
+}
+
+.form-validation-hint {
+  position: relative;
+}
+
+.form-validation-hint::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: none;
+}
+
+.form-validation-hint.valid::after {
+  background: #10b981;
+  display: block;
+}
+
+.form-validation-hint.warning::after {
+  background: #f59e0b;
+  display: block;
+}
+
+.form-validation-hint.error::after {
+  background: #ef4444;
+  display: block;
+}
+
+.smart-suggestion {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.smart-suggestion h5 {
+  margin: 0 0 6px 0;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.smart-suggestion button {
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+/* ===== СТИЛИ ДЛЯ СООБЩЕНИЙ И УВЕДОМЛЕНИЙ ===== */
+.success-message {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.warning-message {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+/* Улучшенные стили для кнопки отправки */
+#dataForm button[type="submit"] {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+#dataForm button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: scale(0.98);
+}
+
+#dataForm button[type="submit"]:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Индикатор загрузки для кнопки */
+#dataForm button[type="submit"].loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Анимации для уведомлений */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Улучшенная блокировка формы */
+.form-disabled {
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.form-disabled::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+}
+
 #appContainer.fullscreen {
   position: fixed;
   top: 0;
@@ -497,7 +788,7 @@ button.danger:hover {
   <label for="password">Пароль</label>
   <input type="password" id="password" placeholder="•••••••" required>
 
-  <button onclick="handleLogin()">Войти</button>
+  <button id="loginBtn" onclick="handleLogin()">Войти</button>
   <div id="loginError"></div>
 </div>
 <div class="container" style="display:none;" id="tabContainer">
@@ -588,7 +879,7 @@ button.danger:hover {
 </div>
 <div class="container" style="display:none;" id="statsContainer">
   <h2>📈 Статистика</h2>
-<button onclick="closeStats()" style="margin-bottom: 10px;">❌ Закрыть статистику</button>
+<button id="closeStatsBtn" onclick="closeStats()" style="margin-bottom: 10px;">❌ Закрыть статистику</button>
   <label>Выбрать дату:<input type="date" id="statsDate"></label>
   <div style="margin-top: 12px;">
   <label>Фильтр по операции:
@@ -613,11 +904,10 @@ button.danger:hover {
   </label>
 
   <label>Статус сотрудника:
-    <select id="employeeStatus">
-      <option value="">-- Выберите статус --</option>
-      <option>Штат</option>
-      <option>Аутсорсинг</option>
-      <option>Стажёр</option>
+    <select id="employeeStatus" required>
+      <option value="">-- Выберите --</option>
+      <option value="Штат">Штат</option>
+      <option value="Аутсорсинг">Аутсорсинг</option>
     </select>
   </label>
 <label>Тип оплаты:
@@ -628,7 +918,7 @@ button.danger:hover {
   </select>
 </label>
 <div id="salaryBlock" style="display:none;">
-  <label>Оклад:
+  <label>Оклад <span style="color:red;">*</span>:
     <input id="profileSalary" type="number" readonly />
   </label>
 </div>
@@ -640,11 +930,14 @@ button.danger:hover {
     </select>
   </label>
 
-  <button onclick="saveProfile()">💾 Сохранить</button>
+  <button id="saveProfileBtn" onclick="saveProfile()">💾 Сохранить</button>
   <p id="profileSaved" style="color:green; text-align:center; display:none;">✅ Сохранено</p>
-  <p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
-  ⚠️ Заполните все поля профиля и нажмите кнопку «Сохранить», чтобы получить доступ к вкладкам системы.
-</p>
+      <p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
+      ⚠️ Заполните все поля профиля (включая оклад для типа "Оклад + сделка") и нажмите кнопку «Сохранить», чтобы получить доступ к вкладкам системы.
+    </p>
+    <p id="profileUnsaved" style="color:#f59e0b; font-size:14px; text-align:center; margin-top:8px; display:none;">
+      💾 Есть несохраненные изменения! Нажмите кнопку «Сохранить».
+    </p>
   <button id="logoutBtn" onclick="handleLogout()" class="danger">🚪 Выйти</button>
 </div>
 <div class="container" style="display:none;" id="ratesContainer">
@@ -718,7 +1011,7 @@ button.danger:hover {
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycby6qxGNn9dg0563Sq4Tjocg_CqMlgcd5iDZtxJ-0HUp54uFwBTluOSLhh5zHxnTxYk/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbyqkdg7VHYVRptnMHMQNPYzLArL8gJNb8kZQVIdmxmKjfR5HzzDEIwYmfiHji1gtQ/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -727,72 +1020,220 @@ let currentStatus = "";
 let allVolumes = []; // ← добавь это!
 let currentUserRole = "user"; // ← добавляем сюда
 
-// === ЛОГИКА: Ограничение типа оплаты для аутсорсинга ===
-document.getElementById("employeeStatus").addEventListener("change", function() {
-  const status = this.value;
-  const payTypeSelect = document.getElementById("profilePayType");
-  const salaryBlock = document.getElementById("salaryBlock");
+// Кэш для ускорения загрузки данных
+let dataCache = {
+  operations: { data: null, timestamp: 0 },
+  volumes: { data: null, timestamp: 0 },
+  sets: { data: null, timestamp: 0 },
+  rates: { data: null, timestamp: 0 },
+  packingModels: { data: null, timestamp: 0 },
+  salaries: {} // Кэш окладов по сотрудникам: { employee: { salary: value, timestamp: timestamp } }
+};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
 
-  if (status === "Аутсорсинг") {
-    // Оставляем только "Сделка"
-    payTypeSelect.innerHTML = '<option value="Сделка">Сделка</option>';
-    payTypeSelect.value = "Сделка";
-    salaryBlock.style.display = "none";
-    localStorage.setItem("profilePayType", "Сделка");
-    localStorage.removeItem("profileSalary");
-  } else {
-    // Восстанавливаем оба варианта
-    payTypeSelect.innerHTML = '<option value="">-- Выберите --</option><option value="Сделка">Сделка</option><option value="Оклад + сделка">Оклад + сделка</option>';
-    // Восстановить выбранное ранее значение, если есть
-    const savedPayType = localStorage.getItem("profilePayType") || "";
-    payTypeSelect.value = savedPayType;
-    // Показывать блок оклада только если "Оклад + сделка"
-    if (payTypeSelect.value === "Оклад + сделка") {
-      salaryBlock.style.display = "block";
-    } else {
-      salaryBlock.style.display = "none";
-    }
+// Функция очистки кэша
+function clearCache() {
+  Object.keys(dataCache).forEach(key => {
+    dataCache[key] = { data: null, timestamp: 0 };
+  });
+  
+  // Очищаем также localStorage кэш
+  try {
+    localStorage.removeItem('packingModelsCache');
+    localStorage.removeItem('salariesCache');
+  } catch (e) {
+    console.warn("Ошибка при очистке localStorage кэша:", e);
   }
+  
+  console.log("🧹 Кэш очищен (включая localStorage)");
+}
+
+// ===== УЛУЧШЕННАЯ СИСТЕМА ЗАЩИТЫ ОТ ДУБЛИКАТОВ =====
+let duplicateWarnings = {
+  exact: [],     // Точные дубликаты
+  similar: [],   // Похожие записи  
+  suspicious: [] // Подозрительные записи
+};
+
+  // 🗑️ Переменная lastFormState удалена - больше не нужна
+let formChangeTimeout = null;
+
+// 🗑️ УДАЛЕНА функция updatePayTypeBasedOnStatus - больше не нужна при ручном вводе
+
+// === ФУНКЦИЯ: Управление доступными типами оплаты ===
+function updatePayTypeOptions(employeeStatus) {
+  const payTypeSelect = document.getElementById("profilePayType");
+  if (!payTypeSelect) return;
+  
+  // Сохраняем текущее значение
+  const currentValue = payTypeSelect.value;
+  
+  // Очищаем все опции
+  payTypeSelect.innerHTML = '';
+  
+  // Добавляем базовую опцию
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = '-- Выберите --';
+  payTypeSelect.appendChild(defaultOption);
+  
+  if (employeeStatus === "Аутсорсинг") {
+    // Для аутсорсинга только "Сделка"
+    const dealOption = document.createElement('option');
+    dealOption.value = 'Сделка';
+    dealOption.textContent = 'Сделка';
+    payTypeSelect.appendChild(dealOption);
+    
+    // Автоматически выбираем "Сделка"
+    payTypeSelect.value = 'Сделка';
+  } else if (employeeStatus === "Штат") {
+    // Для штата доступны обе опции
+    const dealOption = document.createElement('option');
+    dealOption.value = 'Сделка';
+    dealOption.textContent = 'Сделка';
+    payTypeSelect.appendChild(dealOption);
+    
+    const salaryOption = document.createElement('option');
+    salaryOption.value = 'Оклад + сделка';
+    salaryOption.textContent = 'Оклад + сделка';
+    payTypeSelect.appendChild(salaryOption);
+    
+    // Автоматически выбираем "Оклад + сделка"
+    payTypeSelect.value = 'Оклад + сделка';
+  } else {
+    // Если статус не выбран, показываем все опции
+    const dealOption = document.createElement('option');
+    dealOption.value = 'Сделка';
+    dealOption.textContent = 'Сделка';
+    payTypeSelect.appendChild(dealOption);
+    
+    const salaryOption = document.createElement('option');
+    salaryOption.value = 'Оклад + сделка';
+    salaryOption.textContent = 'Оклад + сделка';
+    payTypeSelect.appendChild(salaryOption);
+  }
+}
+
+// === ФУНКЦИЯ: Активация кнопки сохранения при изменениях ===
+function activateSaveButton() {
+  
+  const saveBtn = document.getElementById("saveProfileBtn");
+  if (saveBtn && saveBtn.disabled) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "💾 Сохранить";
+    saveBtn.style.opacity = "1";
+    saveBtn.style.cursor = "pointer";
+    saveBtn.classList.add("save-button-pulse"); // Добавляем анимацию
+    
+    // Скрываем сообщение о сохранении
+    const msg = document.getElementById("profileSaved");
+    if (msg) msg.style.display = "none";
+    
+    // Показываем предупреждение о несохраненных изменениях
+    const unsavedMsg = document.getElementById("profileUnsaved");
+    if (unsavedMsg) unsavedMsg.style.display = "block";
+    
+    console.log("🔄 Кнопка сохранения активирована");
+    
+  } else {
+    console.log("🔍 activateSaveButton: кнопка уже активна или не найдена");
+  }
+}
+
+// === ФУНКЦИЯ: Установка слушателя для profilePayType ===
+function setupPayTypeListener() {
+  const payTypeSelect = document.getElementById("profilePayType");
+  if (!payTypeSelect) return;
+  
+  payTypeSelect.addEventListener("change", async function() {
+    
+    const salaryBlock = document.getElementById("salaryBlock");
+    const salaryInput = document.getElementById("profileSalary");
+    
+    activateSaveButton();
+    
+    if (this.value === "Оклад + сделка") {
+      salaryBlock.style.display = "block";
+      
+      // Мгновенно заполняем из кэша если есть
+      smartFillSalaryField();
+      
+      // Подгружаем оклад с сервера для актуальности
+      const currentUser = localStorage.getItem("currentUser") || "";
+      
+      if (!currentUser) {
+        salaryInput.value = "";
+        return;
+      }
+      
+      try {        
+        const salary = await getSalaryWithCache(currentUser);
+        salaryInput.value = salary || "";
+      } catch (err) {
+        salaryInput.value = "";
+      }
+          } else {
+        salaryBlock.style.display = "none";
+        salaryInput.value = "";
+      }
+  });
+}
+
+// === ЛОГИКА: Инициализация слушателя для profilePayType ===
+setupPayTypeListener();
+
+// === ЛОГИКА: Активация кнопки сохранения при изменении модели упаковки ===
+document.getElementById("profilePackingModel").addEventListener("change", function() {
+  activateSaveButton();
+  
+  // Также обновляем отображение тарифа (существующая логика)
+  updateRateDisplay();
 });
 
-// === ЛОГИКА: Показывать блок оклада только для "Оклад + сделка" ===
-document.getElementById("profilePayType").addEventListener("change", async function() {
-  const salaryBlock = document.getElementById("salaryBlock");
-  const salaryInput = document.getElementById("profileSalary");
-  if (this.value === "Оклад + сделка") {
-    salaryBlock.style.display = "block";
-    // Подгружаем оклад с сервера
-    const currentUser = localStorage.getItem("currentUser") || "";
-    console.log(`🔍 Загрузка оклада для пользователя: "${currentUser}"`);
+// === ЛОГИКА: Активация кнопки сохранения при изменении смены ===
+document.getElementById("shiftType").addEventListener("change", function() {
+  activateSaveButton();
+});
+
+// === ЛОГИКА: Активация кнопки сохранения при изменении статуса ===
+document.getElementById("employeeStatus").addEventListener("change", function() {
+  activateSaveButton();
+  
+  // Обновляем доступные опции типа оплаты
+  updatePayTypeOptions(this.value);
+  
+  // Обрабатываем блок оклада в зависимости от выбранного типа оплаты
+  if (this.value === "Аутсорсинг") {
+    // Скрываем блок оклада для аутсорсинга
+    document.getElementById("salaryBlock").style.display = "none";
+    document.getElementById("profileSalary").value = "";
+  } else if (this.value === "Штат") {
+    // Показываем блок оклада для штатных и загружаем оклад
+    document.getElementById("salaryBlock").style.display = "block";
     
-    try {
-      const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(currentUser)}`);
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      console.log(`📊 Ответ сервера:`, data);
-      
-      const salary = data.salary || "";
-      console.log(`💰 Полученный оклад: "${salary}"`);
-      
-      salaryInput.value = salary;
-      localStorage.setItem("profileSalary", salary);
-      
-      if (!salary) {
-        console.warn(`⚠️ Оклад не найден для пользователя "${currentUser}"`);
-      }
-    } catch (err) {
-      console.error(`❌ Ошибка загрузки оклада:`, err);
-      salaryInput.value = "";
-      localStorage.removeItem("profileSalary");
+    // Мгновенно заполняем из кэша если есть
+    smartFillSalaryField();
+    
+    // Автоматически загружаем оклад с сервера для актуальности
+    const currentUser = localStorage.getItem("currentUser") || "";
+    if (currentUser) {
+      getSalaryWithCache(currentUser)
+        .then(salary => {
+          document.getElementById("profileSalary").value = salary || "";
+        })
+        .catch(() => {
+          document.getElementById("profileSalary").value = "";
+        });
     }
-  } else {
-    salaryBlock.style.display = "none";
-    salaryInput.value = "";
-    localStorage.removeItem("profileSalary");
+  }
+  
+  // Активируем кнопку сохранения еще раз, так как изменился тип оплаты
+  activateSaveButton();
+  
+  // Управляем отображением вкладки "Моя зарплата"
+  const tabMySalary = document.getElementById("tabMySalary");
+  if (tabMySalary) {
+    tabMySalary.style.display = (this.value === "Аутсорсинг") ? "none" : "inline-block";
   }
 });
 
@@ -800,61 +1241,20 @@ document.getElementById("profilePayType").addEventListener("change", async funct
 
 function isProfileComplete() {
   const packingModel = document.getElementById("profilePackingModel").value;
-  return currentShift && currentStatus && packingModel;
+  const payType = document.getElementById("profilePayType").value;
+  
+  // ✅ ПОЛНАЯ ПРОВЕРКА: включая оклад для типа "Оклад + сделка"
+  let isComplete = currentShift && currentStatus && packingModel && payType;
+  
+  if (payType === "Оклад + сделка") {
+    const salary = document.getElementById("profileSalary").value;
+    isComplete = isComplete && salary && salary.trim() !== "";
+  }
+  
+  return isComplete;
 }
 
-// 🔄 Функция восстановления профиля из localStorage
-function restoreProfile() {
-  const shiftType = localStorage.getItem("profileShiftType") || "";
-  const status = localStorage.getItem("profileStatus") || "";
-  const packingModel = localStorage.getItem("profilePackingModel") || "";
-  const payType = localStorage.getItem("profilePayType") || "";
-  const salary = localStorage.getItem("profileSalary") || "";
-
-  // Восстанавливаем значения в полях
-  const shiftSelect = document.getElementById("shiftType");
-  const statusSelect = document.getElementById("employeeStatus");
-  const packingModelSelect = document.getElementById("profilePackingModel");
-  const payTypeSelect = document.getElementById("profilePayType");
-  const salaryInput = document.getElementById("profileSalary");
-
-  if (shiftSelect) shiftSelect.value = shiftType;
-  if (statusSelect) statusSelect.value = status;
-  if (packingModelSelect) packingModelSelect.value = packingModel;
-  if (payTypeSelect) payTypeSelect.value = payType;
-  if (salaryInput) salaryInput.value = salary;
-
-  // Обновляем переменные для проверки профиля
-  currentShift = shiftType;
-  currentStatus = status;
-
-  // Показываем/скрываем блок оклада
-  const salaryBlock = document.getElementById("salaryBlock");
-  if (salaryBlock) {
-    salaryBlock.style.display = (payType === "Оклад + сделка") ? "block" : "none";
-  }
-
-  // Обновляем доступность вкладок
-  if (currentUserRole !== "admin") {
-    const isFilled = shiftType && status && packingModel && payType;
-    const hint = document.getElementById("profileHint");
-    const msg = document.getElementById("profileSaved");
-    const tabApp = document.getElementById("tabApp");
-    const tabMySalary = document.getElementById("tabMySalary");
-
-    if (hint) hint.style.display = isFilled ? "none" : "block";
-    if (msg) msg.style.display = isFilled ? "block" : "none";
-    if (tabApp) {
-      tabApp.disabled = !isFilled;
-      tabApp.innerHTML = isFilled ? "📋" : "🔒";
-    }
-
-    // Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
-    if (tabMySalary) {
-      tabMySalary.style.display = (status === "Аутсорсинг") ? "none" : "inline-block";
-    }
-  }
-}
+// 🗑️ УДАЛЕНА функция restoreProfile - больше не нужна при ручном вводе
 
 function requireProfile() {
   if (!isProfileComplete()) {
@@ -878,7 +1278,19 @@ async function saveProfile() {
   const packingModel = packingModelSelect.value;
   const payType = payTypeSelect.value;
 
-  // Сохраняем в localStorage
+  // ✅ ВАЛИДАЦИЯ: Проверяем что все основные поля заполнены
+  const missingFields = [];
+  if (!shiftValue) missingFields.push("Тип смены");
+  if (!statusValue) missingFields.push("Статус сотрудника");
+  if (!packingModel) missingFields.push("Модель упаковки");
+  if (!payType) missingFields.push("Тип оплаты");
+
+  if (missingFields.length > 0) {
+    const fieldsList = missingFields.join(", ");
+    alert(`❌ Заполните обязательные поля:\n\n${fieldsList}`);
+    return;
+  }
+
   localStorage.setItem("profileShiftType", shiftValue);
   localStorage.setItem("profileStatus", statusValue);
   localStorage.setItem("profilePackingModel", packingModel);
@@ -889,28 +1301,17 @@ async function saveProfile() {
   if (payType === "Оклад + сделка") {
     try {
       const currentUser = localStorage.getItem("currentUser") || "";
-      console.log(`🔍 saveProfile: Загрузка оклада для "${currentUser}"`);
-      
-      const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(currentUser)}`);
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      console.log(`📊 saveProfile: Ответ сервера:`, data);
-      
-      salary = data.salary || "";
-      console.log(`💰 saveProfile: Полученный оклад: "${salary}"`);
-      
-      if (!salary) {
-        console.warn(`⚠️ saveProfile: Оклад не найден для пользователя "${currentUser}"`);
-      }
+      salary = await getSalaryWithCache(currentUser) || "";
     } catch (err) {
-      console.error(`❌ saveProfile: Ошибка загрузки оклада:`, err);
       salary = "";
     }
     salaryInput.value = salary;
+    
+    if (!salary || salary.trim() === "") {
+      alert(`❌ Не удалось загрузить оклад с сервера!\n\nПроверьте:\n• Правильность имени пользователя\n• Наличие оклада в базе данных\n• Подключение к интернету`);
+      return;
+    }
+    
     localStorage.setItem("profileSalary", salary);
     document.getElementById("salaryBlock").style.display = "block";
   } else {
@@ -921,11 +1322,16 @@ async function saveProfile() {
 
   // Проверка заполненности профиля (только для обычных пользователей)
   if (currentUserRole !== "admin") {
-    const isFilled = shiftValue && statusValue && packingModel && payType;
+    let isFilled = shiftValue && statusValue && packingModel && payType;
+    if (payType === "Оклад + сделка") {
+      const currentSalary = salaryInput.value;
+      isFilled = isFilled && currentSalary && currentSalary.trim() !== "";
+    }
     const hint = document.getElementById("profileHint");
     const msg = document.getElementById("profileSaved");
     const tabApp = document.getElementById("tabApp");
     const tabMySalary = document.getElementById("tabMySalary");
+    const saveBtn = document.getElementById("saveProfileBtn");
 
     hint.style.display = isFilled ? "none" : "block";
     
@@ -935,8 +1341,27 @@ async function saveProfile() {
       msg.textContent = "✅ Профиль сохранен! Доступ к вкладкам открыт.";
       // Автоскрытие уведомления через 3 секунды
       setTimeout(() => msg.style.display = "none", 3000);
-    } else {
+      
+      // Скрываем предупреждение о несохраненных изменениях
+      const unsavedMsg = document.getElementById("profileUnsaved");
+      if (unsavedMsg) unsavedMsg.style.display = "none";
+      
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "✅ Профиль сохранен";
+        saveBtn.style.opacity = "0.6";
+        saveBtn.style.cursor = "not-allowed";
+        saveBtn.classList.remove("save-button-pulse");
+      }
+        } else {
       msg.style.display = "none";
+      
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "💾 Сохранить";
+        saveBtn.style.opacity = "1";
+        saveBtn.style.cursor = "pointer";
+      }
     }
     
     tabApp.disabled = !isFilled;
@@ -948,10 +1373,12 @@ async function saveProfile() {
     }
   }
 
-  // <<< ВАЖНО: обновляем переменные для проверки профиля >>>
+  // Обновляем переменные для проверки профиля
   currentShift = shiftValue;
   currentStatus = statusValue;
 }
+
+
 
 function switchTab(tabName) {
   // Для администратора: разрешаем только админ-панель
@@ -995,6 +1422,13 @@ function switchTab(tabName) {
     case "stats":
       document.getElementById("statsContainer").style.display = "block";
       document.getElementById("tabStats").disabled = true;
+      
+      // Устанавливаем сегодняшнюю дату по умолчанию (без автозагрузки)
+      const statsDate = document.getElementById("statsDate");
+      if (!statsDate.value) {
+        const today = new Date().toISOString().split('T')[0];
+        statsDate.value = today;
+      }
       break;
 
     case "rates":
@@ -1024,6 +1458,12 @@ async function handleLogin() {
   const login = document.getElementById("login").value.trim();
   const password = document.getElementById("password").value.trim();
   const errorElem = document.getElementById("loginError");
+  const loginBtn = document.getElementById("loginBtn");
+  
+  // Блокируем кнопку и показываем загрузку
+  loginBtn.disabled = true;
+  loginBtn.classList.add("loading");
+  loginBtn.textContent = "⏳ Вхожу...";
   errorElem.textContent = "";
 
   try {
@@ -1033,9 +1473,13 @@ async function handleLogin() {
     if (data.status === "ok") {
       currentUser = login;
       currentUserRole = data.role || 'user';
+      currentStatus = data.employeeStatus || 'Штат'; // Получаем статус с сервера (без автосохранения)
 
       localStorage.setItem("currentUser", login);
       localStorage.setItem("currentUserRole", currentUserRole);
+      
+      
+              // 🗑️ УДАЛЕНО сохранение данных с сервера - только ручной ввод
 
       // Показываем админ-вкладку при необходимости
       const tabAdmin = document.getElementById("tabAdmin");
@@ -1060,21 +1504,53 @@ async function handleLogin() {
       } else {
         // Для обычных пользователей - обычная логика
         document.getElementById("bottomNav").style.display = "flex";
+        
+        // 🛠️ ОЧИСТКА всех полей профиля для обеспечения ручного ввода
+        document.getElementById("shiftType").value = "";
+        document.getElementById("employeeStatus").value = "";
+        document.getElementById("profilePackingModel").value = "";
+        document.getElementById("profilePayType").value = "";
+        document.getElementById("profileSalary").value = "";
+        document.getElementById("salaryBlock").style.display = "none";
+        
+        // Восстанавливаем все опции типа оплаты
+        updatePayTypeOptions("");
+        
+        // 🚀 Предзагружаем оклад для текущего пользователя
+        preloadCurrentUserSalary();
+        
+        // 🛠️ Активируем кнопку сохранения и показываем подсказку
+        const saveBtn = document.getElementById("saveProfileBtn");
+        const hint = document.getElementById("profileHint");
+        const msg = document.getElementById("profileSaved");
+        const unsavedMsg = document.getElementById("profileUnsaved");
+        
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "💾 Сохранить";
+          saveBtn.style.opacity = "1";
+          saveBtn.style.cursor = "pointer";
+          saveBtn.classList.remove("save-button-pulse");
+        }
+        if (hint) hint.style.display = "block";
+        if (msg) msg.style.display = "none";
+        if (unsavedMsg) unsavedMsg.style.display = "none";
+        
         switchTab("profile"); // ✅ Мгновенно открываем профиль
         
-        // 🔄 Загружаем справочники и восстанавливаем профиль
+        // 🔄 Быстрая загрузка справочников (с кэшированием)
         await Promise.all([
-          loadVolumes(),
           loadOperations(),
           loadSetNumbers(),
-          loadTodayRecords(),
-          loadOperationFilter(),
-          loadRatesTable(),
-          loadPackingModels()
+          loadTodayRecords()
         ]);
         
-        restoreProfile(); // 🔄 Восстанавливаем профиль из localStorage
-        // Убрано автоматическое сохранение - теперь только по кнопке "Сохранить"
+        // Загружаем остальные данные в фоне
+        loadRatesTable();
+        loadOperationFilter();
+        loadPackingModels();
+        
+
       }
 
       // Асинхронная фоновая загрузка (ускорение) - только для админов
@@ -1082,11 +1558,24 @@ async function handleLogin() {
         loadAllDictionariesInBackground();
       }
 
+      // Разблокируем кнопку после успешного входа (хотя форма скрыта)
+      loginBtn.disabled = false;
+      loginBtn.classList.remove("loading");
+      loginBtn.textContent = "Войти";
+
     } else {
       errorElem.textContent = "❌ Неверный логин или PIN-код";
+      // Разблокируем кнопку при ошибке
+      loginBtn.disabled = false;
+      loginBtn.classList.remove("loading");
+      loginBtn.textContent = "Войти";
     }
   } catch (err) {
     errorElem.textContent = "❌ Ошибка подключения";
+    // Разблокируем кнопку при ошибке подключения
+    loginBtn.disabled = false;
+    loginBtn.classList.remove("loading");
+    loginBtn.textContent = "Войти";
   }
 }
 
@@ -1104,9 +1593,18 @@ function handleLogout() {
   // 🔐 Очистка формы входа
   const loginInput = document.getElementById("login");
   const passwordInput = document.getElementById("password");
+  const loginBtn = document.getElementById("loginBtn");
+  
   loginInput.value = "";
   passwordInput.value = "";
   loginInput.focus();
+  
+  // 🔄 Сброс состояния кнопки входа
+  if (loginBtn) {
+    loginBtn.disabled = false;
+    loginBtn.classList.remove("loading");
+    loginBtn.textContent = "Войти";
+  }
 
   // 👤 Очистка профиля
   document.querySelector('[name="employeeName"]').value = "";
@@ -1114,11 +1612,18 @@ function handleLogout() {
   document.getElementById("employeeStatus").value = "";
   document.getElementById("profileSaved").style.display = "none";
   document.getElementById("profileHint").style.display = "block";
+  
+  // Восстанавливаем все опции типа оплаты
+  updatePayTypeOptions("");
 
-  // 🔒 Отключение кнопки учёта
-  const tabApp = document.getElementById("tabApp");
-  tabApp.disabled = true;
-  tabApp.innerHTML = "🔒";
+          // 🔒 Отключение кнопки учёта
+        const tabApp = document.getElementById("tabApp");
+        const tabMySalary = document.getElementById("tabMySalary");
+        tabApp.disabled = true;
+        tabApp.innerHTML = "🔒";
+        
+        // 🛠️ Показываем все вкладки (так как профиль не заполнен)
+        if (tabMySalary) tabMySalary.style.display = "inline-block";
 
   // ❌ Очистка статистики
   closeStats(); // очищает statsCards, totalWage и statsLogs
@@ -1170,9 +1675,31 @@ function handleLogout() {
 }
 
   async function loadTodayRecords() {
-    const res = await fetch(`${scriptURL}?type=records`);
-    const data = await res.json();
-    todayRecords = data.records || [];
+    try {
+      // === ОПТИМИЗАЦИЯ: быстрый запрос с минимальными данными ===
+      const res = await fetch(`${scriptURL}?type=records`, {
+        method: 'GET',
+        cache: 'no-cache' // Исключаем кэширование для актуальности данных
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      const data = await res.json();
+      todayRecords = data.records || [];
+      
+      console.log(`📥 Загружено записей за сегодня: ${todayRecords.length}`);
+      
+    } catch (error) {
+      console.error("❌ Ошибка загрузки записей за сегодня:", error);
+      todayRecords = [];
+      
+      // Показываем уведомление только при критической ошибке
+      if (error.name !== 'AbortError') {
+        showTemporaryNotification("⚠️ Не удалось обновить записи", "warning", 2000);
+      }
+    }
   }
 
 function loadMySalary() {
@@ -1265,56 +1792,159 @@ function formatDate(iso) {
 
 
   async function loadVolumes() {
-  const res = await fetch(`${scriptURL}?type=volumes`);
-  const data = await res.json();
-  allVolumes = data.volumes.map(v => ["", v]); // ← сохраняем как [операция, объём] (заглушка)
+    try {
+      const volumes = await loadVolumesFast();
+      allVolumes = volumes.map(v => ["", v]); // ← сохраняем как [операция, объём] (заглушка)
 
-  const select = document.querySelector('[name="volume"]');
-  select.innerHTML = '<option value="">-- Выбери объём --</option>';
-  data.volumes.forEach(val => {
-    const opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = val;
-    select.appendChild(opt);
-  });
-}
+      const select = document.querySelector('[name="volume"]');
+      select.innerHTML = '<option value="">-- Выбери объём --</option>';
+      volumes.forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        select.appendChild(opt);
+      });
+    } catch (error) {
+      console.error("Ошибка загрузки объемов:", error);
+    }
+  }
 
   async function loadOperations() {
-    const res = await fetch(`${scriptURL}?type=operations`);
-    const data = await res.json();
-    const select = document.querySelector('[name="operationType"]');
-    select.innerHTML = '<option value="">-- Выбери операцию --</option>';
-    data.operations.forEach(val => {
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = val;
-      select.appendChild(opt);
-    });
-    select.addEventListener("change", () => handleOperationChange(select.value));
+    try {
+      const operations = await loadOperationsFast();
+      const select = document.querySelector('[name="operationType"]');
+      select.innerHTML = '<option value="">-- Выбери операцию --</option>';
+      operations.forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        select.appendChild(opt);
+      });
+      select.addEventListener("change", () => handleOperationChange(select.value));
+    } catch (error) {
+      console.error("Ошибка загрузки операций:", error);
+    }
   }
 
   async function loadSetNumbers() {
-    const res = await fetch(`${scriptURL}?type=sets`);
-    const data = await res.json();
-    const select = document.querySelector('[name="setNumber"]');
-    select.innerHTML = '<option value="">-- Выбери артикул --</option>';
-    data.sets.forEach(val => {
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = val;
-      select.appendChild(opt);
-    });
+    try {
+      const sets = await loadSetsFast();
+      const select = document.querySelector('[name="setNumber"]');
+      select.innerHTML = '<option value="">-- Выбери артикул --</option>';
+      sets.forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        select.appendChild(opt);
+      });
+    } catch (error) {
+      console.error("Ошибка загрузки артикулов:", error);
+    }
   }
 
 async function deleteRecord(index) {
   if (!confirm("Удалить эту запись?")) return;
 
-  const res = await fetch(`${scriptURL}?type=deleteRecord&index=${index}`);
-  const data = await res.json();
+  // Локально удаляем запись из интерфейса для мгновенного отклика
+  const recordElement = document.querySelector(`[data-record-index="${index}"]`);
+  if (recordElement) {
+    recordElement.style.opacity = "0.5";
+    recordElement.style.pointerEvents = "none";
+  }
 
-  alert(data.message || "Удалено");
-  if (data.status === "success") {
-    loadStats();
+  // === БЛОКИРУЕМ КНОПКИ СТАТИСТИКИ ВО ВРЕМЯ УДАЛЕНИЯ ===
+  const showStatsBtn = document.getElementById("showStatsBtn");
+  const closeStatsBtn = document.getElementById("closeStatsBtn");
+  
+  // Сохраняем исходное состояние кнопок
+  const originalShowState = {
+    disabled: showStatsBtn?.disabled || false,
+    text: showStatsBtn?.textContent || "",
+    opacity: showStatsBtn?.style.opacity || "1"
+  };
+  
+  const originalCloseState = {
+    disabled: closeStatsBtn?.disabled || false,
+    opacity: closeStatsBtn?.style.opacity || "1",
+    cursor: closeStatsBtn?.style.cursor || "pointer"
+  };
+
+  // Блокируем кнопки
+  if (showStatsBtn) {
+    showStatsBtn.disabled = true;
+    showStatsBtn.textContent = "⏳ Обновление...";
+    showStatsBtn.style.opacity = "0.6";
+  }
+  
+  if (closeStatsBtn) {
+    closeStatsBtn.disabled = true;
+    closeStatsBtn.style.opacity = "0.6";
+    closeStatsBtn.style.cursor = "not-allowed";
+  }
+
+  try {
+    const res = await fetch(`${scriptURL}?type=deleteRecord&index=${index}`);
+    const data = await res.json();
+
+    if (data.status === "success") {
+      showTemporaryNotification("✅ Запись удалена", "success", 2000); // Быстрее скрывается
+      
+      // === МГНОВЕННОЕ УДАЛЕНИЕ ИЗ ИНТЕРФЕЙСА ===
+      if (recordElement) {
+        recordElement.remove(); // Удаляем элемент сразу
+        
+        // Проверяем, остались ли еще записи в статистике
+        const statsCards = document.getElementById("statsCards");
+        const remainingCards = statsCards?.querySelectorAll('.stat-card');
+        if (statsCards && (!remainingCards || remainingCards.length === 0)) {
+          // Если записей не осталось, очищаем итог и показываем сообщение
+          const totalElem = document.getElementById("totalWage");
+          if (totalElem) totalElem.textContent = "";
+          statsCards.innerHTML = '<p style="text-align:center;">Нет данных за выбранную дату</p>';
+        }
+      }
+      
+      // Отмечаем что нужно обновить интерфейс после разблокировки
+      window.needsInterfaceUpdate = true;
+      
+    } else {
+      // В случае ошибки возвращаем запись в исходное состояние
+      if (recordElement) {
+        recordElement.style.opacity = "1";
+        recordElement.style.pointerEvents = "auto";
+      }
+      showTemporaryNotification(data.message || "❌ Ошибка удаления", "error");
+    }
+    
+  } catch (error) {
+    // В случае ошибки возвращаем запись в исходное состояние
+    if (recordElement) {
+      recordElement.style.opacity = "1";
+      recordElement.style.pointerEvents = "auto";
+    }
+    console.error("❌ Ошибка удаления:", error);
+    showTemporaryNotification("❌ Ошибка соединения при удалении", "error");
+  } finally {
+    // === РАЗБЛОКИРУЕМ КНОПКИ СТАТИСТИКИ С НЕБОЛЬШОЙ ЗАДЕРЖКОЙ ===
+    setTimeout(() => {
+      if (showStatsBtn) {
+        showStatsBtn.disabled = originalShowState.disabled;
+        showStatsBtn.textContent = originalShowState.text;
+        showStatsBtn.style.opacity = originalShowState.opacity;
+      }
+      
+      if (closeStatsBtn) {
+        closeStatsBtn.disabled = originalCloseState.disabled;
+        closeStatsBtn.style.opacity = originalCloseState.opacity;
+        closeStatsBtn.style.cursor = originalCloseState.cursor;
+      }
+      
+      // === ЗАПУСКАЕМ ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ПОСЛЕ РАЗБЛОКИРОВКИ ===
+      if (window.needsInterfaceUpdate) {
+        window.needsInterfaceUpdate = false;
+        fastUpdateAfterChange();
+      }
+    }, 500); // Даем время фоновым операциям
   }
 }
 
@@ -1453,7 +2083,6 @@ document.querySelector('[name="setNumber"]').addEventListener("change", updateRa
 document.querySelector('[name="quantity"]').addEventListener("input", updateRateDisplay);
 document.querySelector('[name="startTime"]').addEventListener("change", updateRateDisplay);
 document.querySelector('[name="endTime"]').addEventListener("change", updateRateDisplay);
-document.getElementById("profilePackingModel").addEventListener("change", updateRateDisplay);
 
 document.getElementById("dataForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -1484,65 +2113,41 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   formData.append("payType", localStorage.getItem("profilePayType") || "");
   formData.append("salary", localStorage.getItem("profileSalary") || "");
 
-  // Проверка на дубликаты (локальная)
-  await loadTodayRecords();
-  const payload = {
-    employeeName: formData.get("employeeName")?.trim(),
-    quantity: formData.get("quantity")?.trim(),
-    startTime: formData.get("startTime")?.trim(),
-    endTime: formData.get("endTime")?.trim(),
-    volume: formData.get("volume")?.trim(),
-    operationType: formData.get("operationType")?.trim(),
-    orderNumber: formData.get("orderNumber")?.trim(),
-    setNumber: formData.get("setNumber")?.trim(),
-    shiftType: currentShift,
-    employeeStatus: currentStatus
-  };
-
-  const isDuplicate = todayRecords.some(rec => {
-    const isSame =
-      rec.employeeName === payload.employeeName &&
-      rec.quantity === payload.quantity &&
-      rec.startTime === payload.startTime &&
-      rec.endTime === payload.endTime &&
-      rec.operationType === payload.operationType &&
-      rec.orderNumber === payload.orderNumber &&
-      rec.setNumber === payload.setNumber;
-
-    if (!isSame) return false;
-    if (payload.operationType !== 'Сборка "Набора"') {
-      return rec.volume === payload.volume;
-    }
-    return true;
-  });
-
   const submitBtn = form.querySelector('button[type="submit"]');
-  if (isDuplicate) {
-    result.textContent = "⚠️ Такая запись уже существует (локальная проверка)";
-    result.style.display = "block";
-    submitBtn.disabled = false;
-    submitBtn.textContent = "💾 Сохранить";
-    form.reset();
-    document.querySelector('[name="employeeName"]').value = currentUser;
-    handleOperationChange("");
-    updateRateDisplay();
+  
+  // Проверяем, не заблокирована ли уже кнопка (предотвращаем двойную отправку)
+  if (submitBtn.disabled) {
     return;
   }
 
-  // === КЛЮЧЕВОЕ: отправляем через URLSearchParams ===
+  // === Блокировка кнопки и изменение интерфейса ===
+  submitBtn.disabled = true;
+  submitBtn.textContent = "⏳ Отправка...";
+  submitBtn.style.opacity = "0.6";
+  submitBtn.style.cursor = "not-allowed";
+  submitBtn.classList.add("loading");
+  result.style.display = "none";
+  
+  // Блокируем всю форму
+  form.classList.add("form-disabled");
+  
+  // Скрываем предупреждения о дубликатах во время отправки
+  hideAllWarnings();
+
+  // === ОПТИМИЗАЦИЯ: отправляем через URLSearchParams ===
   const params = new URLSearchParams();
   formData.forEach((value, key) => {
     params.append(key, value);
   });
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "⏳ Отправка...";
-  result.style.display = "none";
-
   try {
+    // Убираем проверку дубликатов перед отправкой - делаем это на сервере
     const response = await fetch(scriptURL, {
       method: "POST",
-      body: params
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
     });
     
     if (!response.ok) {
@@ -1550,31 +2155,53 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
     }
     
     const resultData = await response.json();
+    
+    // Показываем результат
     result.textContent = resultData.message;
     result.style.display = "block";
+    
+    // Добавляем класс для стилизации сообщения
+    result.className = resultData.status === "success" ? "success-message" : "error-message";
 
     if (resultData.status === "success") {
-      form.reset();
-      document.querySelector('[name="employeeName"]').value = currentUser;
-      handleOperationChange("");
-      updateRateDisplay();
-      await loadTodayRecords();
+      // ✅ ПОЛНОЕ ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
+      await performFullInterfaceRefresh();
+      
+      // Показываем сообщение об успехе немного дольше
+      setTimeout(() => {
+        result.style.display = "none";
+        result.className = "";
+      }, 3000);
+      
+    } else {
+      // В случае ошибки просто разблокируем кнопку
+      enableSubmitButton();
     }
+    
   } catch (error) {
     console.error("❌ Ошибка отправки данных:", error);
     result.textContent = "❌ Ошибка отправки: " + error.message;
     result.style.display = "block";
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "💾 Сохранить";
+    result.className = "error-message";
+    enableSubmitButton();
   }
 });
 
 
 async function loadRatesTable() {
-  const res = await fetch(`${scriptURL}?type=rates`);
-  const data = await res.json();
-  allRates = data.rates || [];
+  // Используем кэш для тарифов
+  if (isCacheValid(dataCache.rates)) {
+    allRates = dataCache.rates.data;
+  } else {
+    const res = await fetch(`${scriptURL}?type=rates`);
+    const data = await res.json();
+    allRates = data.rates || [];
+    
+    dataCache.rates = {
+      data: allRates,
+      timestamp: Date.now()
+    };
+  }
 
   const opFilter = document.getElementById("filterOperation");
   const keyFilter = document.getElementById("filterKey");
@@ -1661,18 +2288,77 @@ async function loadRatesTable() {
   renderFilteredRates(); // первая отрисовка
 }
 
-async function loadOperationFilter() {
+// Функция проверки актуальности кэша
+function isCacheValid(cacheEntry) {
+  return cacheEntry.data && (Date.now() - cacheEntry.timestamp) < CACHE_DURATION;
+}
+
+// Быстрая загрузка операций с кэшированием
+async function loadOperationsFast() {
+  if (isCacheValid(dataCache.operations)) {
+    return dataCache.operations.data;
+  }
+  
   const res = await fetch(`${scriptURL}?type=operations`);
   const data = await res.json();
-  const filter = document.getElementById("operationFilter");
+  
+  dataCache.operations = {
+    data: data.operations,
+    timestamp: Date.now()
+  };
+  
+  return data.operations;
+}
 
-  filter.innerHTML = '<option value="">-- Все операции --</option>';
-  data.operations.forEach(op => {
-    const option = document.createElement("option");
-    option.value = op;
-    option.textContent = op;
-    filter.appendChild(option);
-  });
+// Быстрая загрузка объемов с кэшированием
+async function loadVolumesFast() {
+  if (isCacheValid(dataCache.volumes)) {
+    return dataCache.volumes.data;
+  }
+  
+  const res = await fetch(`${scriptURL}?type=volumes`);
+  const data = await res.json();
+  
+  dataCache.volumes = {
+    data: data.volumes,
+    timestamp: Date.now()
+  };
+  
+  return data.volumes;
+}
+
+// Быстрая загрузка наборов с кэшированием
+async function loadSetsFast() {
+  if (isCacheValid(dataCache.sets)) {
+    return dataCache.sets.data;
+  }
+  
+  const res = await fetch(`${scriptURL}?type=sets`);
+  const data = await res.json();
+  
+  dataCache.sets = {
+    data: data.sets,
+    timestamp: Date.now()
+  };
+  
+  return data.sets;
+}
+
+async function loadOperationFilter() {
+  try {
+    const operations = await loadOperationsFast();
+    const filter = document.getElementById("operationFilter");
+
+    filter.innerHTML = '<option value="">-- Все операции --</option>';
+    operations.forEach(op => {
+      const option = document.createElement("option");
+      option.value = op;
+      option.textContent = op;
+      filter.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Ошибка загрузки операций:", error);
+  }
 }
 
 function openEditModal(index, record) {
@@ -1699,53 +2385,66 @@ function openEditModal(index, record) {
 }
 
 async function loadEditFormDictionaries() {
-  // Операции
-  const resOp = await fetch(`${scriptURL}?type=operations`);
-  const operations = (await resOp.json()).operations || [];
-  const opSelect = document.getElementById("editOperation");
-  opSelect.innerHTML = '<option value="">-- Выбери операцию --</option>';
-  operations.forEach(op => {
-    const opt = document.createElement("option");
-    opt.value = op;
-    opt.textContent = op;
-    opSelect.appendChild(opt);
-  });
+  try {
+    // Используем кэшированные функции для быстрой загрузки
+    const [operations, volumes, sets] = await Promise.all([
+      loadOperationsFast(),
+      loadVolumesFast(),
+      loadSetsFast()
+    ]);
 
-  // Объёмы
-  const resVol = await fetch(`${scriptURL}?type=volumes`);
-  const volumes = (await resVol.json()).volumes || [];
-  const volSelect = document.getElementById("editVolumeSelect");
-  volSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
-  volumes.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    volSelect.appendChild(opt);
-  });
+    // Операции
+    const opSelect = document.getElementById("editOperation");
+    opSelect.innerHTML = '<option value="">-- Выбери операцию --</option>';
+    operations.forEach(op => {
+      const opt = document.createElement("option");
+      opt.value = op;
+      opt.textContent = op;
+      opSelect.appendChild(opt);
+    });
 
-  // Артикулы наборов
-  const resSet = await fetch(`${scriptURL}?type=sets`);
-  const sets = (await resSet.json()).sets || [];
-  const setSelect = document.getElementById("editSetNumberSelect");
-  setSelect.innerHTML = '<option value="">-- Выбери артикул --</option>';
-  sets.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s;
-    opt.textContent = s;
-    setSelect.appendChild(opt);
-  });
+    // Объёмы
+    const volSelect = document.getElementById("editVolumeSelect");
+    volSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
+    volumes.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      volSelect.appendChild(opt);
+    });
 
-  // Переключение объёма/набора
-  opSelect.addEventListener("change", () => {
-    const isSet = opSelect.value.includes("Сборка");
-    document.getElementById("editVolumeLabel").style.display = isSet ? "none" : "block";
-    volSelect.required = !isSet;
-    document.getElementById("editSetNumberField").style.display = isSet ? "block" : "none";
-  });
+    // Артикулы наборов
+    const setSelect = document.getElementById("editSetNumberSelect");
+    setSelect.innerHTML = '<option value="">-- Выбери артикул --</option>';
+    sets.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      setSelect.appendChild(opt);
+    });
+
+    // Переключение объёма/набора
+    opSelect.addEventListener("change", () => {
+      const isSet = opSelect.value.includes("Сборка");
+      document.getElementById("editVolumeLabel").style.display = isSet ? "none" : "block";
+      volSelect.required = !isSet;
+      document.getElementById("editSetNumberField").style.display = isSet ? "block" : "none";
+    });
+    
+  } catch (error) {
+    console.error("Ошибка загрузки словарей для редактирования:", error);
+  }
 }
 
 async function submitEditForm() {
   const form = document.getElementById("editForm");
+  const submitBtn = form.querySelector('button[type="button"], .submit-btn');
+  
+  // Предотвращаем повторную отправку
+  if (submitBtn && submitBtn.disabled) {
+    return;
+  }
+  
   const formData = new FormData(form);
   const params = new URLSearchParams();
 
@@ -1768,6 +2467,43 @@ async function submitEditForm() {
     params.set("duration", duration);
   }
 
+  // Блокируем кнопку и показываем состояние загрузки
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "⏳ Сохранение...";
+    submitBtn.style.opacity = "0.6";
+  }
+
+  // === БЛОКИРУЕМ КНОПКИ СТАТИСТИКИ ВО ВРЕМЯ РЕДАКТИРОВАНИЯ ===
+  const showStatsBtn = document.getElementById("showStatsBtn");
+  const closeStatsBtn = document.getElementById("closeStatsBtn");
+  
+  // Сохраняем исходное состояние кнопок
+  const originalShowState = {
+    disabled: showStatsBtn?.disabled || false,
+    text: showStatsBtn?.textContent || "",
+    opacity: showStatsBtn?.style.opacity || "1"
+  };
+  
+  const originalCloseState = {
+    disabled: closeStatsBtn?.disabled || false,
+    opacity: closeStatsBtn?.style.opacity || "1",
+    cursor: closeStatsBtn?.style.cursor || "pointer"
+  };
+
+  // Блокируем кнопки статистики
+  if (showStatsBtn) {
+    showStatsBtn.disabled = true;
+    showStatsBtn.textContent = "⏳ Обновление...";
+    showStatsBtn.style.opacity = "0.6";
+  }
+  
+  if (closeStatsBtn) {
+    closeStatsBtn.disabled = true;
+    closeStatsBtn.style.opacity = "0.6";
+    closeStatsBtn.style.cursor = "not-allowed";
+  }
+
   try {
     const res = await fetch(scriptURL, {
       method: "POST",
@@ -1775,16 +2511,49 @@ async function submitEditForm() {
     });
 
     const data = await res.json();
+    
     if (data.status === "success") {
-      alert(data.message || "Обновлено");
+      showTemporaryNotification("✅ Запись обновлена!", "success", 2000); // Быстрее скрывается
       closeEditModal();
-      await loadStats();
+      
+      // Отмечаем что нужно обновить интерфейс после разблокировки
+      window.needsInterfaceUpdate = true;
+      
     } else {
-      alert(data.message || "Ошибка обновления");
+      showTemporaryNotification(data.message || "❌ Ошибка обновления", "error");
     }
+    
   } catch (err) {
     console.error("❌ Ошибка редактирования:", err);
-    alert("Ошибка соединения: " + err.message);
+    showTemporaryNotification("❌ Ошибка соединения: " + err.message, "error");
+  } finally {
+    // Разблокируем кнопку редактирования
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "💾 Сохранить";
+      submitBtn.style.opacity = "1";
+    }
+    
+    // === РАЗБЛОКИРУЕМ КНОПКИ СТАТИСТИКИ С НЕБОЛЬШОЙ ЗАДЕРЖКОЙ ===
+    setTimeout(() => {
+      if (showStatsBtn) {
+        showStatsBtn.disabled = originalShowState.disabled;
+        showStatsBtn.textContent = originalShowState.text;
+        showStatsBtn.style.opacity = originalShowState.opacity;
+      }
+      
+      if (closeStatsBtn) {
+        closeStatsBtn.disabled = originalCloseState.disabled;
+        closeStatsBtn.style.opacity = originalCloseState.opacity;
+        closeStatsBtn.style.cursor = originalCloseState.cursor;
+      }
+      
+      // === ЗАПУСКАЕМ ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ПОСЛЕ РАЗБЛОКИРОВКИ ===
+      if (window.needsInterfaceUpdate) {
+        window.needsInterfaceUpdate = false;
+        fastUpdateAfterChange();
+      }
+    }, 500); // Даем время фоновым операциям
   }
 }
 
@@ -1818,29 +2587,55 @@ async function loadStats() {
   isStatsLoading = true;
 
   const showBtn = document.getElementById("showStatsBtn");
-  if (showBtn) showBtn.disabled = true;
+  const closeBtn = document.getElementById("closeStatsBtn");
+  
+  // Блокируем обе кнопки во время загрузки
+  if (showBtn) {
+    showBtn.disabled = true;
+    showBtn.textContent = "⏳ Загрузка...";
+    showBtn.style.opacity = "0.6";
+  }
+  
+  if (closeBtn) {
+    closeBtn.disabled = true;
+    closeBtn.style.opacity = "0.6";
+    closeBtn.style.cursor = "not-allowed";
+  }
 
   try {
     const selectedOperation = document.getElementById("operationFilter").value;
     const date = document.getElementById("statsDate").value;
 
     if (!currentUser) {
-      alert("❗Ошибка: пользователь не авторизован.");
+      showTemporaryNotification("❗Ошибка: пользователь не авторизован", "error");
       return;
     }
 
-    // Очистка старого состояния
-    closeStats();
+    if (!date) {
+      showTemporaryNotification("❗Выберите дату для статистики", "warning");
+      return;
+    }
 
-    const res = await fetch(`${scriptURL}?type=stats&date=${encodeURIComponent(date)}&employee=${encodeURIComponent(currentUser)}`);
-    const data = await res.json();
-
+    // Быстрая очистка старого состояния и получение элементов
     const container = document.getElementById("statsCards");
     const totalElem = document.getElementById("totalWage");
     const logElem = document.getElementById("statsLogs");
+    
+    container.innerHTML = "";
+    totalElem.textContent = "";
+    logElem.innerHTML = "";
+
+    const res = await fetch(`${scriptURL}?type=stats&date=${encodeURIComponent(date)}&employee=${encodeURIComponent(currentUser)}`);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
 
     if (!data.records || !data.records.length) {
       container.innerHTML = '<p style="text-align:center;">Нет данных за выбранную дату</p>';
+      totalElem.textContent = ""; // Очищаем итог когда нет данных
       return;
     }
 
@@ -1852,53 +2647,90 @@ async function loadStats() {
       ? data.records.filter(r => r.operationType === selectedOperation)
       : data.records;
 
+    // === ПРОВЕРЯЕМ ЕСТЬ ЛИ ЗАПИСИ ПОСЛЕ ФИЛЬТРАЦИИ ===
+    if (!filtered.length) {
+      container.innerHTML = selectedOperation 
+        ? '<p style="text-align:center;">Нет данных для выбранной операции</p>'
+        : '<p style="text-align:center;">Нет данных за выбранную дату</p>';
+      totalElem.textContent = ""; // Очищаем итог когда нет отфильтрованных данных
+      return;
+    }
+
+    // Ускоренное создание карточек через innerHTML
+    const today = new Date().toISOString().split("T")[0];
+    let cardsHTML = "";
+    let totalQuantity = 0;
+    let totalNormTime = 0; // Для расчета % выполнения норм
+    
     filtered.forEach(rec => {
       const wage = rec.wage || 0;
       totalWage += wage;
+      totalQuantity += rec.quantity || 0;
 
+      // Считаем эффективность
       if (rec.efficiency !== null && rec.efficiency !== undefined) {
         totalEfficiency += rec.efficiency;
         efficiencyCount++;
       }
-
-      const card = document.createElement("div");
-      card.className = "stat-card";
-      card.innerHTML = `
-        <p><strong>🕒 Время:</strong> ${rec.startTime} – ${rec.endTime}</p>
-        <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
-        <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
-        <p><strong>🧩 Набор:</strong> ${rec.setNumber || "-"}</p>
-        <p><strong>🔢 Кол-во:</strong> ${rec.quantity}</p>
-        <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
-        <p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>
-        <p><strong>💰 Тариф за шт:</strong> ${rec.ratePerUnit?.toFixed(2) ?? "-"} ₽</p>
-        ${rec.bonusPercent ? `<p><strong>🎁 Бонус:</strong> ${rec.bonusIcon || "🎁"} ${rec.bonusPercent}</p>` : ""}
-        <p><strong>💸 Заработано:</strong> ${wage.toFixed(2)} ₽</p>
-      `;
-
-      const today = new Date().toISOString().split("T")[0];
-      if (rec.rowIndex !== undefined && date === today) {
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "✏️ Редактировать";
-        editBtn.onclick = () => openEditModal(rec.rowIndex, rec);
-        card.appendChild(editBtn);
-
-        const delBtn = document.createElement("button");
-        delBtn.textContent = "🗑 Удалить";
-        delBtn.className = "danger";
-        delBtn.style.marginLeft = "10px";
-        delBtn.onclick = () => deleteRecord(rec.rowIndex);
-        card.appendChild(delBtn);
+      
+      // Рассчитываем время на основе нормы
+      if (rec.normPerHour && rec.quantity) {
+        totalNormTime += (rec.quantity / rec.normPerHour) * 60; // в минутах
       }
 
-      container.appendChild(card);
-    });
+      const buttonsHTML = (rec.rowIndex !== undefined && date === today) 
+        ? `<div style="margin-top:10px;">
+             <button onclick="openEditModal(${rec.rowIndex}, ${JSON.stringify(rec).replace(/"/g, '&quot;')})">✏️ Редактировать</button>
+             <button onclick="deleteRecord(${rec.rowIndex})" class="danger" style="margin-left:10px;">🗑 Удалить</button>
+           </div>`
+        : "";
 
-    const avgEff = efficiencyCount ? Math.round(totalEfficiency / efficiencyCount) : "-";
-    totalElem.textContent = `💵 Всего: ${totalWage.toFixed(2)} ₽ | ⚙️ Средняя эффективность: ${avgEff}%`;
+      cardsHTML += `
+        <div class="stat-card" ${rec.rowIndex !== undefined ? `data-record-index="${rec.rowIndex}"` : ""}>
+          <p><strong>🕒 Время:</strong> ${rec.startTime} – ${rec.endTime}</p>
+          <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
+          <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
+          <p><strong>🧩 Набор:</strong> ${rec.setNumber || "-"}</p>
+          <p><strong>🔢 Кол-во:</strong> ${rec.quantity}</p>
+          <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
+          <p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>
+          <p><strong>💰 Тариф за шт:</strong> ${rec.ratePerUnit?.toFixed(2) ?? "-"} ₽</p>
+          ${rec.bonusPercent ? `<p><strong>🎁 Бонус:</strong> ${rec.bonusIcon || "🎁"} ${rec.bonusPercent}</p>` : ""}
+          <p><strong>💸 Заработано:</strong> ${wage.toFixed(2)} ₽</p>
+          ${buttonsHTML}
+        </div>
+      `;
+    });
+    
+    container.innerHTML = cardsHTML;
+    
+    // Рассчитываем средняю эффективность
+    const avgEfficiency = efficiencyCount ? Math.round(totalEfficiency / efficiencyCount) : "-";
+    
+    // Рассчитываем выполнение норм по операциям (количество операций с эффективностью >= 100%)
+    let normsCompleted = 0;
+    let totalOperations = 0;
+    
+    filtered.forEach(rec => {
+      if (rec.efficiency !== null && rec.efficiency !== undefined) {
+        totalOperations++;
+        if (rec.efficiency >= 100) {
+          normsCompleted++;
+        }
+      }
+    });
+    
+    // Формируем строку выполнения норм в формате "4/10 (40%)"
+    let normCompletion = "-";
+    if (totalOperations > 0) {
+      const normPercent = Math.round((normsCompleted / totalOperations) * 100);
+      normCompletion = `${normsCompleted}/${totalOperations} (${normPercent}%)`;
+    }
+
+    totalElem.textContent = `💵 Всего: ${totalWage.toFixed(2)} ₽ | 📊 Выполнение норм: ${normCompletion} | ⚙️ Эффективность: ${avgEfficiency}%`;
 
     if (selectedOperation) {
-      totalElem.textContent += ` | Фильтр: ${selectedOperation}`;
+      totalElem.textContent += ` | 🔍 Фильтр: ${selectedOperation}`;
     }
 
     if (data.logs && data.logs.length) {
@@ -1908,21 +2740,80 @@ async function loadStats() {
       `;
     }
 
-    const closeBtn = document.getElementById("closeStatsBtn");
+    // Кнопка closeBtn уже объявлена в начале функции
     if (closeBtn) closeBtn.style.display = "inline-block";
 
   } catch (error) {
-    alert("❌ Ошибка загрузки статистики");
-    console.error(error);
+    console.error("❌ Ошибка загрузки статистики:", error);
+    showTemporaryNotification("❌ Ошибка загрузки статистики: " + error.message, "error");
+    
+    // Очищаем состояние при ошибке
+    const container = document.getElementById("statsCards");
+    const totalElem = document.getElementById("totalWage");
+    if (container) container.innerHTML = '<p style="text-align:center; color:red;">❌ Ошибка загрузки</p>';
+    if (totalElem) totalElem.textContent = ""; // Очищаем итог при ошибке
+    
   } finally {
     isStatsLoading = false;
-    if (showBtn) showBtn.disabled = false;
+    
+    // Разблокируем кнопку "Показать статистику"
+    if (showBtn) {
+      showBtn.disabled = false;
+      showBtn.textContent = "📊 Показать статистику";
+      showBtn.style.opacity = "1";
+    }
+    
+    // Разблокируем кнопку "Закрыть статистику"
+    if (closeBtn) {
+      closeBtn.disabled = false;
+      closeBtn.style.opacity = "1";
+      closeBtn.style.cursor = "pointer";
+    }
   }
 }
 
 
 
 window.addEventListener("DOMContentLoaded", async () => {
+  // 🔒 ПРИНУДИТЕЛЬНОЕ отображение только формы входа
+  document.getElementById("loginContainer").style.display = "block";
+  document.getElementById("tabContainer").style.display = "none";
+  document.getElementById("appContainer").style.display = "none";
+  document.getElementById("statsContainer").style.display = "none";
+  document.getElementById("profileContainer").style.display = "none";
+  document.getElementById("ratesContainer").style.display = "none";
+  document.getElementById("adminContainer").style.display = "none";
+  document.getElementById("mySalaryContainer").style.display = "none";
+  document.getElementById("bottomNav").style.display = "none";
+
+  // 🎯 Обработка Enter в полях входа
+  const loginField = document.getElementById("login");
+  const passwordField = document.getElementById("password");
+  
+  if (loginField) {
+    loginField.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        passwordField.focus();
+      }
+    });
+  }
+  
+  if (passwordField) {
+    passwordField.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const loginBtn = document.getElementById("loginBtn");
+        if (loginBtn && !loginBtn.disabled) {
+          handleLogin();
+        }
+      }
+    });
+  }
+
+  // 🚀 Предзагрузка моделей упаковки из кэша для мгновенного отображения
+  preloadPackingModels();
+  
   await loadEditFormDictionaries();
   await loadPackingModels();
 
@@ -1934,6 +2825,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentUserRole");
   }
+  
+  // 🔄 Принудительный сброс глобальных переменных
+  currentUser = "";
+  currentUserRole = "user";
 
   if (!currentUser) {
     document.getElementById("login").focus();
@@ -1944,121 +2839,296 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // 👤 Отображаем интерфейс после входа
-  if (currentUserRole === "admin") {
-    document.getElementById("tabAdmin").style.display = "block";
-    
-    // Для администратора: скрываем все вкладки кроме админ-панели
-    const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
-    tabButtons.forEach(id => {
-      const btn = document.getElementById(id);
-      if (btn) btn.style.display = "none";
-    });
-    
-    document.querySelector('[name="employeeName"]').value = currentUser;
-    document.getElementById("loginContainer").style.display = "none";
-    document.getElementById("tabContainer").style.display = "block";
-    document.getElementById("adminContainer").style.display = "block";
-    document.getElementById("bottomNav").style.display = "flex";
-  } else {
-    // Для обычных пользователей
-    document.querySelector('[name="employeeName"]').value = currentUser;
-    document.getElementById("loginContainer").style.display = "none";
-    document.getElementById("tabContainer").style.display = "block";
-    document.getElementById("profileContainer").style.display = "block";
-    document.getElementById("bottomNav").style.display = "flex";
-  }
+  // ❌ УДАЛЕН код автоматического отображения интерфейса - только после входа через handleLogin()
 
-  // 💵 Скрываем вкладку «Моя зарплата» для аутсорсинга (не для админа)
-  if (currentUserRole !== "admin") {
-    const tabMySalary = document.getElementById("tabMySalary");
-    if (currentStatus === "Аутсорсинг" && tabMySalary) {
-      tabMySalary.style.display = "none";
-    }
-  }
+  // ❌ УДАЛЕН весь код инициализации для авторизованных пользователей - теперь только через handleLogin()
 
-  // 📥 Загрузка справочников (только для обычных пользователей)
-  if (currentUserRole !== "admin") {
-    await Promise.all([
-      loadVolumes(),
-      loadOperations(),
-      loadSetNumbers(),
-      loadTodayRecords(),
-      loadOperationFilter(),
-      loadRatesTable()
-    ]);
-    
-    // 🔄 Восстанавливаем профиль из localStorage
-    restoreProfile();
-  }
-
-  // 📊 Автообновление при выборе фильтра (только для обычных пользователей)
-  if (currentUserRole !== "admin") {
-    document.getElementById("operationFilter").addEventListener("change", loadStats);
-
-    // 📋 Убрано автоматическое сохранение профиля при смене данных
-    // Теперь сохранение происходит только по кнопке "Сохранить"
-  }
-
-  // 📦 Логика блокировки объёма (только для обычных пользователей)
-  if (currentUserRole !== "admin") {
-    const operationSelect = document.querySelector('[name="operationType"]');
-    const volumeSelect = document.querySelector('[name="volume"]');
-
-    if (operationSelect && volumeSelect) {
-      operationSelect.addEventListener("change", () => {
-        const selectedOp = operationSelect.value;
-
-        if (selectedOp === "Маркировка продукции ш/к") {
-          volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
-          volumeSelect.value = "Общая";
-          volumeSelect.disabled = true;
-        } else {
-          volumeSelect.disabled = false;
-          volumeSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
-
-          const relatedKeys = Array.from(
-            new Set(allRates.filter(r => r.operation === selectedOp).map(r => r.key))
-          );
-
-          relatedKeys.forEach(v => {
-            const opt = document.createElement("option");
-            opt.value = v;
-            opt.textContent = v;
-            volumeSelect.appendChild(opt);
-          });
-        }
-      });
-
-      // 🟡 Обновить сразу, если операция уже выбрана
-      operationSelect.dispatchEvent(new Event("change"));
-    }
-  }
-
-  // ⏱ Подсказка сохранения профиля (только для обычных пользователей)
-  if (currentUserRole !== "admin") {
-    // Просто восстанавливаем профиль из localStorage без сохранения
-    restoreProfile();
-  }
+  // 🗑️ Подсказка сохранения профиля убрана - теперь только ручной ввод
 });
 
 async function loadPackingModels() {
   const select = document.getElementById("profilePackingModel");
   if (!select) return;
-  select.innerHTML = '<option value="">-- Выберите --</option>';
+  
+  // Проверяем кэш
+  if (isCacheValid(dataCache.packingModels)) {
+    console.log("📦 Загрузка моделей упаковки из кэша");
+    populatePackingModelsSelect(dataCache.packingModels.data);
+    return;
+  }
+  
+  select.innerHTML = '<option value="">⏳ Загрузка...</option>';
+  
   try {
     const res = await fetch(`${scriptURL}?type=packingModels`);
     const data = await res.json();
-    (data.models || []).forEach(model => {
-      const opt = document.createElement("option");
-      opt.value = model;
-      opt.textContent = model;
-      select.appendChild(opt);
-    });
+    const models = data.models || [];
+    
+    // Сохраняем в кэш
+    dataCache.packingModels = {
+      data: models,
+      timestamp: Date.now()
+    };
+    
+    // Сохраняем в localStorage для долгосрочного кэша
+    try {
+      localStorage.setItem('packingModelsCache', JSON.stringify({
+        data: models,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.warn("Не удалось сохранить модели упаковки в localStorage");
+    }
+    
+    populatePackingModelsSelect(models);
+    console.log("📦 Модели упаковки загружены с сервера");
+    
   } catch (err) {
-    select.innerHTML = '<option value="">Ошибка загрузки</option>';
+    console.error("Ошибка загрузки моделей упаковки:", err);
+    // Пытаемся загрузить из localStorage как fallback
+    const fallbackData = tryLoadPackingModelsFromStorage();
+    if (fallbackData) {
+      populatePackingModelsSelect(fallbackData);
+    } else {
+      select.innerHTML = '<option value="">❌ Ошибка загрузки</option>';
+    }
   }
 }
+
+// Вспомогательная функция для заполнения select'а
+function populatePackingModelsSelect(models) {
+  const select = document.getElementById("profilePackingModel");
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">-- Выберите --</option>';
+  models.forEach(model => {
+    const opt = document.createElement("option");
+    opt.value = model;
+    opt.textContent = model;
+    select.appendChild(opt);
+  });
+}
+
+// Функция загрузки из localStorage как fallback
+function tryLoadPackingModelsFromStorage() {
+  try {
+    const cached = localStorage.getItem('packingModelsCache');
+    if (cached) {
+      const data = JSON.parse(cached);
+      // Проверяем что данные не старше 24 часов
+      const maxAge = 24 * 60 * 60 * 1000; // 24 часа
+      if (Date.now() - data.timestamp < maxAge) {
+        console.log("📦 Загружены модели упаковки из localStorage (fallback)");
+        return data.data;
+      }
+    }
+  } catch (e) {
+    console.warn("Ошибка при загрузке из localStorage:", e);
+  }
+  return null;
+}
+
+// Предзагрузка моделей упаковки при инициализации страницы
+function preloadPackingModels() {
+  // Сначала пытаемся загрузить из localStorage
+  const cachedData = tryLoadPackingModelsFromStorage();
+  if (cachedData) {
+    dataCache.packingModels = {
+      data: cachedData,
+      timestamp: Date.now() - 1000 // Ставим чуть старше, чтобы обновилось в фоне
+    };
+    
+    // Заполняем select если он уже есть
+    setTimeout(() => {
+      const select = document.getElementById("profilePackingModel");
+      if (select && select.options.length <= 1) { // Если еще не заполнен
+        populatePackingModelsSelect(cachedData);
+      }
+    }, 100);
+    
+    console.log("🚀 Модели упаковки предзагружены из localStorage");
+  }
+  
+  // Обновляем в фоне для свежести данных
+  setTimeout(() => {
+    if (!isCacheValid(dataCache.packingModels)) {
+      loadPackingModels().catch(err => {
+        console.warn("Фоновое обновление моделей упаковки не удалось:", err);
+      });
+    }
+  }, 1000);
+}
+
+// === ФУНКЦИЯ: Загрузка оклада с кэшированием ===
+async function getSalaryWithCache(employee) {
+  if (!employee) {
+    console.warn("getSalaryWithCache: employee пустой");
+    return null;
+  }
+
+  // Проверяем кэш
+  const cached = dataCache.salaries[employee];
+  if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+    console.log(`💰 Загрузка оклада для "${employee}" из кэша:`, cached.salary);
+    return cached.salary;
+  }
+
+  // Пытаемся загрузить из localStorage
+  const localData = tryLoadSalaryFromStorage(employee);
+  if (localData !== null) {
+    // Сохраняем в оперативный кэш
+    dataCache.salaries[employee] = {
+      salary: localData,
+      timestamp: Date.now() - 1000 // Чуть старше, чтобы обновилось в фоне
+    };
+    
+    // Обновляем в фоне
+    setTimeout(() => {
+      fetchSalaryFromServer(employee);
+    }, 500);
+    
+    console.log(`💰 Загрузка оклада для "${employee}" из localStorage:`, localData);
+    return localData;
+  }
+
+  // Загружаем с сервера
+  return await fetchSalaryFromServer(employee);
+}
+
+// Функция загрузки оклада с сервера
+async function fetchSalaryFromServer(employee) {
+  try {
+    console.log(`💰 Загрузка оклада для "${employee}" с сервера...`);
+    
+    const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(employee)}`);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    const salary = String(data.salary || "");
+    
+    // Сохраняем в кэш
+    dataCache.salaries[employee] = {
+      salary: salary,
+      timestamp: Date.now()
+    };
+    
+    // Сохраняем в localStorage
+    saveSalaryToStorage(employee, salary);
+    
+    console.log(`💰 Оклад для "${employee}" загружен с сервера:`, salary);
+    return salary;
+    
+  } catch (err) {
+    console.error(`❌ Ошибка загрузки оклада для "${employee}":`, err);
+    
+    // Пытаемся загрузить из localStorage как fallback
+    const fallback = tryLoadSalaryFromStorage(employee);
+    if (fallback !== null) {
+      console.log(`💰 Fallback: используем оклад из localStorage для "${employee}":`, fallback);
+      return fallback;
+    }
+    
+    return null;
+  }
+}
+
+// Функция сохранения оклада в localStorage
+function saveSalaryToStorage(employee, salary) {
+  try {
+    const salariesCache = JSON.parse(localStorage.getItem('salariesCache') || '{}');
+    salariesCache[employee] = {
+      salary: salary,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('salariesCache', JSON.stringify(salariesCache));
+  } catch (e) {
+    console.warn(`Не удалось сохранить оклад для "${employee}" в localStorage:`, e);
+  }
+}
+
+// Функция загрузки оклада из localStorage
+function tryLoadSalaryFromStorage(employee) {
+  try {
+    const salariesCache = JSON.parse(localStorage.getItem('salariesCache') || '{}');
+    const cached = salariesCache[employee];
+    
+    if (cached) {
+      // Проверяем что данные не старше 24 часов
+      const maxAge = 24 * 60 * 60 * 1000; // 24 часа
+      if (Date.now() - cached.timestamp < maxAge) {
+        return cached.salary;
+      }
+    }
+  } catch (e) {
+    console.warn(`Ошибка при загрузке оклада "${employee}" из localStorage:`, e);
+  }
+  return null;
+}
+
+// Предзагрузка оклада для текущего пользователя
+function preloadCurrentUserSalary() {
+  const currentUser = localStorage.getItem("currentUser");
+  if (currentUser) {
+    // Предзагружаем оклад из localStorage
+    const cachedSalary = tryLoadSalaryFromStorage(currentUser);
+    if (cachedSalary !== null) {
+      dataCache.salaries[currentUser] = {
+        salary: cachedSalary,
+        timestamp: Date.now() - 1000 // Чуть старше для фонового обновления
+      };
+      console.log(`🚀 Оклад для "${currentUser}" предзагружен из localStorage:`, cachedSalary);
+      
+      // Обновляем в фоне
+      setTimeout(() => {
+        fetchSalaryFromServer(currentUser);
+      }, 2000);
+    }
+  }
+}
+
+// Функция "умного" заполнения поля оклада
+function smartFillSalaryField() {
+  const currentUser = localStorage.getItem("currentUser");
+  const salaryInput = document.getElementById("profileSalary");
+  
+  if (!currentUser || !salaryInput) return;
+  
+  // Проверяем есть ли оклад в кэше
+  const cached = dataCache.salaries[currentUser];
+  if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+    salaryInput.value = cached.salary;
+    console.log(`💨 Мгновенное заполнение оклада из кэша: ${cached.salary}`);
+    return;
+  }
+  
+  // Проверяем localStorage
+  const localSalary = tryLoadSalaryFromStorage(currentUser);
+  if (localSalary !== null) {
+    salaryInput.value = localSalary;
+    console.log(`💨 Мгновенное заполнение оклада из localStorage: ${localSalary}`);
+    
+    // Обновляем кэш и проверяем актуальность в фоне
+    dataCache.salaries[currentUser] = {
+      salary: localSalary,
+      timestamp: Date.now() - 1000
+    };
+    
+    setTimeout(() => {
+      fetchSalaryFromServer(currentUser).then(newSalary => {
+        if (newSalary && newSalary !== localSalary) {
+          salaryInput.value = newSalary;
+          console.log(`🔄 Оклад обновлен с сервера: ${newSalary}`);
+        }
+      });
+    }, 1000);
+  }
+}
+
+// 🚀 Мгновенная предзагрузка при загрузке скрипта
+preloadPackingModels();
 
 function openUpdateAllModal() {
   // Очистка
@@ -2788,6 +3858,37 @@ document.getElementById("password").addEventListener("keydown", e => {
   }
 });
 
+// 🔄 Горячая клавиша для принудительного обновления кэша (Ctrl+Shift+R)
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+    e.preventDefault();
+    clearCache();
+    
+    // Показываем уведомление пользователю
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 10000;
+      background: #059669; color: white; padding: 12px 20px; border-radius: 8px;
+      font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = '🔄 Кэш очищен! Данные будут перезагружены.';
+    
+    document.body.appendChild(notification);
+    
+    // Принудительно перезагружаем модели упаковки и оклад
+    setTimeout(() => {
+      loadPackingModels();
+      preloadCurrentUserSalary();
+    }, 500);
+    
+    // Убираем уведомление через 3 секунды
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+});
+
 function openSalaryExportModal() {
   // Очистка
   document.getElementById("salaryExportResult").textContent = "";
@@ -2992,6 +4093,679 @@ async function checkUserStructure() {
     btn.disabled = false;
     btn.textContent = originalText;
   }
+}
+
+// ===== ФУНКЦИИ УЛУЧШЕННОЙ ЗАЩИТЫ ОТ ДУБЛИКАТОВ =====
+
+/**
+ * Анализирует все типы потенциальных дубликатов
+ */
+function analyzeAllDuplicates(payload) {
+  duplicateWarnings = { exact: [], similar: [], suspicious: [] };
+  
+  todayRecords.forEach((rec, index) => {
+    // 1. Точные дубликаты (существующая логика)
+    if (isExactDuplicate(rec, payload)) {
+      duplicateWarnings.exact.push({ record: rec, index, reason: "Полное совпадение" });
+    }
+    
+    // 2. Похожие записи (новая логика)
+    else if (isSimilarRecord(rec, payload)) {
+      const similarities = findSimilarities(rec, payload);
+      duplicateWarnings.similar.push({ 
+        record: rec, 
+        index, 
+        reason: `Похоже на: ${similarities.join(", ")}`,
+        similarities 
+      });
+    }
+    
+    // 3. Подозрительные записи
+    else if (isSuspiciousRecord(rec, payload)) {
+      const suspicions = findSuspicions(rec, payload);
+      duplicateWarnings.suspicious.push({ 
+        record: rec, 
+        index, 
+        reason: `Подозрительно: ${suspicions.join(", ")}`,
+        suspicions 
+      });
+    }
+  });
+}
+
+/**
+ * Проверка точного дубликата (существующая логика)
+ */
+function isExactDuplicate(rec, payload) {
+  const isSame =
+    rec.employeeName === payload.employeeName &&
+    rec.quantity === payload.quantity &&
+    rec.startTime === payload.startTime &&
+    rec.endTime === payload.endTime &&
+    rec.operationType === payload.operationType &&
+    rec.orderNumber === payload.orderNumber &&
+    rec.setNumber === payload.setNumber;
+
+  if (!isSame) return false;
+  if (payload.operationType !== 'Сборка "Набора"') {
+    return rec.volume === payload.volume;
+  }
+  return true;
+}
+
+/**
+ * Проверка похожей записи
+ */
+function isSimilarRecord(rec, payload) {
+  if (rec.employeeName !== payload.employeeName) return false;
+  
+  let similarities = 0;
+  
+  // Проверяем количество (±10%)
+  if (payload.quantity && rec.quantity) {
+    const diff = Math.abs(Number(payload.quantity) - Number(rec.quantity));
+    const threshold = Number(rec.quantity) * 0.1;
+    if (diff <= threshold) similarities++;
+  }
+  
+  // Проверяем время (±15 минут)
+  if (isTimeClose(rec.startTime, payload.startTime, 15) || 
+      isTimeClose(rec.endTime, payload.endTime, 15)) {
+    similarities++;
+  }
+  
+  // Проверяем операцию
+  if (rec.operationType === payload.operationType) similarities++;
+  
+  // Проверяем объём/артикул
+  if (rec.volume === payload.volume || rec.setNumber === payload.setNumber) {
+    similarities++;
+  }
+  
+  // Если 3+ совпадения из 4 - это похожая запись
+  return similarities >= 3;
+}
+
+/**
+ * Проверка подозрительной записи
+ */
+function isSuspiciousRecord(rec, payload) {
+  if (rec.employeeName !== payload.employeeName) return false;
+  
+  // Пересекающееся время работы
+  if (isTimeOverlapping(rec, payload)) return true;
+  
+  // Очень короткий интервал между записями
+  if (isTimeGapTooShort(rec, payload)) return true;
+  
+  // Одинаковое время, но разные операции
+  if (rec.startTime === payload.startTime && rec.endTime === payload.endTime && 
+      rec.operationType !== payload.operationType) return true;
+      
+  // Необычно высокая производительность
+  if (isUnusuallyHighQuantity(payload)) return true;
+  
+  return false;
+}
+
+/**
+ * Находит конкретные сходства между записями
+ */
+function findSimilarities(rec, payload) {
+  const similarities = [];
+  
+  if (Math.abs(Number(payload.quantity) - Number(rec.quantity)) <= Number(rec.quantity) * 0.1) {
+    similarities.push("количество");
+  }
+  
+  if (isTimeClose(rec.startTime, payload.startTime, 15)) {
+    similarities.push("время начала");
+  }
+  
+  if (isTimeClose(rec.endTime, payload.endTime, 15)) {
+    similarities.push("время окончания");
+  }
+  
+  if (rec.operationType === payload.operationType) {
+    similarities.push("операция");
+  }
+  
+  if (rec.volume === payload.volume) {
+    similarities.push("объём");
+  }
+  
+  if (rec.setNumber === payload.setNumber) {
+    similarities.push("артикул");
+  }
+  
+  return similarities;
+}
+
+/**
+ * Находит подозрительные моменты
+ */
+function findSuspicions(rec, payload) {
+  const suspicions = [];
+  
+  if (isTimeOverlapping(rec, payload)) {
+    suspicions.push("пересекающееся время");
+  }
+  
+  if (isTimeGapTooShort(rec, payload)) {
+    suspicions.push("слишком короткий перерыв");
+  }
+  
+  if (rec.startTime === payload.startTime && rec.endTime === payload.endTime) {
+    suspicions.push("одинаковое время");
+  }
+  
+  if (isUnusuallyHighQuantity(payload)) {
+    suspicions.push("необычно высокая производительность");
+  }
+  
+  return suspicions;
+}
+
+/**
+ * Проверяет, близко ли время (в минутах)
+ */
+function isTimeClose(time1, time2, minutesThreshold) {
+  if (!time1 || !time2) return false;
+  
+  const [h1, m1] = time1.split(":").map(Number);
+  const [h2, m2] = time2.split(":").map(Number);
+  
+  const minutes1 = h1 * 60 + m1;
+  const minutes2 = h2 * 60 + m2;
+  
+  return Math.abs(minutes1 - minutes2) <= minutesThreshold;
+}
+
+/**
+ * Проверяет пересечение времени работы
+ */
+function isTimeOverlapping(rec, payload) {
+  if (!rec.startTime || !rec.endTime || !payload.startTime || !payload.endTime) return false;
+  
+  const recStart = timeToMinutes(rec.startTime);
+  const recEnd = timeToMinutes(rec.endTime);
+  const payloadStart = timeToMinutes(payload.startTime);
+  const payloadEnd = timeToMinutes(payload.endTime);
+  
+  // Проверяем пересечение интервалов
+  return (payloadStart < recEnd) && (payloadEnd > recStart);
+}
+
+/**
+ * Проверяет, слишком ли короткий промежуток между записями
+ */
+function isTimeGapTooShort(rec, payload) {
+  if (!rec.endTime || !payload.startTime) return false;
+  
+  const recEnd = timeToMinutes(rec.endTime);
+  const payloadStart = timeToMinutes(payload.startTime);
+  
+  // Если между окончанием одной записи и началом другой меньше 5 минут
+  const gap = Math.abs(payloadStart - recEnd);
+  return gap < 5 && gap > 0;
+}
+
+/**
+ * Проверяет необычно высокую производительность
+ */
+function isUnusuallyHighQuantity(payload) {
+  if (!payload.quantity || !payload.startTime || !payload.endTime) return false;
+  
+  const duration = timeToMinutes(payload.endTime) - timeToMinutes(payload.startTime);
+  if (duration <= 0) return false;
+  
+  const rate = Number(payload.quantity) / (duration / 60); // штук в час
+  
+  // Находим норму для этой операции
+  const matchingRate = allRates.find(r => 
+    r.operation === payload.operationType && 
+    (r.key === payload.volume || r.key === payload.setNumber)
+  );
+  
+  if (matchingRate && matchingRate.normPerHour > 0) {
+    // Если производительность превышает норму в 2+ раза
+    return rate > matchingRate.normPerHour * 2;
+  }
+  
+  return false;
+}
+
+/**
+ * Конвертирует время в минуты
+ */
+function timeToMinutes(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+/**
+ * Показывает предупреждения о дубликатах
+ */
+function showDuplicateWarnings() {
+  const container = document.getElementById("duplicateWarnings") || createWarningsContainer();
+  
+  let html = "";
+  
+  // Точные дубликаты (критично)
+  if (duplicateWarnings.exact.length > 0) {
+    html += `
+      <div class="warning-section critical">
+        <h4>🚫 Точные дубликаты (${duplicateWarnings.exact.length})</h4>
+        ${duplicateWarnings.exact.map(w => 
+          `<div class="warning-item critical">
+            <strong>Запись #${w.index + 1}:</strong> ${w.reason}<br>
+            <small>${formatRecordSummary(w.record)}</small>
+          </div>`
+        ).join('')}
+      </div>
+    `;
+  }
+  
+  // Похожие записи (предупреждение)
+  if (duplicateWarnings.similar.length > 0) {
+    html += `
+      <div class="warning-section warning">
+        <h4>⚠️ Похожие записи (${duplicateWarnings.similar.length})</h4>
+        ${duplicateWarnings.similar.map(w => 
+          `<div class="warning-item warning">
+            <strong>Запись #${w.index + 1}:</strong> ${w.reason}<br>
+            <small>${formatRecordSummary(w.record)}</small>
+          </div>`
+        ).join('')}
+      </div>
+    `;
+  }
+  
+  // Подозрительные записи (уведомление)
+  if (duplicateWarnings.suspicious.length > 0) {
+    html += `
+      <div class="warning-section info">
+        <h4>🔍 Подозрительные записи (${duplicateWarnings.suspicious.length})</h4>
+        ${duplicateWarnings.suspicious.map(w => 
+          `<div class="warning-item info">
+            <strong>Запись #${w.index + 1}:</strong> ${w.reason}<br>
+            <small>${formatRecordSummary(w.record)}</small>
+          </div>`
+        ).join('')}
+      </div>
+    `;
+  }
+  
+  if (html) {
+    container.innerHTML = html;
+    container.style.display = "block";
+  } else {
+    container.style.display = "none";
+  }
+}
+
+/**
+ * Создает контейнер для предупреждений
+ */
+function createWarningsContainer() {
+  const existing = document.getElementById("duplicateWarnings");
+  if (existing) return existing;
+  
+  const container = document.createElement("div");
+  container.id = "duplicateWarnings";
+  container.className = "duplicate-warnings";
+  
+  // Вставляем перед формой
+  const form = document.getElementById("dataForm");
+  form.parentNode.insertBefore(container, form);
+  
+  return container;
+}
+
+/**
+ * Форматирует краткую информацию о записи
+ */
+function formatRecordSummary(record) {
+  return `${record.operationType} • ${record.quantity}шт • ${record.startTime}-${record.endTime} • ${record.volume || record.setNumber || 'N/A'}`;
+}
+
+/**
+ * Сохранение черновика формы
+ */
+function saveDraft() {
+  const formData = new FormData(document.getElementById("dataForm"));
+  const draft = {};
+  formData.forEach((value, key) => {
+    draft[key] = value;
+  });
+  
+  draft.timestamp = Date.now();
+  localStorage.setItem("formDraft", JSON.stringify(draft));
+}
+
+/**
+ * Восстановление черновика формы
+ */
+function restoreDraft() {
+  const draftStr = localStorage.getItem("formDraft");
+  if (!draftStr) return false;
+  
+  try {
+    const draft = JSON.parse(draftStr);
+    
+    // Проверяем, не слишком ли старый черновик (больше 1 часа)
+    if (Date.now() - draft.timestamp > 60 * 60 * 1000) {
+      localStorage.removeItem("formDraft");
+      return false;
+    }
+    
+    // Восстанавливаем поля
+    Object.entries(draft).forEach(([key, value]) => {
+      if (key !== 'timestamp') {
+        const field = document.querySelector(`[name="${key}"]`);
+        if (field) field.value = value;
+      }
+    });
+    
+    return true;
+  } catch (error) {
+    localStorage.removeItem("formDraft");
+    return false;
+  }
+}
+
+/**
+ * Валидация формы в реальном времени
+ */
+function setupRealTimeValidation() {
+  const form = document.getElementById("dataForm");
+  const fields = ['quantity', 'startTime', 'endTime', 'operationType', 'volume', 'setNumber', 'orderNumber'];
+  
+  fields.forEach(fieldName => {
+    const field = form.querySelector(`[name="${fieldName}"]`);
+    if (field) {
+      field.addEventListener('input', debounce(validateFormRealTime, 500));
+      field.addEventListener('change', validateFormRealTime);
+    }
+  });
+}
+
+/**
+ * Валидация формы в реальном времени
+ */
+function validateFormRealTime() {
+  const form = document.getElementById("dataForm");
+  if (!form) return;
+  
+  const formData = new FormData(form);
+  
+  const payload = {
+    employeeName: currentUser,
+    quantity: formData.get("quantity")?.trim(),
+    startTime: formData.get("startTime")?.trim(),
+    endTime: formData.get("endTime")?.trim(),
+    volume: formData.get("volume")?.trim(),
+    operationType: formData.get("operationType")?.trim(),
+    orderNumber: formData.get("orderNumber")?.trim(),
+    setNumber: formData.get("setNumber")?.trim(),
+    shiftType: currentShift,
+    employeeStatus: currentStatus
+  };
+  
+  // Проверяем только если заполнены ключевые поля
+  if (payload.employeeName && payload.quantity && payload.startTime && 
+      payload.endTime && payload.operationType) {
+    
+    analyzeAllDuplicates(payload);
+    showDuplicateWarnings();
+    saveDraft(); // Сохраняем черновик
+  }
+}
+
+/**
+ * Дебаунс функция
+ */
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// ===== ФУНКЦИИ УПРАВЛЕНИЯ ИНТЕРФЕЙСОМ =====
+
+/**
+ * Полное обновление интерфейса после успешной отправки
+ */
+async function performFullInterfaceRefresh() {
+  try {
+    console.log("🔄 Начинаем быстрое обновление интерфейса...");
+    
+    // 1. Сброс формы к начальному состоянию (без блокировки)
+    resetFormToInitialState();
+    
+    // 2. Минимальное обновление данных (только записи за сегодня)
+    loadTodayRecords(); // Запускаем асинхронно, не ждем
+    
+    // 3. Очистка всех предупреждений и черновиков
+    hideAllWarnings();
+    clearDraft();
+    
+    // 4. Разблокировка кнопки отправки
+    enableSubmitButton();
+    
+    console.log("✅ Быстрое обновление интерфейса завершено");
+    
+    // 5. Показываем уведомление об успешном обновлении
+    showTemporaryNotification("✅ Данные успешно отправлены!", "success");
+    
+  } catch (error) {
+    console.error("❌ Ошибка при обновлении интерфейса:", error);
+    enableSubmitButton();
+    showTemporaryNotification("⚠️ Данные отправлены, но возникла ошибка при обновлении интерфейса", "warning");
+  }
+}
+
+/**
+ * Сброс формы к начальному состоянию
+ */
+function resetFormToInitialState() {
+  const form = document.getElementById("dataForm");
+  
+  // Очищаем форму
+  form.reset();
+  
+  // Восстанавливаем основные поля
+  document.querySelector('[name="employeeName"]').value = currentUser;
+  
+  // Сбрасываем операцию и связанные поля
+  handleOperationChange("");
+  
+  // Обновляем расчет тарифов
+  updateRateDisplay();
+  
+  // Очищаем сообщения о результатах
+  const result = document.getElementById("result");
+  if (result) {
+    result.style.display = "none";
+    result.className = "";
+    result.textContent = "";
+  }
+  
+  console.log("🔄 Форма сброшена к начальному состоянию");
+}
+
+/**
+ * Включение кнопки отправки
+ */
+function enableSubmitButton() {
+  const form = document.getElementById("dataForm");
+  const submitBtn = document.querySelector('#dataForm button[type="submit"]');
+  
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+    submitBtn.style.opacity = "1";
+    submitBtn.style.cursor = "pointer";
+    submitBtn.classList.remove("loading");
+  }
+  
+  if (form) {
+    form.classList.remove("form-disabled");
+  }
+}
+
+/**
+ * Скрытие всех предупреждений
+ */
+function hideAllWarnings() {
+  const warningsContainer = document.getElementById("duplicateWarnings");
+  if (warningsContainer) {
+    warningsContainer.style.display = "none";
+    warningsContainer.innerHTML = "";
+  }
+  
+  // Сброс данных о предупреждениях
+  duplicateWarnings = { exact: [], similar: [], suspicious: [] };
+}
+
+/**
+ * Очистка черновика
+ */
+function clearDraft() {
+  localStorage.removeItem("formDraft");
+  console.log("🗑️ Черновик формы очищен");
+}
+
+/**
+ * Обновление базовых данных (для быстрого обновления интерфейса)
+ */
+async function updateBasicData() {
+  if (typeof loadTodayRecords === 'function') {
+    try {
+      // Обновляем список записей за сегодня
+      await loadTodayRecords();
+      
+      console.log("📊 Базовые данные обновлены");
+    } catch (error) {
+      console.error("❌ Ошибка обновления базовых данных:", error);
+    }
+  }
+}
+
+/**
+ * СУПЕР-БЫСТРОЕ обновление после операций редактирования/удаления
+ * Минимальные сетевые запросы, только самое необходимое
+ */
+async function fastUpdateAfterChange() {
+  try {
+    // === 1. БЫСТРОЕ ОБНОВЛЕНИЕ ЗАПИСЕЙ ЗА СЕГОДНЯ (неблокирующее) ===
+    loadTodayRecords().catch(error => {
+      console.warn("⚠️ Фоновое обновление записей не удалось:", error);
+    });
+    
+    // === 2. ОТЛОЖЕННОЕ ОБНОВЛЕНИЕ СТАТИСТИКИ (если открыта) ===
+    const statsContainer = document.getElementById("statsContainer");
+    
+    if (statsContainer && statsContainer.style.display !== "none") {
+      // Ждем, чтобы кнопки разблокировались, затем обновляем статистику
+      setTimeout(() => {
+        // Проверяем что статистика всё ещё открыта и не загружается
+        if (statsContainer.style.display !== "none" && !isStatsLoading) {
+          console.log("🔄 Запускаем отложенное обновление статистики...");
+          loadStats().catch(error => {
+            console.warn("⚠️ Отложенное обновление статистики не удалось:", error);
+          });
+        } else {
+          console.log("📊 Пропускаем обновление статистики - условия не выполнены");
+        }
+      }, 800); // Увеличиваем задержку для надежности
+    }
+    
+    console.log("⚡ Быстрое обновление запущено в фоне");
+    
+  } catch (error) {
+    console.error("❌ Ошибка быстрого обновления:", error);
+    // Не показываем уведомление пользователю - работаем в фоне
+  }
+}
+
+/**
+ * Показ временного уведомления
+ */
+function showTemporaryNotification(message, type = "info", duration = 3000) {
+  // Создаем или находим контейнер для уведомлений
+  let container = document.getElementById("notificationContainer");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "notificationContainer";
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      max-width: 400px;
+    `;
+    document.body.appendChild(container);
+  }
+  
+  // Создаем уведомление
+  const notification = document.createElement("div");
+  notification.className = `notification notification-${type}`;
+  notification.style.cssText = `
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+    animation: slideInRight 0.3s ease-out;
+    cursor: pointer;
+  `;
+  
+  // Стили по типу
+  switch (type) {
+    case "success":
+      notification.style.background = "#d1fae5";
+      notification.style.color = "#065f46";
+      notification.style.border = "1px solid #a7f3d0";
+      break;
+    case "warning":
+      notification.style.background = "#fef3c7";
+      notification.style.color = "#92400e";
+      notification.style.border = "1px solid #fcd34d";
+      break;
+    case "error":
+      notification.style.background = "#fef2f2";
+      notification.style.color = "#991b1b";
+      notification.style.border = "1px solid #fca5a5";
+      break;
+    default:
+      notification.style.background = "#eff6ff";
+      notification.style.color = "#1e40af";
+      notification.style.border = "1px solid #93c5fd";
+  }
+  
+  notification.textContent = message;
+  
+  // Добавляем обработчик клика для закрытия
+  notification.addEventListener("click", () => {
+    notification.remove();
+  });
+  
+  container.appendChild(notification);
+  
+  // Автоматическое удаление
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.style.animation = "slideOutRight 0.3s ease-in";
+      setTimeout(() => notification.remove(), 300);
+    }
+  }, duration);
 }
 
 </script>
