@@ -776,6 +776,7 @@ button.danger:hover {
     <button id="tabProfile" onclick="switchTab('profile')">👤</button>
     <button id="tabApp" onclick="switchTab('app')" disabled>📋</button>
     <button id="tabStats" onclick="switchTab('stats')">📈</button>
+    <button id="tabCostAnalysis" onclick="switchTab('costAnalysis')">📊</button>
     <button id="tabRates" onclick="switchTab('rates')">💰</button>
     <button id="tabMySalary" onclick="switchTab('mySalary')">💵</button>
     <button id="tabAdmin" onclick="switchTab('admin')" style="display: none;">🛠️</button>
@@ -1010,8 +1011,35 @@ button.danger:hover {
   <div id="mySalaryOutput" style="margin-top:20px;"></div>
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
+<div class="container" style="display:none;" id="costAnalysisContainer">
+  <h2>📊 Анализ себестоимости по объёмам</h2>
+  
+  <div class="form-row">
+    <div class="form-item">
+      <label>📅 Период с:
+        <input type="date" id="costStartDate">
+      </label>
+    </div>
+    <div class="form-item">
+      <label>📅 по:
+        <input type="date" id="costEndDate">
+      </label>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <button id="calculateCostBtn" onclick="calculateCostAnalysis()">🧮 Рассчитать себестоимость - ФОТ</button>
+    <button id="calculateCostWithMaterialsBtn" onclick="calculateCostAnalysisWithMaterials()">🧮 Рассчитать себестоимость - ФОТ + Материалы</button>
+  </div>
+
+  <div class="form-row" style="margin-top: 16px;">
+    <button onclick="saveReportToServer()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 8px;">💾 Выгрузить отчет себестоимости на сервер</button>
+  </div>
+
+  <div id="costResults" style="margin-top: 20px;"></div>
+</div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbyqkdg7VHYVRptnMHMQNPYzLArL8gJNb8kZQVIdmxmKjfR5HzzDEIwYmfiHji1gtQ/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwvBG9HfbvCrhomFStqPr2eO0NS6rrkwPq9eVv1FXiXL632lSbUI-hVl-xqR29qdIc/exec";
   let todayRecords = [];
   let currentUser = "";
 let currentShift = "";
@@ -1381,8 +1409,8 @@ async function saveProfile() {
 
 
 function switchTab(tabName) {
-  // Для администратора: разрешаем только админ-панель
-  if (currentUserRole === "admin" && tabName !== "admin") {
+  // Для администратора: разрешаем админ-панель и анализ себестоимости
+  if (currentUserRole === "admin" && tabName !== "admin" && tabName !== "costAnalysis") {
     return; // Не позволяем админу переключаться на другие вкладки
   }
   
@@ -1396,12 +1424,13 @@ function switchTab(tabName) {
   document.getElementById("adminContainer").style.display = "none";
   document.getElementById("mySalaryContainer").style.display = "none";
   document.getElementById("ratesContainer").style.display = "none";
+  document.getElementById("costAnalysisContainer").style.display = "none";
 
   // Удаляем fullscreen от appContainer, если был ранее
   document.getElementById("appContainer").classList.remove("fullscreen");
 
   // Деактивируем все вкладки
-  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary", "tabAdmin"];
+  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabCostAnalysis", "tabRates", "tabMySalary", "tabAdmin"];
   tabButtons.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.disabled = false;
@@ -1429,6 +1458,12 @@ function switchTab(tabName) {
         const today = new Date().toISOString().split('T')[0];
         statsDate.value = today;
       }
+      break;
+
+    case "costAnalysis":
+      document.getElementById("costAnalysisContainer").style.display = "block";
+      document.getElementById("tabCostAnalysis").disabled = true;
+      initializeCostAnalysis();
       break;
 
     case "rates":
@@ -1490,14 +1525,18 @@ async function handleLogin() {
       document.getElementById("tabContainer").style.display = "block";
       document.querySelector('[name="employeeName"]').value = currentUser;
       
-      // Для администратора: скрываем все вкладки кроме админ-панели
+      // Для администратора: скрываем все вкладки кроме админ-панели и анализа себестоимости
       if (currentUserRole === "admin") {
-        // Скрываем все навигационные кнопки кроме админ-панели
+        // Скрываем все навигационные кнопки кроме админ-панели и анализа себестоимости
         const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
         tabButtons.forEach(id => {
           const btn = document.getElementById(id);
           if (btn) btn.style.display = "none";
         });
+        
+        // Показываем кнопку анализа себестоимости для администраторов
+        const tabCostAnalysis = document.getElementById("tabCostAnalysis");
+        if (tabCostAnalysis) tabCostAnalysis.style.display = "inline-block";
         
         document.getElementById("bottomNav").style.display = "flex";
         switchTab("admin"); // Открываем сразу админ-панель
@@ -1647,7 +1686,8 @@ function handleLogout() {
     "profileContainer",
     "ratesContainer",
     "adminContainer",
-    "mySalaryContainer"
+    "mySalaryContainer",
+    "costAnalysisContainer"
   ];
   containers.forEach(id => {
     const el = document.getElementById(id);
@@ -1655,7 +1695,7 @@ function handleLogout() {
   });
 
   // Восстанавливаем видимость всех навигационных кнопок
-  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
+  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabCostAnalysis", "tabRates", "tabMySalary"];
   tabButtons.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.style.display = "inline-block";
@@ -1969,11 +2009,11 @@ async function deleteRecord(index) {
     volumeSelect.required = true;
   }
 
-  // === 🔒 Маркировка продукции — объём фиксированный ===
+  // === 🔒 Маркировка продукции — объём не требуется ===
  if (operation === "Маркировка продукции ш/к") {
-  volumeSelect.innerHTML = '<option value="Общая">Общая</option>';
-  volumeSelect.value = "Общая";
-  volumeSelect.readOnly = true; // или просто не делайте ничего, чтобы поле было доступно для отправки
+  volumeLabel.style.display = "none";
+  volumeSelect.required = false;
+  volumeSelect.value = "";
   return;
 }
 
@@ -2784,6 +2824,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("ratesContainer").style.display = "none";
   document.getElementById("adminContainer").style.display = "none";
   document.getElementById("mySalaryContainer").style.display = "none";
+  document.getElementById("costAnalysisContainer").style.display = "none";
   document.getElementById("bottomNav").style.display = "none";
 
   // 🎯 Обработка Enter в полях входа
@@ -3489,8 +3530,8 @@ async function loadShiftStats() {
   shiftTitle.innerHTML = `
     🕐 <strong>Смена:</strong> ${shiftBlock.shift}
     <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
-    <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт.
-    <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт.
+    <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт. (${shiftBlock.staff?.employees?.length ?? 0} чел.)
+    <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт. (${shiftBlock.outsource?.employees?.length ?? 0} чел.)
   `;
   shiftTitle.style.marginTop = "16px";
   container.appendChild(shiftTitle);
@@ -3520,8 +3561,8 @@ async function loadShiftStats() {
       if (staff.length) {
         const staffTitleRow = document.createElement("tr");
         staffTitleRow.innerHTML = `
-          <td colspan="3" style="padding:6px; font-weight:bold; color:#1f2937;">
-            👨‍🔧 Штат (средняя эффективность: ${shiftBlock.staff.averageEfficiency}%)
+          <td colspan="4" style="padding:6px; font-weight:bold; color:#1f2937;">
+            👨‍🔧 Штат (${staff.length} чел., средняя эффективность: ${shiftBlock.staff.averageEfficiency}%)
           </td>
         `;
         tbody.appendChild(staffTitleRow);
@@ -3554,8 +3595,8 @@ async function loadShiftStats() {
       if (outsource.length) {
         const outTitleRow = document.createElement("tr");
         outTitleRow.innerHTML = `
-          <td colspan="3" style="padding:6px; font-weight:bold; color:#6b21a8;">
-            📄 Аутсорсинг (средняя эффективность: ${shiftBlock.outsource.averageEfficiency}%)
+          <td colspan="4" style="padding:6px; font-weight:bold; color:#6b21a8;">
+            📄 Аутсорсинг (${outsource.length} чел., средняя эффективность: ${shiftBlock.outsource.averageEfficiency}%)
           </td>
         `;
         tbody.appendChild(outTitleRow);
@@ -4768,6 +4809,304 @@ function showTemporaryNotification(message, type = "info", duration = 3000) {
   }, duration);
 }
 
+// === АНАЛИЗ СЕБЕСТОИМОСТИ ===
+
+function initializeCostAnalysis() {
+  // Устанавливаем даты по умолчанию
+  const today = new Date();
+  const weekAgo = new Date(today);
+  weekAgo.setDate(today.getDate() - 7);
+  
+  document.getElementById("costStartDate").value = weekAgo.toISOString().split('T')[0];
+  document.getElementById("costEndDate").value = today.toISOString().split('T')[0];
+}
+
+
+
+async function calculateCostAnalysis() {
+  const startDate = document.getElementById("costStartDate").value;
+  const endDate = document.getElementById("costEndDate").value;
+  const resultDiv = document.getElementById("costResults");
+  
+  if (!startDate || !endDate) {
+    resultDiv.innerHTML = '<p style="color: red;">❌ Выберите период для анализа</p>';
+    return;
+  }
+  
+  resultDiv.innerHTML = '<p>🔄 Рассчитываем себестоимость...</p>';
+  
+  try {
+    const response = await fetch(`${scriptURL}?type=costAnalysis&start=${startDate}&end=${endDate}`);
+    const data = await response.json();
+    
+    if (data.status === "success") {
+      displayCostResults(data);
+    } else {
+      resultDiv.innerHTML = `<p style="color: red;">❌ Ошибка: ${data.message}</p>`;
+    }
+  } catch (error) {
+    console.error("Ошибка расчёта себестоимости:", error);
+    resultDiv.innerHTML = '<p style="color: red;">❌ Ошибка при расчёте</p>';
+  }
+}
+
+function displayCostResults(data) {
+  const resultDiv = document.getElementById("costResults");
+  
+  let html = `
+    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 16px; color: white; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">📊 Результаты анализа ФОТ</h3>
+      <p style="margin: 0; font-size: 16px; opacity: 0.9;">Период: ${data.period}</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px;">
+      <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 20px rgba(240,147,251,0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">${data.totalAllQuantity.toLocaleString()}</div>
+        <div style="font-size: 14px; opacity: 0.9;">📦 Общее количество (шт)</div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 20px rgba(250,112,154,0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">${data.totalAllCosts.toLocaleString()} ₽</div>
+        <div style="font-size: 14px; opacity: 0.9;">💰 Общие расходы ФОТ</div>
+      </div>
+    </div>
+  `;
+  
+  if (Object.keys(data.volumes).length === 0) {
+    html += '<div style="background: #fee2e2; color: #dc2626; padding: 16px; border-radius: 8px; text-align: center;">❌ Нет данных за выбранный период</div>';
+  } else {
+    html += `
+      <div style="background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 16px;">
+          <h4 style="margin: 0; font-size: 18px; font-weight: 600;">📈 Себестоимость ФОТ по объемам</h4>
+        </div>
+        <div class="table-scroll">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Объём</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Кол-во</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">ФОТ Себест. ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Общие затраты</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    Object.keys(data.volumes).sort().forEach((volume, index) => {
+      const vol = data.volumes[volume];
+      const rowBg = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += `
+        <tr style="background: ${rowBg}; transition: background-color 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='${rowBg}'">
+          <td style="padding: 12px 16px; font-weight: 600; color: #1e293b;">${volume}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #475569;">${vol.quantity.toLocaleString()}</td>
+          <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #2563eb; font-size: 16px;">${vol.unitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #475569;">${vol.totalCost.toLocaleString()} ₽</td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+  
+  resultDiv.innerHTML = html;
+}
+
+async function calculateCostAnalysisWithMaterials() {
+  const startDate = document.getElementById("costStartDate").value;
+  const endDate = document.getElementById("costEndDate").value;
+  const resultDiv = document.getElementById("costResults");
+  
+  if (!startDate || !endDate) {
+    resultDiv.innerHTML = '<p style="color: red;">❌ Выберите период для анализа</p>';
+    return;
+  }
+  
+  resultDiv.innerHTML = '<p>🔄 Рассчитываем себестоимость ФОТ + Материалы...</p>';
+  
+  try {
+    const response = await fetch(`${scriptURL}?type=costAnalysisWithMaterials&start=${startDate}&end=${endDate}`);
+    const data = await response.json();
+    
+    if (data.status === "success") {
+      displayCostResultsWithMaterials(data);
+    } else {
+      resultDiv.innerHTML = `<p style="color: red;">❌ Ошибка: ${data.message}</p>`;
+    }
+  } catch (error) {
+    console.error("Ошибка расчёта себестоимости с материалами:", error);
+    resultDiv.innerHTML = '<p style="color: red;">❌ Ошибка при расчёте</p>';
+  }
+}
+
+function displayCostResultsWithMaterials(data) {
+  const resultDiv = document.getElementById("costResults");
+  
+  let html = `
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 16px; color: white; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">📊 Результаты анализа ФОТ + Материалы</h3>
+      <p style="margin: 0; font-size: 16px; opacity: 0.9;">Период: ${data.period}</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+      <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 20px rgba(240,147,251,0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">${data.totalAllQuantity.toLocaleString()}</div>
+        <div style="font-size: 14px; opacity: 0.9;">📦 Общее количество (шт)</div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 20px rgba(79,172,254,0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">${data.totalAllFotCosts.toLocaleString()} ₽</div>
+        <div style="font-size: 14px; opacity: 0.9;">💰 Расходы ФОТ</div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 20px rgba(67,233,123,0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">${data.totalAllMaterialsCosts.toLocaleString()} ₽</div>
+        <div style="font-size: 14px; opacity: 0.9;">🧪 Расходы Материалы</div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 20px rgba(250,112,154,0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">${data.totalAllCosts.toLocaleString()} ₽</div>
+        <div style="font-size: 14px; opacity: 0.9;">💰 ИТОГО расходы</div>
+      </div>
+    </div>
+  `;
+  
+  if (Object.keys(data.volumes).length === 0) {
+    html += '<div style="background: #fee2e2; color: #dc2626; padding: 16px; border-radius: 8px; text-align: center;">❌ Нет данных за выбранный период</div>';
+  } else {
+    html += `
+      <div style="background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px;">
+          <h4 style="margin: 0; font-size: 18px; font-weight: 600;">📈 Себестоимость по объемам</h4>
+        </div>
+        <div class="table-scroll">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Объём</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Кол-во</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">ФОТ ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Материалы ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">ИТОГО ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Общие затраты</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    Object.keys(data.volumes).sort().forEach((volume, index) => {
+      const vol = data.volumes[volume];
+      const rowBg = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += `
+        <tr style="background: ${rowBg}; transition: background-color 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='${rowBg}'">
+          <td style="padding: 12px 16px; font-weight: 600; color: #1e293b;">${volume}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #475569;">${vol.quantity.toLocaleString()}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #2563eb; font-weight: 500;">${vol.fotUnitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #059669; font-weight: 500;">${vol.materialsUnitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #dc2626; font-size: 16px;">${vol.unitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #475569;">${vol.totalCost.toLocaleString()} ₽</td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div style="background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 16px;">
+          <h4 style="margin: 0; font-size: 18px; font-weight: 600;">🧪 Детализация материалов по объемам</h4>
+        </div>
+        <div class="table-scroll">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Объём</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">ПОФ ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">ВПП ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Скотч ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Стикер ₽/шт</th>
+                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;">Итого материалы ₽/шт</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    Object.keys(data.volumes).sort().forEach((volume, index) => {
+      const vol = data.volumes[volume];
+      const materials = vol.materialBreakdown;
+      const rowBg = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += `
+        <tr style="background: ${rowBg}; transition: background-color 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='${rowBg}'">
+          <td style="padding: 12px 16px; font-weight: 600; color: #1e293b;">${volume}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #7c3aed; font-weight: 500;">${materials.pofUnitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #2563eb; font-weight: 500;">${materials.vppUnitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #059669; font-weight: 500;">${materials.scotchUnitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; color: #dc2626; font-weight: 500;">${materials.stickerUnitCost}</td>
+          <td style="padding: 12px 16px; text-align: right; font-weight: 700; color: #1e293b; font-size: 16px; background: linear-gradient(135deg, #fef3c7, #fbbf24); border-radius: 6px;">${vol.materialsUnitCost}</td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+  
+  resultDiv.innerHTML = html;
+}
+
+// === ФУНКЦИЯ ДЛЯ ВЫГРУЗКИ ОТЧЕТА НА СЕРВЕР ===
+
+async function saveReportToServer() {
+  const startDate = document.getElementById("costStartDate").value;
+  const endDate = document.getElementById("costEndDate").value;
+  
+  if (!startDate || !endDate) {
+    alert('❌ Выберите период для сохранения отчета');
+    return;
+  }
+
+  // Показываем индикатор загрузки в кнопке
+  const button = document.querySelector('button[onclick="saveReportToServer()"]');
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '🔄 Сохраняем...';
+  }
+
+  try {
+    const response = await fetch(`${scriptURL}?type=saveReport&reportType=fot&start=${startDate}&end=${endDate}`);
+    const data = await response.json();
+    
+    if (data.status === "success") {
+      alert(`✅ ${data.message}`);
+    } else {
+      alert(`❌ Ошибка: ${data.message}`);
+    }
+  } catch (error) {
+    console.error("Ошибка сохранения отчета:", error);
+    alert('❌ Ошибка при сохранении отчета на сервер');
+  } finally {
+    // Восстанавливаем кнопку
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '💾 Выгрузить отчет себестоимости на сервер';
+    }
+  }
+}
+
+
+
 </script>
 <div id="editModal" style="display:none; position:fixed; top:10%; left:0; right:0; margin:auto; max-width:500px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:1000;">
   <h3>✏️ Редактировать запись</h3>
@@ -4902,6 +5241,34 @@ function showTemporaryNotification(message, type = "info", duration = 3000) {
     </div>
     <div id="updateAllResult" style="margin-top:16px; font-weight:500; text-align:center; white-space:pre-line;"></div>
   </div>
+</div>
+
+<div class="container" style="display:none;" id="costAnalysisContainer">
+  <h2>📊 Анализ себестоимости по объёмам</h2>
+  
+  <div class="form-row">
+    <div class="form-item">
+      <label>📅 Период с:
+        <input type="date" id="costStartDate">
+      </label>
+    </div>
+    <div class="form-item">
+      <label>📅 по:
+        <input type="date" id="costEndDate">
+      </label>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <button id="calculateCostBtn" onclick="calculateCostAnalysis()">🧮 Рассчитать себестоимость - ФОТ</button>
+    <button id="calculateCostWithMaterialsBtn" onclick="calculateCostAnalysisWithMaterials()">🧮 Рассчитать себестоимость - ФОТ + Материалы</button>
+  </div>
+
+  <div class="form-row" style="margin-top: 16px;">
+    <button onclick="saveReportToServer()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 8px;">💾 Выгрузить отчет себестоимости на сервер</button>
+  </div>
+
+  <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 
 <script>
