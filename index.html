@@ -1095,7 +1095,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbyvDTWMRkc-DrxM0PqJ8iRXPIke8SGJeem4trcWK8BaNawT8DePIjNOKnCKkvev8UU/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwwcdm_ONrZzG-k8WFherzRml9u8W2Kv8d1hJrN0FWjZJfcVFVSVpq-gECN4zF3u8Y/exec";
   
   // Проверяем URL при загрузке
 
@@ -4626,6 +4626,7 @@ async function loadShiftStats() {
     🕐 <strong>Смена:</strong> ${shiftBlock.shift}
     <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
     <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт. (${shiftBlock.staff?.employees?.length ?? 0} чел.)
+    <br>👨‍🎓 <strong>Стажеры:</strong> ${shiftBlock.trainee?.totalQty ?? 0} шт. (${shiftBlock.trainee?.employees?.length ?? 0} чел.)
     <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт. (${shiftBlock.outsource?.employees?.length ?? 0} чел.)
   `;
   shiftTitle.style.marginTop = "16px";
@@ -4652,6 +4653,7 @@ async function loadShiftStats() {
 
       const staff = shiftBlock?.staff?.employees || [];
       const outsource = shiftBlock?.outsource?.employees || [];
+      const trainee = shiftBlock?.trainee?.employees || [];
 
       if (staff.length) {
         const staffTitleRow = document.createElement("tr");
@@ -4663,6 +4665,40 @@ async function loadShiftStats() {
         tbody.appendChild(staffTitleRow);
 
         staff.forEach(emp => {
+          const tr = document.createElement("tr");
+          
+          // Расчет данных о нормах
+          const normsMet = emp.opsMet || 0;
+          const normsTotal = emp.opsTotal || 0;
+          const normsPercent = normsTotal > 0 ? Math.round((normsMet / normsTotal) * 100) : 0;
+          
+          // Определение иконки для норм
+          let normIcon = "—";
+          if (normsTotal === 0) normIcon = "—";
+          else if (normsPercent >= 85) normIcon = "✅";
+          else if (normsPercent >= 60) normIcon = "⚠️";
+          else if (normsPercent > 0) normIcon = "❌";
+          
+          tr.innerHTML = `
+            <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
+            <td style="padding:6px; border:1px solid #ccc;">${normsMet}/${normsTotal} (${normsPercent}%) ${normIcon}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      if (trainee.length) {
+        const traineeTitleRow = document.createElement("tr");
+        traineeTitleRow.innerHTML = `
+          <td colspan="4" style="padding:6px; font-weight:bold; color:#059669;">
+            👨‍🎓 Стажеры (${trainee.length} чел., средняя эффективность: ${shiftBlock.trainee.averageEfficiency}%)
+          </td>
+        `;
+        tbody.appendChild(traineeTitleRow);
+
+        trainee.forEach(emp => {
           const tr = document.createElement("tr");
           
           // Расчет данных о нормах
@@ -4735,7 +4771,7 @@ async function loadShiftStats() {
       const overallEff = shiftBlock?.total?.overall;
       
       // Подсчет общих норм по смене
-      const allEmployees = [...(shiftBlock?.staff?.employees || []), ...(shiftBlock?.outsource?.employees || [])];
+              const allEmployees = [...(shiftBlock?.staff?.employees || []), ...(shiftBlock?.outsource?.employees || []), ...(shiftBlock?.trainee?.employees || [])];
       const totalNormsMet = allEmployees.reduce((sum, emp) => sum + (emp.opsMet || 0), 0);
       const totalNormsTotal = allEmployees.reduce((sum, emp) => sum + (emp.opsTotal || 0), 0);
       const totalNormsPercent = totalNormsTotal > 0 ? Math.round((totalNormsMet / totalNormsTotal) * 100) : 0;
@@ -4962,7 +4998,7 @@ window.addEventListener('offline', () => {
 window.addEventListener('online', () => {
   alert('✅ Соединение восстановлено');
 });
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/service-worker.js')
         .then(reg => {})
@@ -6338,33 +6374,7 @@ async function saveReportToServer() {
   </div>
 </div>
 
-<div class="container" style="display:none;" id="costAnalysisContainer">
-  <h2>📊 Анализ себестоимости по объёмам</h2>
-  
-  <div class="form-row">
-    <div class="form-item">
-      <label>📅 Период с:
-        <input type="date" id="costStartDate">
-      </label>
-    </div>
-    <div class="form-item">
-      <label>📅 по:
-        <input type="date" id="costEndDate">
-      </label>
-    </div>
-  </div>
 
-  <div class="form-row">
-    <button id="calculateCostBtn" onclick="calculateCostAnalysis()">🧮 Рассчитать себестоимость - ФОТ</button>
-    <button id="calculateCostWithMaterialsBtn" onclick="calculateCostAnalysisWithMaterials()">🧮 Рассчитать себестоимость - ФОТ + Материалы</button>
-  </div>
-
-  <div class="form-row" style="margin-top: 16px;">
-    <button onclick="saveReportToServer()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 8px;">💾 Выгрузить отчет себестоимости на сервер</button>
-  </div>
-
-  <div id="costResults" style="margin-top: 20px;"></div>
-</div>
 
 <!-- 👨‍🎓 Контейнер: Управление стажерами -->
 <div class="container" style="display:none;" id="traineeManagementContainer">
