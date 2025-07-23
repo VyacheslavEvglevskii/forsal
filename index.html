@@ -51,6 +51,8 @@ h2 {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+
+
 label {
   display: block;
   font-weight: 600;
@@ -366,21 +368,79 @@ button.danger:hover {
 #ratesTable th, #ratesTable td {
   padding: 12px 14px;
   text-align: left;
-  font-size: 14px;
+  font-size: 16px; /* Увеличили с 14px до 16px */
+  border-bottom: 1px solid #e5e7eb;
 }
 
 #ratesTable th {
   background-color: #f3f4f6;
   color: #374151;
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#ratesTable th:hover {
+  background-color: #e5e7eb;
+}
+
+/* Цветовое кодирование колонок тарифов */
+#ratesTable th:nth-child(4), #ratesTable td:nth-child(4) {
+  background-color: rgba(59, 130, 246, 0.05); /* Голубой для сдельной */
+  border-left: 3px solid #3b82f6;
+}
+
+#ratesTable th:nth-child(5), #ratesTable td:nth-child(5) {
+  background-color: rgba(34, 197, 94, 0.05); /* Зеленый для FBS */
+  border-left: 3px solid #22c55e;
+}
+
+#ratesTable th:nth-child(6), #ratesTable td:nth-child(6) {
+  background-color: rgba(147, 51, 234, 0.05); /* Фиолетовый для оклад+сдел */
+  border-left: 3px solid #9333ea;
+}
+
+#ratesTable th:nth-child(7), #ratesTable td:nth-child(7) {
+  background-color: rgba(147, 51, 234, 0.08); /* Темнее для FBS оклад+сдел */
+  border-left: 3px solid #7c3aed;
+}
+
+/* Выделение тарифных значений */
+#ratesTable td:nth-child(4), #ratesTable td:nth-child(5), 
+#ratesTable td:nth-child(6), #ratesTable td:nth-child(7) {
+  font-weight: 600;
+  color: #1f2937;
 }
 
 #ratesTable tr:nth-child(even) td {
-  background-color: #f9fafb;
+  background-color: rgba(249, 250, 251, 0.5);
 }
 
 #ratesTable tr:hover td {
-  background-color: #eef2ff;
+  background-color: rgba(238, 242, 255, 0.8);
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+/* Сортировка - индикаторы */
+#ratesTable th.sortable::after {
+  content: ' ↕️';
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+#ratesTable th.sorted-asc::after {
+  content: ' ⬆️';
+  opacity: 1;
+}
+
+#ratesTable th.sorted-desc::after {
+  content: ' ⬇️';
+  opacity: 1;
 }
 
 #adminContainer {
@@ -781,6 +841,57 @@ button.danger:hover {
     white-space: nowrap;
     padding: 5px 6px;
   }
+  
+  /* Улучшенная адаптивность для блока тарифов */
+  #ratesContainer {
+    padding: 8px 4px;
+  }
+  
+  #ratesFilters {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  #ratesFilters > div {
+    min-width: auto !important;
+  }
+  
+  #ratesSearch {
+    font-size: 16px !important; /* Предотвращает зум на iOS */
+  }
+  
+  #ratesTable {
+    font-size: 12px;
+  }
+  
+  #ratesTable th, #ratesTable td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+  
+  /* Скрываем менее важные колонки на мобильных */
+  #ratesTable th:nth-child(6), #ratesTable td:nth-child(6),
+  #ratesTable th:nth-child(7), #ratesTable td:nth-child(7) {
+    display: none;
+  }
+  
+  /* Индикатор скрытых колонок */
+  #ratesTable::after {
+    content: "💡 Поверните экран для просмотра всех тарифов";
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  
+  /* Компактный поиск на мобильных */
+  #ratesContainer > div:first-of-type {
+    padding: 12px 8px !important;
+  }
 }
 
   </style>
@@ -924,9 +1035,9 @@ button.danger:hover {
   </label>
   <button id="showStatsBtn" onclick="loadStats()">📊 Показать статистику</button>
 </div>
+<div id="totalWage" style="text-align:center; font-weight:bold; margin-top:16px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding:16px; border-radius:12px; border:2px solid #0ea5e9; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); font-size: 14px; line-height: 1.6; color: #000000 !important;"></div>
   <div id="statsCards"></div>
 <div id="statsLogs" style="margin-top: 16px;"></div>
-<p id="totalWage" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <div class="container" style="display:none;" id="profileContainer">
   <h2>👤 Личный профиль</h2>
@@ -999,17 +1110,45 @@ button.danger:hover {
 </div>
 <div class="container" style="display:none;" id="ratesContainer">
   <h2>💰 Тарифы и нормативы</h2>
-  <!-- 🎯 ФИЛЬТРЫ -->
-  <div id="ratesFilters" style="display: flex; gap: 10px; margin: 16px 0;">
-    <select id="filterOperation" style="flex:1; padding: 10px; font-size: 16px;">
-      <option value="">-- Все операции --</option>
-    </select>
-    <select id="filterKey" style="flex:1; padding: 10px; font-size: 16px;">
-      <option value="">-- Все объёмы / артикулы --</option>
-    </select>
-</div>
+  
+  <!-- 🔍 ПОИСК И ФИЛЬТРЫ -->
+  <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <!-- Живой поиск -->
+    <div style="margin-bottom: 12px;">
+      <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">🔍 Поиск по операциям</label>
+      <input type="text" id="ratesSearch" placeholder="Введите название операции..." 
+             style="width: 100%; padding: 10px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 8px; transition: border-color 0.2s;">
+    </div>
+    
+    <!-- Фильтры -->
+    <div id="ratesFilters" style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">🏷️ Операция</label>
+        <select id="filterOperation" style="width: 100%; padding: 10px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 8px;">
+          <option value="">-- Все операции --</option>
+        </select>
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">📦 Объём/Артикул</label>
+        <select id="filterKey" style="width: 100%; padding: 10px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 8px;">
+          <option value="">-- Все объёмы / артикулы --</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Индикатор найденных результатов -->
+    <div id="ratesCounter" style="text-align: center; margin-top: 12px; font-weight: 600; color: #6b7280;"></div>
+  </div>
+
   <!-- 📋 СПИСОК ТАРИФОВ -->
-  <div id="ratesTable"></div>
+  <div id="ratesTableContainer" style="position: relative;">
+    <!-- Индикатор загрузки -->
+    <div id="ratesLoader" style="display: none; text-align: center; padding: 40px; color: #6b7280;">
+      <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f4f6; border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <p style="margin-top: 10px;">Загрузка тарифов...</p>
+    </div>
+    <div id="ratesTable"></div>
+  </div>
 </div>
   <!-- Таблица будет добавлена через JS -->
 </div>
@@ -1057,14 +1196,17 @@ button.danger:hover {
 <!-- 💵 Моя зарплата — перемещён ВНЕ adminContainer -->
 <div class="container" style="display:none;" id="mySalaryContainer">
   <h2>💵 Моя зарплата</h2>
+  <button id="closeMySalaryBtn" onclick="closeMySalary()" style="margin-bottom: 10px; display: none;">❌ Закрыть мои результаты</button>
   <label>📅 Период с:
     <input type="date" id="salaryStart">
   </label>
   <label style="margin-left:10px;">по:
     <input type="date" id="salaryEnd">
   </label>
-  <button id="mySalaryBtn" onclick="loadMySalary()">📊 Показать</button>
-  <div id="mySalaryOutput" style="margin-top:20px;"></div>
+  <button id="mySalaryBtn" onclick="loadMySalary()">📊 Показать мои результаты</button>
+  <div style="overflow-x: auto;">
+    <div id="mySalaryOutput" style="margin-top:20px;"></div>
+  </div>
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
 <div class="container" style="display:none;" id="costAnalysisContainer">
@@ -1095,7 +1237,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbz9ngQjV5X0f1P7w5xhVxRCWyE-r-zHz-BJIYKREJG3FvoiCBGCDJH1ylcA5iC85VI/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzWGIdXKWTWjFCddE9mKCxRpU8KgbSNn_cAfSgslOIWlH3_cpBabiuFvnr7Oq_U4ho/exec";
   
   // Проверяем URL при загрузке
 
@@ -1118,6 +1260,9 @@ let dataCache = {
 };
 const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
 
+// Флаги состояния загрузки для предотвращения дублирования
+let isLoadingPackingModels = false;
+
 // Функция очистки кэша
 function clearCache() {
   Object.keys(dataCache).forEach(key => {
@@ -1132,7 +1277,8 @@ function clearCache() {
     console.warn("Ошибка при очистке localStorage кэша:", e);
   }
   
-  
+  // Сбрасываем флаги загрузки
+  isLoadingPackingModels = false;
 }
 
 // ===== УЛУЧШЕННАЯ СИСТЕМА ЗАЩИТЫ ОТ ДУБЛИКАТОВ =====
@@ -2018,7 +2164,7 @@ async function handleLogin() {
         // Загружаем остальные данные в фоне
         loadRatesTable();
         loadOperationFilter();
-        loadPackingModels();
+        // loadPackingModels(); // УБРАНО: уже загружается через preloadPackingModels в DOMContentLoaded
         
 
       }
@@ -2181,8 +2327,29 @@ function handleLogout() {
     }
   }
 
-function loadMySalary() {
-  withLoading("mySalaryBtn", async () => {
+let isMySalaryLoading = false;
+
+async function loadMySalary() {
+  if (isMySalaryLoading) return;
+  isMySalaryLoading = true;
+
+  const showBtn = document.getElementById("mySalaryBtn");
+  const closeBtn = document.getElementById("closeMySalaryBtn");
+  
+  // Блокируем обе кнопки во время загрузки
+  if (showBtn) {
+    showBtn.disabled = true;
+    showBtn.textContent = "⏳ Загружаем результаты...";
+    showBtn.style.opacity = "0.6";
+  }
+  
+  if (closeBtn) {
+    closeBtn.disabled = true;
+    closeBtn.style.opacity = "0.6";
+    closeBtn.style.cursor = "not-allowed";
+  }
+
+  try {
     const employee = localStorage.getItem("currentUser") || "";
     const start = document.getElementById("salaryStart").value;
     const end = document.getElementById("salaryEnd").value;
@@ -2192,74 +2359,145 @@ function loadMySalary() {
       return;
     }
 
-    try {
-      const res = await fetch(`${scriptURL}?type=mySalary&employee=${encodeURIComponent(employee)}&start=${start}&end=${end}`);
-      const data = await res.json();
+    const container = document.getElementById("mySalaryOutput");
+    const totalQtyBlock = document.getElementById("totalQty");
+    
+    // Очищаем старые данные
+    container.innerHTML = "";
+    totalQtyBlock.innerHTML = "";
 
-      const container = document.getElementById("mySalaryOutput");
-      const totalQtyBlock = document.getElementById("totalQty");
+    const res = await fetch(`${scriptURL}?type=mySalary&employee=${encodeURIComponent(employee)}&start=${start}&end=${end}`);
+    const data = await res.json();
 
-      if (!data.records || data.records.length === 0) {
-        container.innerHTML = "<p style='text-align:center;'>Нет данных за выбранный период.</p>";
-        totalQtyBlock.textContent = "";
-        return;
-      }
-
-      // 📦 Группировка по дате
-      const grouped = {};
-      let totalQty = 0;
-      let totalWage = 0;
-
-      data.records.forEach(r => {
-        const date = formatDate(r.date);
-        if (!grouped[date]) {
-          grouped[date] = { qty: 0, wage: 0, effs: [] };
-        }
-        grouped[date].qty += r.quantity || 0;
-        grouped[date].wage += r.wage || 0;
-        if (r.efficiency !== undefined && r.efficiency !== null) {
-          grouped[date].effs.push(r.efficiency);
-        }
-
-        totalQty += r.quantity || 0;
-        totalWage += r.wage || 0;
-      });
-
-      let html = `
-        <table style="width:100%; border-collapse: collapse; font-size:14px;">
-          <thead style="background:#f3f4f6;">
-            <tr>
-              <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
-              <th style="padding:8px; border:1px solid #ccc;">🔢 Кол-во</th>
-              <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффективность</th>
-              <th style="padding:8px; border:1px solid #ccc;">💰 Сумма</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      Object.entries(grouped).forEach(([date, stats]) => {
-        const avgEff = stats.effs.length
-          ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
-          : "-";
-        html += `
-          <tr>
-            <td style="padding:6px; border:1px solid #ccc;">${date}</td>
-            <td style="padding:6px; border:1px solid #ccc;">${stats.qty}</td>
-            <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
-            <td style="padding:6px; border:1px solid #ccc;">${stats.wage.toFixed(2)} ₽</td>
-          </tr>
-        `;
-      });
-
-      html += `</tbody></table>`;
-      container.innerHTML = html;
-      totalQtyBlock.textContent = `📦 Всего: ${totalQty} шт | 💵 Сумма: ${totalWage.toFixed(2)} ₽`;
-
-    } catch (err) {
-      alert("❌ Ошибка загрузки: " + err.message);
+    if (!data.records || data.records.length === 0) {
+      container.innerHTML = "<p style='text-align:center;'>Нет данных за выбранный период.</p>";
+      return;
     }
-  });
+
+    // 📦 Группировка по дате
+    const grouped = {};
+
+    data.records.forEach(r => {
+      const date = formatDate(r.date);
+      if (!grouped[date]) {
+        grouped[date] = { 
+          qty: 0, 
+          wage: 0, 
+          effs: [],
+          repackaged: 0,
+          stickered: 0,
+          operations: []
+        };
+      }
+      
+      grouped[date].qty += r.quantity || 0;
+      grouped[date].wage += r.wage || 0;
+      
+      if (r.efficiency !== undefined && r.efficiency !== null) {
+        grouped[date].effs.push(r.efficiency);
+      }
+      
+      // Разделяем по типам операций
+      if (r.operation === "Маркировка продукции ш/к") {
+        grouped[date].stickered += r.quantity || 0;
+      } else {
+        grouped[date].repackaged += r.quantity || 0;
+      }
+      
+      // Сохраняем детали операций
+      grouped[date].operations.push({
+        operation: r.operation,
+        quantity: r.quantity,
+        efficiency: r.efficiency,
+        wage: r.wage,
+        bonusPercent: r.bonusPercent,
+        normStatus: r.normStatus
+      });
+    });
+
+    let html = `
+      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 600px;">
+        <thead style="background:#f3f4f6;">
+          <tr>
+            <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
+            <th style="padding:8px; border:1px solid #ccc;">📦 Переупак.</th>
+            <th style="padding:8px; border:1px solid #ccc;">🏷️ Маркир.</th>
+            <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффект.</th>
+            <th style="padding:8px; border:1px solid #ccc;">💰 Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    Object.entries(grouped).forEach(([date, stats]) => {
+      const avgEff = stats.effs.length
+        ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
+        : "-";
+      html += `
+        <tr>
+          <td style="padding:6px; border:1px solid #ccc;">${date}</td>
+          <td style="padding:6px; border:1px solid #ccc;">${stats.repackaged}</td>
+          <td style="padding:6px; border:1px solid #ccc;">${stats.stickered}</td>
+          <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
+          <td style="padding:6px; border:1px solid #ccc;">${stats.wage.toFixed(2)} ₽</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+    
+    // === НОВЫЕ ИТОГОВЫЕ ПОКАЗАТЕЛИ ===
+    const totals = data.totals || {};
+    totalQtyBlock.innerHTML = `
+      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding:16px; border-radius:12px; border:2px solid #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); margin-top: 16px; color: #000000 !important;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: center; font-size: 13px; line-height: 1.4;">
+          <div><strong>💵 Всего:</strong><br>${(totals.totalWage || 0).toFixed(2)} ₽</div>
+          <div><strong>📦 Переупак.:</strong><br>${totals.totalRepackaged || 0} шт</div>
+          <div><strong>🏷️ Маркир.:</strong><br>${totals.totalStickered || 0} шт</div>
+          <div><strong>⚙️ Эффект.:</strong><br>${totals.avgEfficiency || 0}%</div>
+          <div><strong>📊 Нормы:</strong><br>${totals.normsCompleted || 0}/${totals.totalNorms || 0} (${totals.normPercentage || 0}%)</div>
+        </div>
+      </div>
+    `;
+
+    // Показываем кнопку закрытия
+    if (closeBtn) closeBtn.style.display = "inline-block";
+
+  } catch (err) {
+    alert("❌ Ошибка загрузки: " + err.message);
+    
+    // Очищаем состояние при ошибке
+    const container = document.getElementById("mySalaryOutput");
+    const totalQtyBlock = document.getElementById("totalQty");
+    if (container) container.innerHTML = '<p style="text-align:center; color:red;">❌ Ошибка загрузки</p>';
+    if (totalQtyBlock) totalQtyBlock.innerHTML = "";
+    
+  } finally {
+    isMySalaryLoading = false;
+    
+    // Разблокируем кнопку "Показать мои результаты"
+    if (showBtn) {
+      showBtn.disabled = false;
+      showBtn.textContent = "📊 Показать мои результаты";
+      showBtn.style.opacity = "1";
+    }
+    
+    // Разблокируем кнопку "Закрыть мои результаты"
+    if (closeBtn) {
+      closeBtn.disabled = false;
+      closeBtn.style.opacity = "1";
+      closeBtn.style.cursor = "pointer";
+    }
+  }
+}
+
+function closeMySalary() {
+  document.getElementById("mySalaryOutput").innerHTML = "";
+  document.getElementById("totalQty").innerHTML = "";
+
+  const closeBtn = document.getElementById("closeMySalaryBtn");
+  if (closeBtn) closeBtn.style.display = "none";
 }
 
 function formatDate(iso) {
@@ -2692,103 +2930,241 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
 
 
 async function loadRatesTable() {
-  // Используем кэш для тарифов
-  if (isCacheValid(dataCache.rates)) {
-    allRates = dataCache.rates.data;
-  } else {
-    const res = await fetch(`${scriptURL}?type=rates`);
-    const data = await res.json();
-    allRates = data.rates || [];
-    
-    dataCache.rates = {
-      data: allRates,
-      timestamp: Date.now()
-    };
-  }
-
+  const loader = document.getElementById("ratesLoader");
+  const container = document.getElementById("ratesTable");
   const opFilter = document.getElementById("filterOperation");
   const keyFilter = document.getElementById("filterKey");
-  const container = document.getElementById("ratesTable");
+  const searchInput = document.getElementById("ratesSearch");
+  const counter = document.getElementById("ratesCounter");
 
-  // Очистка фильтров
-  opFilter.innerHTML = '<option value="">-- Все операции --</option>';
-  keyFilter.innerHTML = '<option value="">-- Все объёмы / артикулы --</option>';
+  // Показываем индикатор загрузки
+  loader.style.display = "block";
+  container.innerHTML = "";
 
-  // Фильтруем лишние ставки
-  const filteredRates = allRates.filter(r =>
-    r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат"
-  );
-
-  const operations = [...new Set(filteredRates.map(r => r.operation))];
-  const keys = [...new Set(filteredRates.map(r => r.key))];
-
-  operations.forEach(op => {
-    const opt = document.createElement("option");
-    opt.value = op;
-    opt.textContent = op;
-    opFilter.appendChild(opt);
-  });
-
-  keys.forEach(k => {
-    const opt = document.createElement("option");
-    opt.value = k;
-    opt.textContent = k;
-    keyFilter.appendChild(opt);
-  });
-
-  function renderFilteredRates() {
-    const selectedOp = opFilter.value;
-    const selectedKey = keyFilter.value;
-
-    const filtered = filteredRates.filter(r =>
-      (!selectedOp || r.operation === selectedOp) &&
-      (!selectedKey || r.key === selectedKey)
-    );
-
-    if (!filtered.length) {
-      container.innerHTML = "<p style='text-align:center;'>Нет совпадений</p>";
-      return;
+  try {
+    // Используем кэш для тарифов
+    if (isCacheValid(dataCache.rates)) {
+      allRates = dataCache.rates.data;
+    } else {
+      const res = await fetch(`${scriptURL}?type=rates`);
+      const data = await res.json();
+      allRates = data.rates || [];
+      
+      dataCache.rates = {
+        data: allRates,
+        timestamp: Date.now()
+      };
     }
 
-    let html = `
-      <div class="table-scroll">
-      <table style="width:100%; border-collapse:collapse; font-size:14px; min-width:700px;">
-        <thead>
-          <tr style="background:#f3f4f6;">
-            <th>🏷️ Операция</th>
-            <th>📦 Объём / Артикул</th>
-            <th>⏱️ Норма в час</th>
-            <th>💰 Тариф/шт (сдельная)</th>
-            <th>🚚 Тариф FBS/шт (сдельная)</th>
-            <th>🧾 Тариф/шт (оклад+сделка)</th>
-            <th>🚚🧾 Тариф FBS/шт (оклад+сделка)</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+    // Фильтруем лишние ставки
+    const filteredRates = allRates.filter(r =>
+      r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат"
+    );
 
-    filtered.forEach(r => {
-      html += `
-        <tr>
-          <td>${r.operation}</td>
-          <td>${r.key}</td>
-          <td>${r.normPerHour}</td>
-          <td>${r.ratePerUnit.toFixed(2)} ₽</td>
-          <td>${r.rateFBS.toFixed(2)} ₽</td>
-          <td>${r.rateDeal.toFixed(2)} ₽</td>
-          <td>${r.rateFBSDeal.toFixed(2)} ₽</td>
-        </tr>
+    // Заполняем фильтры
+    populateFilters(filteredRates, opFilter, keyFilter);
+
+    // Состояние сортировки
+    let sortColumn = null;
+    let sortDirection = "asc";
+
+    // Функция рендеринга с поиском, фильтрацией и сортировкой
+    function renderFilteredRates() {
+      const searchText = searchInput.value.toLowerCase().trim();
+      const selectedOp = opFilter.value;
+      const selectedKey = keyFilter.value;
+
+      let filtered = filteredRates.filter(r => {
+        const matchesSearch = !searchText || r.operation.toLowerCase().includes(searchText);
+        const matchesOp = !selectedOp || r.operation === selectedOp;
+        const matchesKey = !selectedKey || r.key === selectedKey;
+        return matchesSearch && matchesOp && matchesKey;
+      });
+
+      // Применяем сортировку
+      if (sortColumn !== null) {
+        filtered.sort((a, b) => {
+          let aVal = getColumnValue(a, sortColumn);
+          let bVal = getColumnValue(b, sortColumn);
+          
+          // Числовая сортировка для тарифов и норм
+          if (sortColumn >= 2) {
+            aVal = parseFloat(aVal) || 0;
+            bVal = parseFloat(bVal) || 0;
+          }
+          
+          let result = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+          return sortDirection === "desc" ? -result : result;
+        });
+      }
+
+      // Обновляем счетчик
+      updateCounter(filtered.length, filteredRates.length);
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #6b7280;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+            <h3 style="margin: 0 0 8px 0; color: #374151;">Ничего не найдено</h3>
+            <p style="margin: 0;">Попробуйте изменить критерии поиска</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Генерируем таблицу
+      let html = `
+        <div class="table-scroll">
+        <table style="width:100%; border-collapse:collapse; min-width:700px;">
+          <thead>
+            <tr>
+              ${generateTableHeaders()}
+            </tr>
+          </thead>
+          <tbody>
       `;
-    });
 
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
+      filtered.forEach(r => {
+        html += `
+          <tr>
+            <td>${r.operation}</td>
+            <td>${r.key}</td>
+            <td>${r.normPerHour}</td>
+            <td><strong>${r.ratePerUnit.toFixed(2)} ₽</strong></td>
+            <td><strong>${r.rateFBS.toFixed(2)} ₽</strong></td>
+            <td><strong>${r.rateDeal.toFixed(2)} ₽</strong></td>
+            <td><strong>${r.rateFBSDeal.toFixed(2)} ₽</strong></td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+
+      // Добавляем обработчики сортировки
+      addSortHandlers();
+    }
+
+    // Вспомогательные функции
+    function populateFilters(rates, opFilter, keyFilter) {
+      // Очистка фильтров
+      opFilter.innerHTML = '<option value="">-- Все операции --</option>';
+      keyFilter.innerHTML = '<option value="">-- Все объёмы / артикулы --</option>';
+
+      const operations = [...new Set(rates.map(r => r.operation))].sort();
+      const keys = [...new Set(rates.map(r => r.key))].sort();
+
+      operations.forEach(op => {
+        const opt = document.createElement("option");
+        opt.value = op;
+        opt.textContent = op;
+        opFilter.appendChild(opt);
+      });
+
+      keys.forEach(k => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = k;
+        keyFilter.appendChild(opt);
+      });
+    }
+
+    function generateTableHeaders() {
+      const headers = [
+        '🏷️ Операция',
+        '📦 Объём / Артикул', 
+        '⏱️ Норма в час',
+        '💰 Тариф/шт<br><small>(сдельная)</small>',
+        '🚚 Тариф FBS/шт<br><small>(сдельная)</small>',
+        '📊 Тариф/шт<br><small>(оклад+сдел)</small>',
+        '🚚📊 Тариф FBS/шт<br><small>(оклад+сдел)</small>'
+      ];
+
+      return headers.map((header, index) => {
+        const sortClass = getSortClass(index);
+        return `<th class="sortable ${sortClass}" onclick="handleSort(${index})">${header}</th>`;
+      }).join('');
+    }
+
+    function getSortClass(columnIndex) {
+      if (sortColumn === columnIndex) {
+        return sortDirection === "asc" ? "sorted-asc" : "sorted-desc";
+      }
+      return "";
+    }
+
+    function getColumnValue(row, columnIndex) {
+      switch(columnIndex) {
+        case 0: return row.operation;
+        case 1: return row.key;
+        case 2: return row.normPerHour;
+        case 3: return row.ratePerUnit;
+        case 4: return row.rateFBS;
+        case 5: return row.rateDeal;
+        case 6: return row.rateFBSDeal;
+        default: return "";
+      }
+    }
+
+    function updateCounter(shown, total) {
+      if (shown === total) {
+        counter.textContent = `Показано: ${total} тарифов`;
+      } else {
+        counter.textContent = `Показано: ${shown} из ${total} тарифов`;
+      }
+    }
+
+    function addSortHandlers() {
+      // Глобальная функция для сортировки
+      window.handleSort = function(columnIndex) {
+        if (sortColumn === columnIndex) {
+          sortDirection = sortDirection === "asc" ? "desc" : "asc";
+        } else {
+          sortColumn = columnIndex;
+          sortDirection = "asc";
+        }
+        renderFilteredRates();
+      };
+    }
+
+    // Обработчики событий
+    opFilter.onchange = renderFilteredRates;
+    keyFilter.onchange = renderFilteredRates;
+    
+    // Живой поиск с дебаунсом
+    let searchTimeout;
+    searchInput.oninput = function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(renderFilteredRates, 300);
+    };
+
+    // Улучшенные стили для фокуса поиска
+    searchInput.onfocus = function() {
+      this.style.borderColor = "#3b82f6";
+      this.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+    };
+
+    searchInput.onblur = function() {
+      this.style.borderColor = "#e5e7eb";
+      this.style.boxShadow = "none";
+    };
+
+    // Первоначальный рендер
+    renderFilteredRates();
+
+  } catch (error) {
+    console.error("Ошибка загрузки тарифов:", error);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #ef4444;">
+        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+        <h3 style="margin: 0 0 8px 0;">Ошибка загрузки</h3>
+        <p style="margin: 0;">Не удалось загрузить тарифы</p>
+      </div>
+    `;
+  } finally {
+    // Скрываем индикатор загрузки
+    loader.style.display = "none";
   }
-
-  opFilter.onchange = renderFilteredRates;
-  keyFilter.onchange = renderFilteredRates;
-
-  renderFilteredRates(); // первая отрисовка
 }
 
 // Функция проверки актуальности кэша
@@ -3163,12 +3539,22 @@ async function loadStats() {
     const today = new Date().toISOString().split("T")[0];
     let cardsHTML = "";
     let totalQuantity = 0;
+    let totalRepackaged = 0; // 📦 Переупакованная продукция
+    let totalStickered = 0;  // 🏷️ Маркированная продукция
     let totalNormTime = 0; // Для расчета % выполнения норм
     
     filtered.forEach(rec => {
       const wage = rec.wage || 0;
       totalWage += wage;
-      totalQuantity += rec.quantity || 0;
+      const quantity = rec.quantity || 0;
+      totalQuantity += quantity;
+      
+      // Разделяем по типам операций
+      if (rec.operationType === "Маркировка продукции ш/к") {
+        totalStickered += quantity;
+      } else {
+        totalRepackaged += quantity;
+      }
 
       // Считаем эффективность
       if (rec.efficiency !== null && rec.efficiency !== undefined) {
@@ -3231,7 +3617,7 @@ async function loadStats() {
       normCompletion = `${normsCompleted}/${totalOperations} (${normPercent}%)`;
     }
 
-    totalElem.textContent = `💵 Всего: ${totalWage.toFixed(2)} ₽ | 📊 Выполнение норм: ${normCompletion} | ⚙️ Эффективность: ${avgEfficiency}%`;
+    totalElem.textContent = `💵 Всего: ${totalWage.toFixed(2)} ₽ | 📦 Переупакованная: ${totalRepackaged} шт | 🏷️ Маркированная: ${totalStickered} шт | 📊 Выполнение норм: ${normCompletion} | ⚙️ Эффективность: ${avgEfficiency}%`;
 
     if (selectedOperation) {
       totalElem.textContent += ` | 🔍 Фильтр: ${selectedOperation}`;
@@ -3356,14 +3742,26 @@ async function loadPackingModels() {
   const select = document.getElementById("profilePackingModel");
   if (!select) return;
   
+  // 🛡️ Защита от одновременной загрузки
+  if (isLoadingPackingModels) {
+    console.log("🔄 Загрузка моделей упаковки уже выполняется, пропускаем...");
+    return;
+  }
+  
   // Проверяем кэш
   if (isCacheValid(dataCache.packingModels)) {
-
+    console.log("📦 Используем кэшированные модели упаковки");
     populatePackingModelsSelect(dataCache.packingModels.data);
     return;
   }
   
+  // Устанавливаем флаг загрузки
+  isLoadingPackingModels = true;
+  
+  // Показываем индикатор загрузки только если select пустой
+  if (select.options.length <= 1) {
   select.innerHTML = '<option value="">⏳ Загрузка...</option>';
+  }
   
   try {
     const res = await fetch(`${scriptURL}?type=packingModels`);
@@ -3387,7 +3785,7 @@ async function loadPackingModels() {
     }
     
     populatePackingModelsSelect(models);
-
+    console.log(`✅ Загружено ${models.length} моделей упаковки`);
     
   } catch (err) {
     console.error("Ошибка загрузки моделей упаковки:", err);
@@ -3395,9 +3793,16 @@ async function loadPackingModels() {
     const fallbackData = tryLoadPackingModelsFromStorage();
     if (fallbackData) {
       populatePackingModelsSelect(fallbackData);
+      console.log("🔄 Используем fallback из localStorage");
     } else {
+      // Показываем ошибку только если select был пустой
+      if (select.options.length <= 1) {
       select.innerHTML = '<option value="">❌ Ошибка загрузки</option>';
     }
+    }
+  } finally {
+    // Сбрасываем флаг загрузки
+    isLoadingPackingModels = false;
   }
 }
 
@@ -3406,13 +3811,36 @@ function populatePackingModelsSelect(models) {
   const select = document.getElementById("profilePackingModel");
   if (!select) return;
   
+  // 💾 Сохраняем текущее выбранное значение
+  const currentValue = select.value;
+  
+  // Проверяем, изменились ли данные (избегаем ненужных обновлений)
+  const currentOptions = Array.from(select.options).slice(1).map(opt => opt.value);
+  const newModels = models || [];
+  const hasChanges = JSON.stringify(currentOptions.sort()) !== JSON.stringify(newModels.sort());
+  
+  // Если данные не изменились и select уже заполнен, не обновляем
+  if (!hasChanges && select.options.length > 1) {
+    console.log("🔄 Модели упаковки не изменились, пропускаем обновление");
+    return;
+  }
+  
+  // Очищаем и заполняем заново
   select.innerHTML = '<option value="">-- Выберите --</option>';
-  models.forEach(model => {
+  newModels.forEach(model => {
     const opt = document.createElement("option");
     opt.value = model;
     opt.textContent = model;
     select.appendChild(opt);
   });
+  
+  // 🔄 Восстанавливаем выбранное значение, если оно существует в новом списке
+  if (currentValue && newModels.includes(currentValue)) {
+    select.value = currentValue;
+    console.log(`✅ Восстановлен выбор модели упаковки: "${currentValue}"`);
+  } else if (currentValue && !newModels.includes(currentValue)) {
+    console.warn(`⚠️ Ранее выбранная модель "${currentValue}" больше не доступна`);
+  }
 }
 
 // Функция загрузки из localStorage как fallback
@@ -3436,6 +3864,12 @@ function tryLoadPackingModelsFromStorage() {
 
 // Предзагрузка моделей упаковки при инициализации страницы
 function preloadPackingModels() {
+  // 🛡️ Защита от повторных вызовов
+  if (isLoadingPackingModels) {
+    console.log("🔄 Предзагрузка моделей уже выполняется, пропускаем...");
+    return;
+  }
+  
   // Сначала пытаемся загрузить из localStorage
   const cachedData = tryLoadPackingModelsFromStorage();
   if (cachedData) {
@@ -3449,20 +3883,20 @@ function preloadPackingModels() {
       const select = document.getElementById("profilePackingModel");
       if (select && select.options.length <= 1) { // Если еще не заполнен
         populatePackingModelsSelect(cachedData);
+        console.log("🚀 Предзагружены модели упаковки из кэша");
       }
     }, 100);
-    
-
   }
   
-  // Обновляем в фоне для свежести данных
+  // Обновляем в фоне для свежести данных (с задержкой)
   setTimeout(() => {
-    if (!isCacheValid(dataCache.packingModels)) {
+    if (!isCacheValid(dataCache.packingModels) && !isLoadingPackingModels) {
+      console.log("🔄 Фоновое обновление моделей упаковки...");
       loadPackingModels().catch(err => {
         console.warn("Фоновое обновление моделей упаковки не удалось:", err);
       });
     }
-  }, 1000);
+  }, 2000); // Увеличиваем задержку для избежания конфликтов
 }
 
 // === ФУНКЦИЯ: Загрузка оклада с кэшированием ===
@@ -3633,8 +4067,8 @@ function smartFillSalaryField() {
   }
 }
 
-// 🚀 Мгновенная предзагрузка при загрузке скрипта
-preloadPackingModels();
+// 🚀 Предзагрузка убрана - будет выполнена в DOMContentLoaded
+// preloadPackingModels(); // УБРАНО: дублировало загрузку
 
 function openUpdateAllModal() {
   // Очистка
@@ -4558,8 +4992,8 @@ async function loadAllDictionariesInBackground() {
           loadSetNumbers(),
           loadTodayRecords(),
           loadOperationFilter(),
-          loadRatesTable(),
-          loadPackingModels()
+          loadRatesTable()
+          // loadPackingModels() убран - загружается отдельно при входе
         ]);
 
 
@@ -5050,6 +5484,7 @@ document.addEventListener("keydown", e => {
     
     // Принудительно перезагружаем модели упаковки и оклад
     setTimeout(() => {
+      isLoadingPackingModels = false; // Сбрасываем флаг перед принудительной загрузкой
       loadPackingModels();
       preloadCurrentUserSalary();
     }, 500);
@@ -6235,6 +6670,8 @@ async function saveReportToServer() {
     }
   }
 }
+
+
 
 
 
