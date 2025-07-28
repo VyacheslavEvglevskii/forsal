@@ -32,6 +32,184 @@ body {
   #ratesTable th, #ratesTable td {
     padding: 6px 8px;
   }
+  
+  /* === МОБИЛЬНАЯ АДАПТАЦИЯ АНАЛИЗА НОРМАТИВОВ === */
+  #normativesAnalysisContainer {
+    margin-top: 10px !important;
+  }
+  
+  /* Фильтры на мобильных */
+  #normativesAnalysisContainer .filters-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  #normativesAnalysisContainer .filters-row {
+    display: flex;
+    gap: 8px;
+  }
+  
+  #normativesAnalysisContainer .filters-row > div {
+    flex: 1;
+  }
+  
+  /* Таблица нормативов на мобильных - карточки */
+  .normatives-mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .normative-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .normative-card.overstated {
+    border-color: #f97316;
+    background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+  }
+  
+  .normative-card.understated {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%);
+  }
+  
+  .normative-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .normative-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.2;
+    flex: 1;
+  }
+  
+  .normative-card-status {
+    font-size: 20px;
+    margin-left: 8px;
+  }
+  
+  .normative-card-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .normative-detail {
+    text-align: center;
+    padding: 8px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 8px;
+  }
+  
+  .normative-detail-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 2px;
+  }
+  
+  .normative-detail-label {
+    font-size: 11px;
+    color: #6b7280;
+  }
+  
+  .normative-card-action {
+    width: 100%;
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  /* Модальное окно на мобильных */
+  #editNormModal .modal-content {
+    margin: 20px !important;
+    max-height: calc(100vh - 40px) !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  #editNormModal .info-grid-mobile {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  #editNormModal .info-item-mobile {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  #editNormModal .info-value-mobile {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 4px;
+  }
+  
+  #editNormModal .info-label-mobile {
+    font-size: 11px;
+    color: #6b7280;
+  }
+  
+  /* Скрываем обычную таблицу на мобильных */
+  @media (max-width: 768px) {
+    .normatives-desktop-table {
+      display: none !important;
+    }
+    
+    .normatives-mobile-cards {
+      display: flex !important;
+    }
+  }
+  
+  /* Показываем таблицу на десктопе */
+  @media (min-width: 769px) {
+    .normatives-desktop-table {
+      display: block !important;
+    }
+    
+    .normatives-mobile-cards {
+      display: none !important;
+    }
+    
+    .filters-mobile {
+      display: none !important;
+    }
+    
+    .filters-desktop {
+      display: block !important;
+    }
+  }
+  
+  /* Показываем мобильные элементы на маленьких экранах */
+  @media (max-width: 768px) {
+    .filters-mobile {
+      display: flex !important;
+    }
+    
+    .filters-desktop {
+      display: none !important;
+    }
+  }
 }
 
 h2 {
@@ -1016,7 +1194,7 @@ button.danger:hover {
     <div id="calcBlock" style="margin-top:16px; background:#e7f5ff; padding:10px; border-radius:8px; display:none;">
       <p><strong>💸 Расчёт оплаты:</strong> <span id="wageDisplay">-</span></p>
       <p><strong>⚙️ Эффективность:</strong> <span id="efficiencyDisplay">-</span></p>
-      <p id="mentorBonusDisplay" style="display:none;"><strong>👨‍💼 Бонус наставника:</strong> <span id="mentorBonusAmount">-</span> (<span id="mentorBonusPercent">-</span>%)</p>
+
     </div>
 
     <button type="submit">💾 Сохранить</button>
@@ -1060,21 +1238,26 @@ button.danger:hover {
 
   <!-- 👨‍🏫 БЛОК ДЛЯ НАСТАВНИКОВ (штатных сотрудников) -->
   <div id="mentorBlock" style="display:none;">
-    <label>👨‍🎓 Работаю со стажером:
-      <select id="profileTraineeSelect">
-        <option value="">-- Не выбран --</option>
-        <!-- Список стажеров подгружается автоматически -->
-      </select>
+    <label>👨‍🎓 Мой стажер:
+      <div style="padding: 8px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; margin-top: 4px;">
+        <span id="profileTraineeDisplay" style="color: #374151;">Не назначен</span>
+        <span id="profileTraineeBonusDisplay" style="color: #6b7280; font-size: 12px; margin-left: 8px;"></span>
+      </div>
+      <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">
+        ℹ️ Для изменения связи обратитесь к администратору или используйте блок "Управление стажерами"
+      </small>
     </label>
   </div>
 
   <!-- 👨‍🎓 БЛОК ДЛЯ СТАЖЕРОВ -->
   <div id="traineeBlock" style="display:none;">
     <label>👤 Мой наставник:
-      <select id="profileMentorSelect">
-        <option value="">-- Не выбран --</option>
-        <!-- Список наставников подгружается автоматически -->
-      </select>
+      <div style="padding: 8px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; margin-top: 4px;">
+        <span id="profileMentorDisplay" style="color: #374151;">Не назначен</span>
+      </div>
+      <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">
+        ℹ️ Для изменения связи обратитесь к администратору или используйте блок "Управление стажерами"
+      </small>
     </label>
   </div>
 
@@ -1125,15 +1308,15 @@ button.danger:hover {
       <div style="flex: 1; min-width: 200px;">
         <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">🏷️ Операция</label>
         <select id="filterOperation" style="width: 100%; padding: 10px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 8px;">
-          <option value="">-- Все операции --</option>
-        </select>
+      <option value="">-- Все операции --</option>
+    </select>
       </div>
       <div style="flex: 1; min-width: 200px;">
         <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">📦 Объём/Артикул</label>
         <select id="filterKey" style="width: 100%; padding: 10px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 8px;">
-          <option value="">-- Все объёмы / артикулы --</option>
-        </select>
-      </div>
+      <option value="">-- Все объёмы / артикулы --</option>
+    </select>
+</div>
     </div>
     
     <!-- Индикатор найденных результатов -->
@@ -1147,7 +1330,7 @@ button.danger:hover {
       <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f4f6; border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
       <p style="margin-top: 10px;">Загрузка тарифов...</p>
     </div>
-    <div id="ratesTable"></div>
+  <div id="ratesTable"></div>
   </div>
 </div>
   <!-- Таблица будет добавлена через JS -->
@@ -1174,18 +1357,119 @@ button.danger:hover {
   <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт показателей за период</button>
   <button onclick="loadSeniorsReport()" id="seniorsReportBtn" style="background:#8b5cf6;">👨‍💼 Анализ старших смен</button>
   <button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты HR</button>
+  <button onclick="loadNormativesAnalysis()" id="normativesBtn" style="background:#f59e0b;">🔍 Анализ нормативов</button>
 </div>
 
 <!-- 🧾 Единый контейнер для отчётов -->
 <div id="reportContainer" style="margin-top: 20px;"></div>
 
+<!-- 🔍 Блок анализа нормативов -->
+<div id="normativesAnalysisContainer" style="margin-top: 20px; display: none;">
+  <h3 style="text-align: center; color: #f59e0b; margin-bottom: 20px;">🔍 Анализ и корректировка нормативов</h3>
+  
+  <!-- Фильтры -->
+  <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+    <!-- Период на мобильных -->
+    <div class="filters-mobile" style="display: none;">
+      <div class="filters-row">
+        <div>
+          <label>📅 С:
+            <input type="date" id="normativesStartDate" style="font-size: 16px; padding: 12px;">
+          </label>
+        </div>
+        <div>
+          <label>по:
+            <input type="date" id="normativesEndDate" style="font-size: 16px; padding: 12px;">
+          </label>
+        </div>
+      </div>
+      
+      <div>
+        <label>🔍 Поиск:
+          <input type="text" id="normativesSearch" placeholder="Операция или объем..." style="font-size: 16px; padding: 12px;">
+        </label>
+      </div>
+      
+      <div>
+        <label>📊 Фильтр:
+          <select id="normativesFilter" style="font-size: 16px; padding: 12px;">
+            <option value="all">Все операции</option>
+            <option value="problematic">Только проблемные</option>
+            <option value="overstated">Завышенные нормы</option>
+            <option value="understated">Заниженные нормы</option>
+          </select>
+        </label>
+      </div>
+      
+      <div style="display: flex; gap: 8px;">
+        <button onclick="runNormativesAnalysis()" id="runNormativesBtn" style="background: #f59e0b; flex: 1; padding: 14px; font-size: 16px;">📊 Анализ</button>
+        <button onclick="hideNormativesAnalysis()" style="background: #6b7280; flex: 1; padding: 14px; font-size: 16px;">❌ Закрыть</button>
+      </div>
+    </div>
+    
+    <!-- Период на десктопе -->
+    <div class="filters-desktop">
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+        <div style="flex: 1; min-width: 200px;">
+          <label>📅 Период анализа с:
+            <input type="date" id="normativesStartDateDesktop">
+          </label>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <label>по:
+            <input type="date" id="normativesEndDateDesktop">
+          </label>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+        <div style="flex: 1; min-width: 200px;">
+          <label>🔍 Поиск по операциям:
+            <input type="text" id="normativesSearchDesktop" placeholder="Введите название операции...">
+          </label>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <label>📊 Тип проблем:
+            <select id="normativesFilterDesktop">
+              <option value="all">Все операции</option>
+              <option value="problematic">Только проблемные</option>
+              <option value="overstated">Завышенные нормы</option>
+              <option value="understated">Заниженные нормы</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <button onclick="runNormativesAnalysis()" id="runNormativesBtnDesktop" style="background: #f59e0b; margin-right: 10px;">📊 Запустить анализ</button>
+        <button onclick="hideNormativesAnalysis()" style="background: #6b7280;">❌ Закрыть</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Счетчики -->
+  <div id="normativesSummary" style="display: none; background: #f0f9ff; padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+      <div><strong>📊 Всего операций:</strong> <span id="totalNormatives">0</span></div>
+      <div><strong>⚠️ Проблемных:</strong> <span id="problematicNormatives">0</span></div>
+      <div><strong>🔴 Завышенных:</strong> <span id="overstatedNormatives">0</span></div>
+      <div><strong>🟢 Заниженных:</strong> <span id="understatedNormatives">0</span></div>
+    </div>
+  </div>
+  
+  <!-- Таблица результатов -->
+  <div id="normativesResults"></div>
+  
+  <!-- Загрузка -->
+  <div id="normativesLoader" style="display: none; text-align: center; padding: 40px;">
+    <div style="font-size: 24px;">⏳</div>
+    <div style="margin-top: 10px;">Анализируем нормативы...</div>
+  </div>
+</div>
+
 <!-- 📊 Результаты анализа -->
 <div id="shiftStatsOutput" style="margin-top:20px;"></div>
 <div id="packerAnalysis" style="margin-top:24px;"></div>
-
-  <!-- 📊 Результаты анализа -->
-  <div id="shiftStatsOutput" style="margin-top:20px;"></div>
-  <div id="packerAnalysis" style="margin-top:24px;"></div>
 
   <!-- 🚪 Кнопка выхода для администратора -->
   <div style="margin-top: 40px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px;">
@@ -1205,7 +1489,7 @@ button.danger:hover {
   </label>
   <button id="mySalaryBtn" onclick="loadMySalary()">📊 Показать мои результаты</button>
   <div style="overflow-x: auto;">
-    <div id="mySalaryOutput" style="margin-top:20px;"></div>
+  <div id="mySalaryOutput" style="margin-top:20px;"></div>
   </div>
 <p id="totalQty" style="text-align:center; font-weight:bold; margin-top:16px;"></p>
 </div>
@@ -1237,7 +1521,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycby-jP7znHgO7eRSxnsJS62mRpyg8k8m2iBH5llQOdI9yQnGKAWzmLJzKvdquNRN3MQ/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwWZMCXd1U4VDi55MWqPXj0aWEPRULRBMnNLCS37SoUFqRF1zH1QawIeF-VR6LSn1s/exec";
   
   // Проверяем URL при загрузке
 
@@ -1512,127 +1796,82 @@ function handleStatusChange() {
   
   if (status === "Штат") {
     mentorBlock.style.display = "block";
-    loadTraineeList(); // Загружаем список стажеров
+    loadCurrentTraineeInfo(); // Загружаем информацию о текущем стажере
   } else if (status === "Стажер") {
     traineeBlock.style.display = "block";
-    loadMentorList(); // Загружаем список наставников
+    loadCurrentMentorInfo(); // Загружаем информацию о текущем наставнике
   }
 }
 
-// Загрузка списка стажеров для наставников (оптимизированная версия)
-async function loadTraineeList() {
+// Загрузка информации о текущем стажере для наставников (только для отображения)
+async function loadCurrentTraineeInfo() {
   try {
-    const trainees = await getTraineesListCached();
+    const currentUser = localStorage.getItem("currentUser");
+    if (!currentUser) return;
     
-    const select = document.getElementById("profileTraineeSelect");
-    select.innerHTML = '<option value="">-- Не выбран --</option>';
+    // Получаем данные пользователя
+    const userData = await getUserDataFromServer(currentUser);
     
-    if (trainees && trainees.length > 0) {
-      trainees.forEach(trainee => {
-        const option = document.createElement("option");
-        option.value = trainee;
-        option.textContent = trainee;
-        select.appendChild(option);
-      });
-    }
+    const traineeDisplay = document.getElementById("profileTraineeDisplay");
+    const traineeBonusDisplay = document.getElementById("profileTraineeBonusDisplay");
     
-    // Восстанавливаем сохраненный выбор только если он есть в списке
-    const savedTrainee = localStorage.getItem("profileTrainee");
-    if (savedTrainee && trainees && trainees.includes(savedTrainee)) {
-      select.value = savedTrainee;
-    } else {
-      // Если сохраненного значения нет в списке, очищаем localStorage
-      localStorage.removeItem("profileTrainee");
-      select.value = "";
-    }
+    if (!traineeDisplay || !traineeBonusDisplay) return;
     
-  } catch (error) {
-    console.error("Ошибка загрузки стажеров:", error);
-  }
-}
-
-// Загрузка списка наставников для стажеров (оптимизированная версия)
-async function loadMentorList() {
-  try {
-    const mentors = await getMentorsListCached();
-    
-    const select = document.getElementById("profileMentorSelect");
-    select.innerHTML = '<option value="">-- Не выбран --</option>';
-    
-    if (mentors && mentors.length > 0) {
-      mentors.forEach(mentor => {
-        const option = document.createElement("option");
-        option.value = mentor;
-        option.textContent = mentor;
-        select.appendChild(option);
-      });
-    }
-    
-    // Восстанавливаем сохраненный выбор только если он есть в списке
-    const savedMentor = localStorage.getItem("profileMentor");
-    if (savedMentor && mentors && mentors.includes(savedMentor)) {
-      select.value = savedMentor;
-    } else {
-      // Если сохраненного значения нет в списке, очищаем localStorage
-      localStorage.removeItem("profileMentor");
-      select.value = "";
-    }
-    
-  } catch (error) {
-    console.error("Ошибка загрузки наставников:", error);
-  }
-}
-
-// Сохранение связи наставник-стажер на сервер
-async function savePairToServer() {
-  const currentUser = localStorage.getItem("currentUser");
-  const status = document.getElementById("employeeStatus").value;
-  
-  let partner = "";
-  if (status === "Штат") {
-    const traineeSelect = document.getElementById("profileTraineeSelect");
-    partner = traineeSelect ? traineeSelect.value : "";
-  } else if (status === "Стажер") {
-    const mentorSelect = document.getElementById("profileMentorSelect");
-    partner = mentorSelect ? mentorSelect.value : "";
-  }
-  
-  if (!currentUser) return { success: true, message: "Пользователь не определен" };
-  
-  try {
-    const response = await fetch(scriptURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        type: 'savePair',
-        currentUser: currentUser,
-        partner: partner,
-        status: status
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      // Сохраняем в localStorage
-      if (status === "Штат") {
-        localStorage.setItem("profileTrainee", partner);
-      } else if (status === "Стажер") {
-        localStorage.setItem("profileMentor", partner);
+    if (userData && userData.mentor) {
+      // Если у наставника есть стажер, отображаем информацию
+      traineeDisplay.textContent = userData.mentor;
+      if (userData.bonusPercent) {
+        traineeBonusDisplay.textContent = `(${userData.bonusPercent}% бонус)`;
+      } else {
+        traineeBonusDisplay.textContent = "";
       }
-      
-      // Автоматически обновляем данные в профиле
-      await updateProfileFromServer();
     } else {
-      console.error(`❌ ${result.message}`);
+      // Если стажера нет
+      traineeDisplay.textContent = "Не назначен";
+      traineeBonusDisplay.textContent = "";
     }
     
-    return result;
   } catch (error) {
-    console.error("Ошибка сохранения связи:", error);
-    return { success: false, message: "Ошибка сети: " + error.message };
+    console.error("Ошибка загрузки информации о стажере:", error);
+    const traineeDisplay = document.getElementById("profileTraineeDisplay");
+    if (traineeDisplay) {
+      traineeDisplay.textContent = "Ошибка загрузки";
+    }
   }
 }
+
+// Загрузка информации о текущем наставнике для стажеров (только для отображения)
+async function loadCurrentMentorInfo() {
+  try {
+    const currentUser = localStorage.getItem("currentUser");
+    if (!currentUser) return;
+    
+    // Получаем данные пользователя
+    const userData = await getUserDataFromServer(currentUser);
+    
+    const mentorDisplay = document.getElementById("profileMentorDisplay");
+    
+    if (!mentorDisplay) return;
+    
+    if (userData && userData.mentor) {
+      // Если у стажера есть наставник, отображаем информацию
+      mentorDisplay.textContent = userData.mentor;
+    } else {
+      // Если наставника нет
+      mentorDisplay.textContent = "Не назначен";
+    }
+    
+  } catch (error) {
+    console.error("Ошибка загрузки информации о наставнике:", error);
+    const mentorDisplay = document.getElementById("profileMentorDisplay");
+    if (mentorDisplay) {
+      mentorDisplay.textContent = "Ошибка загрузки";
+    }
+  }
+}
+
+// Функция savePairToServer удалена - связи больше не редактируются через профиль
+// Все управление связями происходит через блок "Управление стажерами"
 
 // Кэш для данных пользователей
 let userDataCache = null;
@@ -1657,8 +1896,8 @@ async function updateProfileFromServer() {
         // Вызываем обработчик изменения статуса для обновления блоков
         handleStatusChange();
         
-        // Быстрое обновление селектов без дополнительных запросов
-        await updateProfileSelects(userData);
+        // Быстрое обновление отображения связей без дополнительных запросов
+        await updateProfileConnectionsDisplay(userData);
       }
       
       console.log("✅ Профиль автоматически обновлен с сервера");
@@ -1693,68 +1932,47 @@ async function getUserDataFromServer(currentUser) {
   return null;
 }
 
-// Быстрое обновление селектов профиля
-async function updateProfileSelects(userData) {
+// Быстрое обновление отображения связей с новыми данными
+async function updateProfileConnectionsDisplay(userData) {
+  if (!userData) return;
+  
   if (userData.status === "Штат") {
-    await updateTraineeSelect(userData.mentor);
+    updateTraineeDisplay(userData.mentor, userData.bonusPercent);
   } else if (userData.status === "Стажер") {
-    await updateMentorSelect(userData.mentor);
-  } else {
-    clearProfileConnections();
+            updateMentorDisplay(userData.mentor);
   }
 }
 
-// Обновление селекта стажеров
-async function updateTraineeSelect(mentor) {
-  const traineeSelect = document.getElementById("profileTraineeSelect");
-  if (!traineeSelect) return;
+// Обновление отображения стажера
+function updateTraineeDisplay(traineeName, bonusPercent) {
+  const traineeDisplay = document.getElementById("profileTraineeDisplay");
+  const traineeBonusDisplay = document.getElementById("profileTraineeBonusDisplay");
   
-  // Быстрая загрузка списка стажеров (с кэшированием)
-  const trainees = await getTraineesListCached();
+  if (!traineeDisplay || !traineeBonusDisplay) return;
   
-  // Обновляем селект
-  traineeSelect.innerHTML = '<option value="">-- Не выбран --</option>';
-  trainees.forEach(trainee => {
-    const option = document.createElement("option");
-    option.value = trainee;
-    option.textContent = trainee;
-    traineeSelect.appendChild(option);
-  });
-  
-  // Устанавливаем значение
-  if (mentor && trainees.includes(mentor)) {
-    traineeSelect.value = mentor;
-    localStorage.setItem("profileTrainee", mentor);
+  if (traineeName) {
+    traineeDisplay.textContent = traineeName;
+    if (bonusPercent) {
+      traineeBonusDisplay.textContent = `(${bonusPercent}% бонус)`;
+    } else {
+      traineeBonusDisplay.textContent = "";
+    }
   } else {
-    localStorage.removeItem("profileTrainee");
-    traineeSelect.value = "";
+    traineeDisplay.textContent = "Не назначен";
+    traineeBonusDisplay.textContent = "";
   }
 }
 
-// Обновление селекта наставников
-async function updateMentorSelect(mentor) {
-  const mentorSelect = document.getElementById("profileMentorSelect");
-  if (!mentorSelect) return;
+// Обновление отображения наставника
+function updateMentorDisplay(mentorName) {
+  const mentorDisplay = document.getElementById("profileMentorDisplay");
   
-  // Быстрая загрузка списка наставников (с кэшированием)
-  const mentors = await getMentorsListCached();
+  if (!mentorDisplay) return;
   
-  // Обновляем селект
-  mentorSelect.innerHTML = '<option value="">-- Не выбран --</option>';
-  mentors.forEach(mentorName => {
-    const option = document.createElement("option");
-    option.value = mentorName;
-    option.textContent = mentorName;
-    mentorSelect.appendChild(option);
-  });
-  
-  // Устанавливаем значение
-  if (mentor && mentors.includes(mentor)) {
-    mentorSelect.value = mentor;
-    localStorage.setItem("profileMentor", mentor);
+  if (mentorName) {
+    mentorDisplay.textContent = mentorName;
   } else {
-    localStorage.removeItem("profileMentor");
-    mentorSelect.value = "";
+    mentorDisplay.textContent = "Не назначен";
   }
 }
 
@@ -1807,14 +2025,14 @@ async function getMentorsListCached() {
 
 // Очистка связей профиля
 function clearProfileConnections() {
-  localStorage.removeItem("profileTrainee");
-  localStorage.removeItem("profileMentor");
+  // Очищаем отображение связей
+  const traineeDisplay = document.getElementById("profileTraineeDisplay");
+  const traineeBonusDisplay = document.getElementById("profileTraineeBonusDisplay");
+  const mentorDisplay = document.getElementById("profileMentorDisplay");
   
-  const traineeSelect = document.getElementById("profileTraineeSelect");
-  const mentorSelect = document.getElementById("profileMentorSelect");
-  
-  if (traineeSelect) traineeSelect.value = "";
-  if (mentorSelect) mentorSelect.value = "";
+  if (traineeDisplay) traineeDisplay.textContent = "Не назначен";
+  if (traineeBonusDisplay) traineeBonusDisplay.textContent = "";
+  if (mentorDisplay) mentorDisplay.textContent = "Не назначен";
 }
 
 
@@ -1894,16 +2112,8 @@ async function saveProfile() {
       // Автоскрытие уведомления через 3 секунды
       setTimeout(() => msg.style.display = "none", 3000);
 
-      // 👨‍🏫 Сохраняем связь наставник-стажер на сервер
-      savePairToServer().then(result => {
-        if (result.success) {
-    
-        } else {
-          console.warn("⚠️ Не удалось сохранить связь:", result.message);
-        }
-      }).catch(error => {
-        console.error("❌ Ошибка сохранения связи:", error);
-      });
+      // Связи наставничества больше не сохраняются через профиль
+      // Управление связями происходит через блок "Управление стажерами"
       
       // Скрываем предупреждение о несохраненных изменениях
       const unsavedMsg = document.getElementById("profileUnsaved");
@@ -2359,8 +2569,8 @@ async function loadMySalary() {
       return;
     }
 
-    const container = document.getElementById("mySalaryOutput");
-    const totalQtyBlock = document.getElementById("totalQty");
+      const container = document.getElementById("mySalaryOutput");
+      const totalQtyBlock = document.getElementById("totalQty");
     
     // Очищаем старые данные
     container.innerHTML = "";
@@ -2369,34 +2579,36 @@ async function loadMySalary() {
     const res = await fetch(`${scriptURL}?type=mySalary&employee=${encodeURIComponent(employee)}&start=${start}&end=${end}`);
     const data = await res.json();
 
-    if (!data.records || data.records.length === 0) {
-      container.innerHTML = "<p style='text-align:center;'>Нет данных за выбранный период.</p>";
-      return;
-    }
+      if (!data.records || data.records.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>Нет данных за выбранный период.</p>";
+        return;
+      }
 
-    // 📦 Группировка по дате
-    const grouped = {};
+      // 📦 Группировка по дате
+      const grouped = {};
 
-    data.records.forEach(r => {
-      const date = formatDate(r.date);
-      if (!grouped[date]) {
+      data.records.forEach(r => {
+        const date = formatDate(r.date);
+        if (!grouped[date]) {
         grouped[date] = { 
           qty: 0, 
-          wage: 0, 
+          wage: 0,
+          mentorBonus: 0,
           effs: [],
           repackaged: 0,
           stickered: 0,
           operations: []
         };
-      }
+        }
       
-      grouped[date].qty += r.quantity || 0;
-      grouped[date].wage += r.wage || 0;
+        grouped[date].qty += r.quantity || 0;
+        grouped[date].wage += r.wage || 0;
+        grouped[date].mentorBonus += r.mentorBonus || 0;
       
-      if (r.efficiency !== undefined && r.efficiency !== null) {
-        grouped[date].effs.push(r.efficiency);
-      }
-      
+        if (r.efficiency !== undefined && r.efficiency !== null) {
+          grouped[date].effs.push(r.efficiency);
+        }
+
       // Разделяем по типам операций
       if (r.operation === "Маркировка продукции ш/к") {
         grouped[date].stickered += r.quantity || 0;
@@ -2410,49 +2622,62 @@ async function loadMySalary() {
         quantity: r.quantity,
         efficiency: r.efficiency,
         wage: r.wage,
+        mentorBonus: r.mentorBonus,
         bonusPercent: r.bonusPercent,
         normStatus: r.normStatus
       });
-    });
+      });
 
-    let html = `
-      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 600px;">
-        <thead style="background:#f3f4f6;">
-          <tr>
-            <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
+      let html = `
+      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 800px;">
+          <thead style="background:#f3f4f6;">
+            <tr>
+              <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
             <th style="padding:8px; border:1px solid #ccc;">📦 Переупак.</th>
             <th style="padding:8px; border:1px solid #ccc;">🏷️ Маркир.</th>
             <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффект.</th>
-            <th style="padding:8px; border:1px solid #ccc;">💰 Сумма</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+              <th style="padding:8px; border:1px solid #ccc;">💰 Основная</th>
+              <th style="padding:8px; border:1px solid #ccc;">👨‍🏫 Бонус наставника</th>
+              <th style="padding:8px; border:1px solid #ccc;">💵 Итого</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
 
-    Object.entries(grouped).forEach(([date, stats]) => {
-      const avgEff = stats.effs.length
-        ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
-        : "-";
-      html += `
-        <tr>
-          <td style="padding:6px; border:1px solid #ccc;">${date}</td>
+      Object.entries(grouped).forEach(([date, stats]) => {
+        const avgEff = stats.effs.length
+          ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
+          : "-";
+        
+        // Рассчитываем основную зарплату (общая - бонус наставника)
+        const basicWage = stats.wage - stats.mentorBonus;
+        
+        html += `
+          <tr>
+            <td style="padding:6px; border:1px solid #ccc;">${date}</td>
           <td style="padding:6px; border:1px solid #ccc;">${stats.repackaged}</td>
           <td style="padding:6px; border:1px solid #ccc;">${stats.stickered}</td>
-          <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
-          <td style="padding:6px; border:1px solid #ccc;">${stats.wage.toFixed(2)} ₽</td>
-        </tr>
-      `;
-    });
+            <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
+            <td style="padding:6px; border:1px solid #ccc;">${basicWage.toFixed(2)} ₽</td>
+            <td style="padding:6px; border:1px solid #ccc; ${stats.mentorBonus > 0 ? 'background:#f0f9ff; font-weight:bold;' : ''}">${stats.mentorBonus.toFixed(2)} ₽</td>
+            <td style="padding:6px; border:1px solid #ccc; font-weight:bold;">${stats.wage.toFixed(2)} ₽</td>
+          </tr>
+        `;
+      });
 
-    html += `</tbody></table>`;
-    container.innerHTML = html;
+      html += `</tbody></table>`;
+      container.innerHTML = html;
     
     // === НОВЫЕ ИТОГОВЫЕ ПОКАЗАТЕЛИ ===
     const totals = data.totals || {};
+    const totalBasicWage = (totals.totalWage || 0) - (totals.totalMentorBonus || 0);
+    
     totalQtyBlock.innerHTML = `
       <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding:16px; border-radius:12px; border:2px solid #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); margin-top: 16px; color: #000000 !important;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: center; font-size: 13px; line-height: 1.4;">
-          <div><strong>💵 Всего:</strong><br>${(totals.totalWage || 0).toFixed(2)} ₽</div>
+          <div><strong>💰 Основная:</strong><br>${totalBasicWage.toFixed(2)} ₽</div>
+          <div><strong>👨‍🏫 Бонус наставника:</strong><br>${(totals.totalMentorBonus || 0).toFixed(2)} ₽</div>
+          <div><strong>💵 Итого:</strong><br>${(totals.totalWage || 0).toFixed(2)} ₽</div>
           <div><strong>📦 Переупак.:</strong><br>${totals.totalRepackaged || 0} шт</div>
           <div><strong>🏷️ Маркир.:</strong><br>${totals.totalStickered || 0} шт</div>
           <div><strong>⚙️ Эффект.:</strong><br>${totals.avgEfficiency || 0}%</div>
@@ -2464,8 +2689,8 @@ async function loadMySalary() {
     // Показываем кнопку закрытия
     if (closeBtn) closeBtn.style.display = "inline-block";
 
-  } catch (err) {
-    alert("❌ Ошибка загрузки: " + err.message);
+    } catch (err) {
+      alert("❌ Ошибка загрузки: " + err.message);
     
     // Очищаем состояние при ошибке
     const container = document.getElementById("mySalaryOutput");
@@ -2784,27 +3009,7 @@ async function updateRateDisplay() {
     wageDisplay.textContent = totalPay.toFixed(2) + " ₽";
     efficiencyDisplay.textContent = efficiency;
 
-    // Отображение бонуса наставника для стажеров
-    const mentorBonusDisplay = document.getElementById("mentorBonusDisplay");
-    const mentorBonusAmount = document.getElementById("mentorBonusAmount");
-    const mentorBonusPercent = document.getElementById("mentorBonusPercent");
-    
-    if (currentStatus === "Стажер") {
-      const mentorInfo = await getMentorInfo(currentUser);
-      if (mentorInfo && mentorInfo.mentor) {
-        // Используем только индивидуальный процент из связи
-        const bonusPercent = mentorInfo.bonusPercent || 0;
-        
-        const mentorBonus = totalPay * bonusPercent;
-        mentorBonusAmount.textContent = mentorBonus.toFixed(2) + " ₽";
-        mentorBonusPercent.textContent = (bonusPercent * 100).toFixed(0);
-        mentorBonusDisplay.style.display = "block";
-      } else {
-        mentorBonusDisplay.style.display = "none";
-      }
-    } else {
-      mentorBonusDisplay.style.display = "none";
-    }
+    // Бонус наставника теперь фиксированный (1750₽ за смену) и рассчитывается автоматически
 
     block.style.display = "block";
     calcBlock.style.display = "block";
@@ -2942,24 +3147,24 @@ async function loadRatesTable() {
   container.innerHTML = "";
 
   try {
-    // Используем кэш для тарифов
-    if (isCacheValid(dataCache.rates)) {
-      allRates = dataCache.rates.data;
-    } else {
-      const res = await fetch(`${scriptURL}?type=rates`);
-      const data = await res.json();
-      allRates = data.rates || [];
-      
-      dataCache.rates = {
-        data: allRates,
-        timestamp: Date.now()
-      };
-    }
+  // Используем кэш для тарифов
+  if (isCacheValid(dataCache.rates)) {
+    allRates = dataCache.rates.data;
+  } else {
+    const res = await fetch(`${scriptURL}?type=rates`);
+    const data = await res.json();
+    allRates = data.rates || [];
+    
+    dataCache.rates = {
+      data: allRates,
+      timestamp: Date.now()
+    };
+  }
 
-    // Фильтруем лишние ставки
-    const filteredRates = allRates.filter(r =>
-      r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат"
-    );
+  // Фильтруем лишние ставки
+  const filteredRates = allRates.filter(r =>
+    r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат"
+  );
 
     // Заполняем фильтры
     populateFilters(filteredRates, opFilter, keyFilter);
@@ -2969,10 +3174,10 @@ async function loadRatesTable() {
     let sortDirection = "asc";
 
     // Функция рендеринга с поиском, фильтрацией и сортировкой
-    function renderFilteredRates() {
+  function renderFilteredRates() {
       const searchText = searchInput.value.toLowerCase().trim();
-      const selectedOp = opFilter.value;
-      const selectedKey = keyFilter.value;
+    const selectedOp = opFilter.value;
+    const selectedKey = keyFilter.value;
 
       let filtered = filteredRates.filter(r => {
         const matchesSearch = !searchText || r.operation.toLowerCase().includes(searchText);
@@ -3001,7 +3206,7 @@ async function loadRatesTable() {
       // Обновляем счетчик
       updateCounter(filtered.length, filteredRates.length);
 
-      if (!filtered.length) {
+    if (!filtered.length) {
         container.innerHTML = `
           <div style="text-align: center; padding: 40px; color: #6b7280;">
             <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
@@ -3009,37 +3214,37 @@ async function loadRatesTable() {
             <p style="margin: 0;">Попробуйте изменить критерии поиска</p>
           </div>
         `;
-        return;
-      }
+      return;
+    }
 
       // Генерируем таблицу
-      let html = `
-        <div class="table-scroll">
+    let html = `
+      <div class="table-scroll">
         <table style="width:100%; border-collapse:collapse; min-width:700px;">
-          <thead>
+        <thead>
             <tr>
               ${generateTableHeaders()}
-            </tr>
-          </thead>
-          <tbody>
-      `;
+          </tr>
+        </thead>
+        <tbody>
+    `;
 
-      filtered.forEach(r => {
-        html += `
-          <tr>
-            <td>${r.operation}</td>
-            <td>${r.key}</td>
-            <td>${r.normPerHour}</td>
+    filtered.forEach(r => {
+      html += `
+        <tr>
+          <td>${r.operation}</td>
+          <td>${r.key}</td>
+          <td>${r.normPerHour}</td>
             <td><strong>${r.ratePerUnit.toFixed(2)} ₽</strong></td>
             <td><strong>${r.rateFBS.toFixed(2)} ₽</strong></td>
             <td><strong>${r.rateDeal.toFixed(2)} ₽</strong></td>
             <td><strong>${r.rateFBSDeal.toFixed(2)} ₽</strong></td>
-          </tr>
-        `;
-      });
+        </tr>
+      `;
+    });
 
-      html += '</tbody></table></div>';
-      container.innerHTML = html;
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
 
       // Добавляем обработчики сортировки
       addSortHandlers();
@@ -3128,9 +3333,9 @@ async function loadRatesTable() {
     }
 
     // Обработчики событий
-    opFilter.onchange = renderFilteredRates;
-    keyFilter.onchange = renderFilteredRates;
-    
+  opFilter.onchange = renderFilteredRates;
+  keyFilter.onchange = renderFilteredRates;
+
     // Живой поиск с дебаунсом
     let searchTimeout;
     searchInput.oninput = function() {
@@ -3744,13 +3949,13 @@ async function loadPackingModels() {
   
   // 🛡️ Защита от одновременной загрузки
   if (isLoadingPackingModels) {
-    console.log("🔄 Загрузка моделей упаковки уже выполняется, пропускаем...");
+    
     return;
   }
   
   // Проверяем кэш
   if (isCacheValid(dataCache.packingModels)) {
-    console.log("📦 Используем кэшированные модели упаковки");
+    
     populatePackingModelsSelect(dataCache.packingModels.data);
     return;
   }
@@ -3785,7 +3990,7 @@ async function loadPackingModels() {
     }
     
     populatePackingModelsSelect(models);
-    console.log(`✅ Загружено ${models.length} моделей упаковки`);
+    
     
   } catch (err) {
     console.error("Ошибка загрузки моделей упаковки:", err);
@@ -3793,7 +3998,7 @@ async function loadPackingModels() {
     const fallbackData = tryLoadPackingModelsFromStorage();
     if (fallbackData) {
       populatePackingModelsSelect(fallbackData);
-      console.log("🔄 Используем fallback из localStorage");
+      
     } else {
       // Показываем ошибку только если select был пустой
       if (select.options.length <= 1) {
@@ -3821,7 +4026,7 @@ function populatePackingModelsSelect(models) {
   
   // Если данные не изменились и select уже заполнен, не обновляем
   if (!hasChanges && select.options.length > 1) {
-    console.log("🔄 Модели упаковки не изменились, пропускаем обновление");
+    
     return;
   }
   
@@ -3837,7 +4042,7 @@ function populatePackingModelsSelect(models) {
   // 🔄 Восстанавливаем выбранное значение, если оно существует в новом списке
   if (currentValue && newModels.includes(currentValue)) {
     select.value = currentValue;
-    console.log(`✅ Восстановлен выбор модели упаковки: "${currentValue}"`);
+    
   } else if (currentValue && !newModels.includes(currentValue)) {
     console.warn(`⚠️ Ранее выбранная модель "${currentValue}" больше не доступна`);
   }
@@ -3866,7 +4071,7 @@ function tryLoadPackingModelsFromStorage() {
 function preloadPackingModels() {
   // 🛡️ Защита от повторных вызовов
   if (isLoadingPackingModels) {
-    console.log("🔄 Предзагрузка моделей уже выполняется, пропускаем...");
+    
     return;
   }
   
@@ -3883,7 +4088,7 @@ function preloadPackingModels() {
       const select = document.getElementById("profilePackingModel");
       if (select && select.options.length <= 1) { // Если еще не заполнен
         populatePackingModelsSelect(cachedData);
-        console.log("🚀 Предзагружены модели упаковки из кэша");
+  
       }
     }, 100);
   }
@@ -3891,7 +4096,7 @@ function preloadPackingModels() {
   // Обновляем в фоне для свежести данных (с задержкой)
   setTimeout(() => {
     if (!isCacheValid(dataCache.packingModels) && !isLoadingPackingModels) {
-      console.log("🔄 Фоновое обновление моделей упаковки...");
+
       loadPackingModels().catch(err => {
         console.warn("Фоновое обновление моделей упаковки не удалось:", err);
       });
@@ -4349,7 +4554,7 @@ async function loadMentorshipPairs() {
             <div>
               <div style="font-weight: 600; color: #000000;">👨‍💼 ${pair.mentor} → 👨‍🎓 ${pair.trainee}</div>
               <div style="font-size: 14px; color: #000000; margin-top: 4px;">
-                Статус: ${pair.status} | 💰 Бонус: ${(pair.bonusPercent * 100).toFixed(0)}%
+                Статус: ${pair.status}
               </div>
             </div>
             <button onclick="deleteMentorshipPair('${pair.mentor}', '${pair.trainee}')" 
@@ -4420,7 +4625,7 @@ async function getSettings() {
     return data;
   } catch (error) {
     console.error("Ошибка получения настроек:", error);
-    return { mentorBonusPercent: 0 }; // Нет бонуса по умолчанию
+    return {}; // Настройки по умолчанию
   }
 }
 
@@ -4532,7 +4737,6 @@ function updateSelect(selectId, dataArray, placeholder) {
 async function createMentorshipPair() {
   const mentor = document.getElementById("mentorSelect").value;
   const trainee = document.getElementById("traineeSelect").value;
-  const bonusPercent = parseFloat(document.getElementById("pairBonusPercent").value);
   
   if (!mentor || !trainee) {
     alert("Выберите наставника и стажера");
@@ -4544,17 +4748,12 @@ async function createMentorshipPair() {
     return;
   }
   
-  if (isNaN(bonusPercent) || bonusPercent < 0 || bonusPercent > 100) {
-    alert("Введите корректный процент бонуса (0-100%)");
-    return;
-  }
-  
   try {
     const formData = new FormData();
     formData.append('currentUser', mentor);
     formData.append('partner', trainee);
     formData.append('status', 'Штат');
-    formData.append('bonusPercent', (bonusPercent / 100).toString()); // Конвертируем в десятичную дробь
+    formData.append('bonusPercent', '0'); // Фиксированный бонус 1750₽ за смену
     
 
     
@@ -4568,10 +4767,7 @@ async function createMentorshipPair() {
 
     
     if (data.success) {
-      alert(`✅ Связь создана: ${mentor} ↔ ${trainee} (бонус: ${bonusPercent}%)`);
-      
-      // Сбрасываем только поле процента
-      document.getElementById("pairBonusPercent").value = "0";
+      alert(`✅ Связь создана: ${mentor} ↔ ${trainee}\n💰 Наставник будет получать 1750₽ за смену`);
       
       // Обновляем список связей и выпадающие списки
       await loadMentorshipPairs();
@@ -4714,6 +4910,74 @@ async function loadTraineeAnalytics() {
   }
 }
 
+// Диагностика системы бонусов наставника
+async function debugMentorBonusSystem() {
+  const employeeName = prompt("Введите имя стажера для диагностики:");
+  if (!employeeName) return;
+  
+  try {
+    const response = await fetch(scriptURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        type: 'debugMentorBonus',
+        employeeName: employeeName
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.error) {
+      alert(`❌ Ошибка: ${result.error}`);
+      return;
+    }
+    
+    const debug = result.debug;
+    let report = `🔧 ДИАГНОСТИКА БОНУСА НАСТАВНИКА для "${employeeName}"\n\n`;
+    
+    report += `1️⃣ Наставник: ${debug.step1_mentor || "❌ НЕТ"}\n`;
+    report += `   └ Из операций (колонка P): ${debug.step1_mentorFromOperations}\n`;
+    report += `   └ Из справочника (колонка F): ${debug.step1_mentorFromUsers}\n`;
+    report += `2️⃣ Процент бонуса: ${debug.step2_bonusPercent || "❌ НЕТ"} ${debug.step2_sourceNote || ""}\n`;
+    report += `3️⃣ Тестовая операция: ${JSON.stringify(debug.step3_sampleOperation)}\n`;
+    report += `4️⃣ Расчет зарплаты: ${debug.step4_wage || "❌ НЕТ"}₽\n`;
+    report += `5️⃣ Итоговый бонус: ${debug.step5_finalBonus || "❌ НЕТ"}₽\n\n`;
+    
+    report += `🔍 ПРОБЛЕМЫ:\n`;
+    debug.issues.forEach(issue => {
+      report += `• ${issue}\n`;
+    });
+    
+    if (debug.step3_availableOperations) {
+      report += `\n📋 ДОСТУПНЫЕ ОПЕРАЦИИ УПАКОВКИ:\n`;
+      debug.step3_availableOperations.forEach(op => {
+        report += `• ${op.operation} | ${op.volume}\n`;
+      });
+    }
+    
+    // Создаем модальное окно для отображения отчета
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: rgba(0,0,0,0.5); z-index: 10000; display: flex; 
+      align-items: center; justify-content: center;
+    `;
+    
+    modal.innerHTML = `
+      <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; max-height: 80%; overflow-y: auto;">
+        <h3>🔧 Диагностика бонуса наставника</h3>
+        <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 15px; border-radius: 4px;">${report}</pre>
+        <button onclick="this.parentElement.parentElement.remove()" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Закрыть</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+  } catch (error) {
+    alert(`❌ Ошибка диагностики: ${error.message}`);
+  }
+}
+
 async function cleanupAllMentorshipPairs(execute = false) {
   const container = document.getElementById("cleanupResults");
   const previewBtn = document.getElementById("previewCleanupBtn");
@@ -4849,6 +5113,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+
+// ========== 📊 ФУНКЦИИ РАБОТЫ С БОНУСОМ НАСТАВНИКА ==========
+
+    // Бонус наставника теперь фиксированный (1750₽ за смену)
+// Функция parseMentorInfo больше не нужна
 
 async function runCustomReport() {
   withLoading("reportBtn", async () => {
@@ -6675,6 +6944,446 @@ async function saveReportToServer() {
 
 
 
+// ============================
+// 🔍 ФУНКЦИИ АНАЛИЗА НОРМАТИВОВ
+// ============================
+
+// Глобальные переменные
+let currentNormativesData = [];
+let currentEditingNorm = null;
+
+// Показать блок анализа нормативов с авторизацией
+function loadNormativesAnalysis() {
+  // Всегда запрашиваем пароль (без сохранения)
+  promptNormativesAuth();
+}
+
+// Запрос пароля для доступа к анализу нормативов
+function promptNormativesAuth() {
+  const password = prompt('🔐 Введите пароль для доступа к анализу нормативов:');
+  if (password === 'Forsal2025') {
+    showNormativesAnalysis();
+  } else if (password !== null) {
+    alert('❌ Неверный пароль');
+  }
+}
+
+// Показать блок анализа нормативов (после авторизации)
+function showNormativesAnalysis() {
+  const container = document.getElementById("normativesAnalysisContainer");
+  
+  // Скрываем другие отчеты
+  document.getElementById("reportContainer").innerHTML = "";
+  document.getElementById("shiftStatsOutput").innerHTML = "";
+  document.getElementById("packerAnalysis").innerHTML = "";
+  
+  // Показываем контейнер
+  container.style.display = "block";
+  
+  // Устанавливаем период по умолчанию (последние 7 дней)
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 7);
+  
+  const startDateString = startDate.toISOString().split('T')[0];
+  const endDateString = endDate.toISOString().split('T')[0];
+  
+  // Устанавливаем для мобильной версии
+  document.getElementById("normativesStartDate").value = startDateString;
+  document.getElementById("normativesEndDate").value = endDateString;
+  
+  // Устанавливаем для десктопной версии
+  document.getElementById("normativesStartDateDesktop").value = startDateString;
+  document.getElementById("normativesEndDateDesktop").value = endDateString;
+  
+  // Сброс результатов
+  document.getElementById("normativesSummary").style.display = "none";
+  document.getElementById("normativesResults").innerHTML = "";
+}
+
+// Скрыть блок анализа нормативов
+function hideNormativesAnalysis() {
+  document.getElementById("normativesAnalysisContainer").style.display = "none";
+}
+
+// Запустить анализ нормативов
+async function runNormativesAnalysis() {
+  // Определяем, какую версию интерфейса использовать
+  const isMobile = window.innerWidth <= 768;
+  
+  const startDate = isMobile ? 
+    document.getElementById("normativesStartDate").value :
+    document.getElementById("normativesStartDateDesktop").value;
+  const endDate = isMobile ? 
+    document.getElementById("normativesEndDate").value :
+    document.getElementById("normativesEndDateDesktop").value;
+  const filter = isMobile ? 
+    document.getElementById("normativesFilter").value :
+    document.getElementById("normativesFilterDesktop").value;
+  const search = isMobile ? 
+    document.getElementById("normativesSearch").value.toLowerCase() :
+    document.getElementById("normativesSearchDesktop").value.toLowerCase();
+  
+  if (!startDate || !endDate) {
+    alert("⚠️ Укажите период анализа");
+    return;
+  }
+  
+  const btn = isMobile ? 
+    document.getElementById("runNormativesBtn") :
+    document.getElementById("runNormativesBtnDesktop");
+  const loader = document.getElementById("normativesLoader");
+  const resultsContainer = document.getElementById("normativesResults");
+  const summaryContainer = document.getElementById("normativesSummary");
+  
+  // Показываем загрузку
+  btn.disabled = true;
+  btn.textContent = isMobile ? "⏳ Анализируем..." : "⏳ Анализируем...";
+  loader.style.display = "block";
+  resultsContainer.innerHTML = "";
+  summaryContainer.style.display = "none";
+  
+  try {
+    const response = await fetch(`${scriptURL}?type=normativesAnalysis&startDate=${startDate}&endDate=${endDate}&filter=${filter}`);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      throw new Error(data.message || "Ошибка анализа");
+    }
+    
+    currentNormativesData = data.results;
+    
+    // Применяем поиск если есть
+    let filteredResults = currentNormativesData;
+    if (search) {
+      filteredResults = currentNormativesData.filter(item => 
+        item.operation.toLowerCase().includes(search) || 
+        item.key.toLowerCase().includes(search)
+      );
+    }
+    
+    // Показываем статистику
+    showNormativesSummary(data.summary, filteredResults.length);
+    
+    // Показываем результаты
+    displayNormativesResults(filteredResults);
+    
+  } catch (error) {
+    console.error("Ошибка анализа нормативов:", error);
+    resultsContainer.innerHTML = `<div style="text-align:center; color:red; padding:20px;">❌ Ошибка: ${error.message}</div>`;
+  } finally {
+    // Скрываем загрузку
+    btn.disabled = false;
+    btn.textContent = isMobile ? "📊 Анализ" : "📊 Запустить анализ";
+    loader.style.display = "none";
+  }
+}
+
+// Показать статистику
+function showNormativesSummary(summary, filteredCount) {
+  const container = document.getElementById("normativesSummary");
+  
+  document.getElementById("totalNormatives").textContent = filteredCount || summary.totalOperations;
+  document.getElementById("problematicNormatives").textContent = summary.problematicOperations;
+  document.getElementById("overstatedNormatives").textContent = summary.overstatedCount;
+  document.getElementById("understatedNormatives").textContent = summary.understatedCount;
+  
+  container.style.display = "block";
+}
+
+// Отобразить результаты анализа
+function displayNormativesResults(results) {
+  const container = document.getElementById("normativesResults");
+  
+  if (!results || results.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:40px; color:#6b7280;">
+      <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+      <div>Нет результатов по заданным критериям</div>
+    </div>`;
+    return;
+  }
+  
+  let html = `
+    <div style="overflow-x: auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:14px;">
+        <thead>
+          <tr style="background:#f8fafc; border-bottom:2px solid #e5e7eb;">
+            <th style="padding:12px 8px; text-align:left; font-weight:600;">Операция</th>
+            <th style="padding:12px 8px; text-align:left; font-weight:600;">Объем/Ключ</th>
+            <th style="padding:12px 8px; text-align:center; font-weight:600;">Текущая норма</th>
+            <th style="padding:12px 8px; text-align:center; font-weight:600;">Ср. эффективность</th>
+            <th style="padding:12px 8px; text-align:center; font-weight:600;">Ср. скорость</th>
+            <th style="padding:12px 8px; text-align:center; font-weight:600;">Статус</th>
+            <th style="padding:12px 8px; text-align:center; font-weight:600;">Операций</th>
+            <th style="padding:12px 8px; text-align:center; font-weight:600;">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  results.forEach((item, index) => {
+    const statusColor = item.status === "overstated" ? "#fee2e2" : 
+                       item.status === "understated" ? "#dcfce7" : "#f9fafb";
+    const textColor = item.status === "overstated" ? "#dc2626" : 
+                     item.status === "understated" ? "#16a34a" : "#6b7280";
+    
+    html += `
+      <tr style="border-bottom:1px solid #e5e7eb; background:${statusColor};">
+        <td style="padding:12px 8px; font-weight:500;">${item.operation}</td>
+        <td style="padding:12px 8px;">${item.key}</td>
+        <td style="padding:12px 8px; text-align:center; font-weight:600;">${item.normPerHour} шт/ч</td>
+        <td style="padding:12px 8px; text-align:center; color:${textColor}; font-weight:600;">${item.avgEfficiency}%</td>
+        <td style="padding:12px 8px; text-align:center;">${item.avgSpeed} шт/ч</td>
+        <td style="padding:12px 8px; text-align:center; font-weight:600; color:${textColor};">${item.statusText}</td>
+        <td style="padding:12px 8px; text-align:center;">${item.totalOperations}</td>
+        <td style="padding:12px 8px; text-align:center;">
+          <button class="edit-norm-btn" data-index="${index}" data-rate-key="${item.rateKey}"
+                  style="background:#f59e0b; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">
+            ✏️ Изменить
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += `
+        </tbody>
+      </table>
+    </div>
+    
+    <div style="margin-top:16px; padding:12px; background:#f0f9ff; border-radius:8px; font-size:12px; color:#1e40af;">
+      <strong>💡 Пояснения:</strong><br>
+      🔴 <strong>Завышенная норма</strong> - средняя эффективность < 70%<br>
+      🟢 <strong>Заниженная норма</strong> - средняя эффективность > 120%<br>
+      ⚪ <strong>Норма в порядке</strong> - эффективность в диапазоне 70-120%
+    </div>
+  `;
+  
+  // Создаем контейнер с обеими версиями
+  const fullHtml = `
+    <!-- Десктопная таблица -->
+    <div class="normatives-desktop-table">
+      ${html}
+    </div>
+    
+    <!-- Мобильные карточки -->
+    <div class="normatives-mobile-cards" style="display: none;">
+      ${createMobileCards(results)}
+    </div>
+  `;
+  
+  container.innerHTML = fullHtml;
+  
+  // Добавляем обработчики для кнопок редактирования (десктоп)
+  const desktopTable = container.querySelector('.normatives-desktop-table');
+  if (desktopTable) {
+    desktopTable.addEventListener('click', function(e) {
+      if (e.target.classList.contains('edit-norm-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        const rateKey = e.target.dataset.rateKey;
+  
+        openEditNormModal(rateKey, index);
+      }
+    });
+  }
+  
+  // Добавляем обработчики для кнопок редактирования (мобильные)
+  const mobileCards = container.querySelector('.normatives-mobile-cards');
+  if (mobileCards) {
+    mobileCards.addEventListener('click', function(e) {
+      if (e.target.classList.contains('normative-card-action')) {
+        const index = parseInt(e.target.dataset.index);
+        const rateKey = e.target.dataset.rateKey;
+  
+        openEditNormModal(rateKey, index);
+      }
+    });
+  }
+}
+
+// Создание мобильных карточек
+function createMobileCards(results) {
+  return results.map((item, index) => {
+    const statusClass = item.status;
+    const statusIcon = item.status === 'overstated' ? '🔴' : 
+                      item.status === 'understated' ? '🟢' : '⚪';
+    
+    const efficiencyColor = item.avgEfficiency < 70 ? '#ef4444' : 
+                           item.avgEfficiency > 120 ? '#10b981' : '#6b7280';
+    
+    return `
+      <div class="normative-card ${statusClass}">
+        <div class="normative-card-header">
+          <div class="normative-card-title">
+            ${item.operation}<br>
+            <small style="color: #6b7280; font-weight: normal;">${item.key}</small>
+          </div>
+          <div class="normative-card-status">${statusIcon}</div>
+        </div>
+        
+        <div class="normative-card-details">
+          <div class="normative-detail">
+            <div class="normative-detail-value">${item.normPerHour}</div>
+            <div class="normative-detail-label">Норма шт/ч</div>
+          </div>
+          <div class="normative-detail">
+            <div class="normative-detail-value" style="color: ${efficiencyColor};">${item.avgEfficiency}%</div>
+            <div class="normative-detail-label">Эффективность</div>
+          </div>
+          <div class="normative-detail">
+            <div class="normative-detail-value">${item.avgSpeed}</div>
+            <div class="normative-detail-label">Средняя скорость</div>
+          </div>
+          <div class="normative-detail">
+            <div class="normative-detail-value">${item.totalOperations}</div>
+            <div class="normative-detail-label">Операций</div>
+          </div>
+        </div>
+        
+        <button class="normative-card-action" data-index="${index}" data-rate-key="${item.rateKey}">
+          ✏️ Изменить норму
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+// Открыть модальное окно редактирования нормы
+function openEditNormModal(rateKey, index) {
+
+  
+  const item = currentNormativesData[index];
+  if (!item) {
+
+    alert("Ошибка: данные операции не найдены");
+    return;
+  }
+  
+
+  
+  currentEditingNorm = item;
+  
+  // Заполняем данные
+  document.getElementById("editNormOperation").textContent = item.operation;
+  document.getElementById("editNormKey").textContent = item.key;
+  document.getElementById("editNormCurrent").textContent = item.normPerHour;
+  document.getElementById("editNormEfficiency").textContent = item.avgEfficiency;
+  document.getElementById("editNormSpeed").textContent = item.avgSpeed;
+  document.getElementById("editNormRecommended").value = item.recommendedNorm;
+  document.getElementById("editNormNew").value = item.recommendedNorm;
+  
+  // Рекомендация
+  let recommendation = "";
+  if (item.status === "overstated") {
+    recommendation = `🔴 Норма завышена! Сотрудники показывают эффективность ${item.avgEfficiency}%, что значительно ниже целевых 100%. Рекомендуется снизить норму до ${item.recommendedNorm} шт/час на основе реальной средней скорости ${item.avgSpeed} шт/час.`;
+  } else if (item.status === "understated") {
+    recommendation = `🟢 Норма занижена! Сотрудники легко превышают норму с эффективностью ${item.avgEfficiency}%. Рекомендуется повысить норму до ${item.recommendedNorm} шт/час для более точного планирования.`;
+  } else {
+    recommendation = `⚪ Норма соответствует реальной производительности. Средняя эффективность ${item.avgEfficiency}% находится в оптимальном диапазоне 70-120%.`;
+  }
+  
+  document.getElementById("editNormRecommendation").textContent = recommendation;
+  
+  // Очищаем результат
+  document.getElementById("editNormResult").innerHTML = "";
+  
+  // Показываем модальное окно
+  const modal = document.getElementById("editNormModal");
+  if (modal) {
+    modal.style.display = "flex";
+  
+  } else {
+    console.error("Модальное окно не найдено!");
+    alert("Ошибка: модальное окно не найдено в DOM");
+  }
+}
+
+// Закрыть модальное окно редактирования
+function closeEditNormModal() {
+  document.getElementById("editNormModal").style.display = "none";
+  currentEditingNorm = null;
+}
+
+// Сохранить изменение нормы
+async function saveNormChange() {
+  if (!currentEditingNorm) return;
+  
+  const newNorm = parseFloat(document.getElementById("editNormNew").value);
+  const reason = "Корректировка через анализ нормативов";
+  const resultDiv = document.getElementById("editNormResult");
+  const btn = document.getElementById("saveNormBtn");
+  
+  // Валидация
+  if (!newNorm || newNorm <= 0) {
+    resultDiv.innerHTML = '<div style="color:red;">⚠️ Введите корректную норму (больше 0)</div>';
+    return;
+  }
+  
+  // Блокируем кнопку
+  btn.disabled = true;
+  btn.textContent = "⏳ Сохраняем...";
+  resultDiv.innerHTML = '<div style="color:#2563eb;">💾 Сохранение изменений...</div>';
+  
+  try {
+    const response = await fetch(`${scriptURL}?type=updateRate&operation=${encodeURIComponent(currentEditingNorm.operation)}&key=${encodeURIComponent(currentEditingNorm.key)}&newNorm=${newNorm}&reason=${encodeURIComponent(reason)}`);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      throw new Error(data.message || "Ошибка сохранения");
+    }
+    
+    resultDiv.innerHTML = '<div style="color:green;">✅ Норма успешно обновлена!</div>';
+    
+    // Обновляем данные в таблице
+    currentEditingNorm.normPerHour = newNorm;
+    
+    // Через 2 секунды закрываем модальное окно и обновляем таблицу
+    setTimeout(() => {
+      closeEditNormModal();
+      runNormativesAnalysis(); // Перезагружаем данные
+    }, 2000);
+    
+  } catch (error) {
+    console.error("Ошибка сохранения нормы:", error);
+    resultDiv.innerHTML = `<div style="color:red;">❌ Ошибка: ${error.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "💾 Сохранить изменения";
+  }
+}
+
+// Поиск по операциям (с задержкой)
+let searchTimeout;
+
+// Добавляем обработчик событий после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById("normativesSearch");
+  if (searchInput) {
+    searchInput.addEventListener("input", function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        if (currentNormativesData.length > 0) {
+          const search = this.value.toLowerCase();
+          const filteredResults = currentNormativesData.filter(item => 
+            item.operation.toLowerCase().includes(search) || 
+            item.key.toLowerCase().includes(search)
+          );
+          displayNormativesResults(filteredResults);
+          
+          // Обновляем счетчик
+          const summary = {
+            totalOperations: currentNormativesData.length,
+            problematicOperations: currentNormativesData.filter(r => r.status !== "normal").length,
+            overstatedCount: currentNormativesData.filter(r => r.status === "overstated").length,
+            understatedCount: currentNormativesData.filter(r => r.status === "understated").length
+          };
+          showNormativesSummary(summary, filteredResults.length);
+        }
+      }, 300);
+    });
+  }
+});
+
 </script>
 <div id="editModal" style="display:none; position:fixed; top:10%; left:0; right:0; margin:auto; max-width:500px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:1000;">
   <h3>✏️ Редактировать запись</h3>
@@ -6811,7 +7520,44 @@ async function saveReportToServer() {
   </div>
 </div>
 
-
+<!-- Модальное окно редактирования нормы -->
+<div id="editNormModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.18); z-index:2000; align-items:center; justify-content:center;">
+  <div style="background:white; max-width:600px; margin:60px auto; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.15); padding:28px; position:relative;">
+    <h3 style="margin-top:0; text-align:center; color:#f59e0b;">🔍 Редактирование нормы</h3>
+    
+    <!-- Информация об операции -->
+    <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-bottom:20px;">
+      <div style="margin-bottom:12px;"><strong>📋 Операция:</strong> <span id="editNormOperation">-</span></div>
+      <div style="margin-bottom:12px;"><strong>📦 Объем/Ключ:</strong> <span id="editNormKey">-</span></div>
+      <div style="margin-bottom:12px;"><strong>⏱️ Текущая норма:</strong> <span id="editNormCurrent">-</span> шт/час</div>
+      <div style="margin-bottom:12px;"><strong>📊 Средняя эффективность:</strong> <span id="editNormEfficiency">-</span>%</div>
+      <div><strong>🎯 Средняя скорость:</strong> <span id="editNormSpeed">-</span> шт/час</div>
+    </div>
+    
+    <!-- Анализ и рекомендация -->
+    <div id="editNormAnalysis" style="background:#fef3c7; padding:16px; border-radius:12px; margin-bottom:20px; border-left:4px solid #f59e0b;">
+      <h4 style="margin:0 0 8px 0; color:#92400e;">💡 Анализ и рекомендация:</h4>
+      <div id="editNormRecommendation" style="color:#451a03;">-</div>
+    </div>
+    
+    <!-- Поля редактирования -->
+    <div style="margin-bottom:20px;">
+      <label style="display:block; margin-bottom:8px; font-weight:600;">🎯 Рекомендуемая норма:</label>
+      <input type="number" id="editNormRecommended" readonly style="background:#f3f4f6; margin-bottom:16px;" placeholder="0">
+      
+      <label style="display:block; margin-bottom:8px; font-weight:600;">✏️ Новая норма (шт/час):</label>
+      <input type="number" id="editNormNew" min="1" step="1" placeholder="Введите новую норму...">
+    </div>
+    
+    <!-- Кнопки -->
+    <div style="display:flex; gap:12px;">
+      <button onclick="saveNormChange()" id="saveNormBtn" style="flex:1; background:#10b981;">💾 Сохранить изменения</button>
+      <button onclick="closeEditNormModal()" style="flex:1; background:#ef4444;">❌ Отмена</button>
+    </div>
+    
+    <div id="editNormResult" style="margin-top:16px; font-weight:500; text-align:center;"></div>
+  </div>
+</div>
 
 <!-- 👨‍🎓 Контейнер: Управление стажерами -->
 <div class="container" style="display:none;" id="traineeManagementContainer">
@@ -6860,16 +7606,13 @@ async function saveReportToServer() {
       </div>
     </div>
     
-    <div class="form-row">
-      <div class="form-item">
-        <label>💰 Процент бонуса наставника:
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <input type="number" id="pairBonusPercent" min="0" max="100" step="1" value="0" style="width: 100px;">
-            <span style="font-size: 16px; color: #000000;">%</span>
-                                            <span style="font-size: 14px; color: #000000;">(от зарплаты стажера)</span>
-          </div>
-        </label>
-      </div>
+    <!-- Информация о фиксированном бонусе -->
+    <div style="background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
+      <h4 style="margin: 0 0 8px 0; color: #1e40af;">💰 Информация о бонусе наставника</h4>
+      <p style="margin: 0; color: #1f2937;">
+        Наставник получает <strong>фиксированный бонус 1750 ₽ за смену</strong> за каждого стажера.<br/>
+        Бонус начисляется автоматически при первой операции стажера в смену.
+      </p>
     </div>
     
     <div class="form-row">
@@ -6904,6 +7647,7 @@ async function saveReportToServer() {
     
     <div class="form-row">
       <button onclick="loadTraineeAnalytics()" id="loadAnalyticsBtn" style="background:#8b5cf6;">📊 Загрузить аналитику</button>
+      <button onclick="debugMentorBonusSystem()" style="background:#f59e0b;">🔧 Диагностика бонусов</button>
     </div>
     
                     <div id="traineeAnalyticsResults" style="margin-top: 20px;">
@@ -6913,7 +7657,7 @@ async function saveReportToServer() {
 
   <!-- 🧹 Раздел: Очистка связей -->
   <div id="traineeSection-cleanup" class="trainee-section" style="display:none;">
-    <h3>🧹 Ручная очистка связей наставничества</h3>
+        <h3>🧹 Очистка связей наставничества</h3>
     
     <div style="padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b; margin-bottom: 20px;">
       <h4 style="margin: 0 0 8px 0; color: #92400e;">⚠️ Внимание!</h4>
