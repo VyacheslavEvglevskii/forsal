@@ -1521,7 +1521,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwWZMCXd1U4VDi55MWqPXj0aWEPRULRBMnNLCS37SoUFqRF1zH1QawIeF-VR6LSn1s/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycby-gcPiRYnWxQ-N3yIfiuW0Arg4nDPxsSWNH6sdRAV5rRoZdzk2ok62S6IPOEa3vFQ/exec";
   
   // Проверяем URL при загрузке
 
@@ -4910,73 +4910,7 @@ async function loadTraineeAnalytics() {
   }
 }
 
-// Диагностика системы бонусов наставника
-async function debugMentorBonusSystem() {
-  const employeeName = prompt("Введите имя стажера для диагностики:");
-  if (!employeeName) return;
-  
-  try {
-    const response = await fetch(scriptURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        type: 'debugMentorBonus',
-        employeeName: employeeName
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.error) {
-      alert(`❌ Ошибка: ${result.error}`);
-      return;
-    }
-    
-    const debug = result.debug;
-    let report = `🔧 ДИАГНОСТИКА БОНУСА НАСТАВНИКА для "${employeeName}"\n\n`;
-    
-    report += `1️⃣ Наставник: ${debug.step1_mentor || "❌ НЕТ"}\n`;
-    report += `   └ Из операций (колонка P): ${debug.step1_mentorFromOperations}\n`;
-    report += `   └ Из справочника (колонка F): ${debug.step1_mentorFromUsers}\n`;
-    report += `2️⃣ Процент бонуса: ${debug.step2_bonusPercent || "❌ НЕТ"} ${debug.step2_sourceNote || ""}\n`;
-    report += `3️⃣ Тестовая операция: ${JSON.stringify(debug.step3_sampleOperation)}\n`;
-    report += `4️⃣ Расчет зарплаты: ${debug.step4_wage || "❌ НЕТ"}₽\n`;
-    report += `5️⃣ Итоговый бонус: ${debug.step5_finalBonus || "❌ НЕТ"}₽\n\n`;
-    
-    report += `🔍 ПРОБЛЕМЫ:\n`;
-    debug.issues.forEach(issue => {
-      report += `• ${issue}\n`;
-    });
-    
-    if (debug.step3_availableOperations) {
-      report += `\n📋 ДОСТУПНЫЕ ОПЕРАЦИИ УПАКОВКИ:\n`;
-      debug.step3_availableOperations.forEach(op => {
-        report += `• ${op.operation} | ${op.volume}\n`;
-      });
-    }
-    
-    // Создаем модальное окно для отображения отчета
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.5); z-index: 10000; display: flex; 
-      align-items: center; justify-content: center;
-    `;
-    
-    modal.innerHTML = `
-      <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; max-height: 80%; overflow-y: auto;">
-        <h3>🔧 Диагностика бонуса наставника</h3>
-        <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 15px; border-radius: 4px;">${report}</pre>
-        <button onclick="this.parentElement.parentElement.remove()" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Закрыть</button>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-  } catch (error) {
-    alert(`❌ Ошибка диагностики: ${error.message}`);
-  }
-}
+
 
 async function cleanupAllMentorshipPairs(execute = false) {
   const container = document.getElementById("cleanupResults");
@@ -7647,7 +7581,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     <div class="form-row">
       <button onclick="loadTraineeAnalytics()" id="loadAnalyticsBtn" style="background:#8b5cf6;">📊 Загрузить аналитику</button>
-      <button onclick="debugMentorBonusSystem()" style="background:#f59e0b;">🔧 Диагностика бонусов</button>
     </div>
     
                     <div id="traineeAnalyticsResults" style="margin-top: 20px;">
