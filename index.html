@@ -1521,7 +1521,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycby-gcPiRYnWxQ-N3yIfiuW0Arg4nDPxsSWNH6sdRAV5rRoZdzk2ok62S6IPOEa3vFQ/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbx079znlTvpFg4tGTWK0_b3hhaccvHN_firwU-Ym0XdOPDUwHNmEthUCU809hBx73w/exec";
   
   // Проверяем URL при загрузке
 
@@ -2545,6 +2545,8 @@ async function loadMySalary() {
 
   const showBtn = document.getElementById("mySalaryBtn");
   const closeBtn = document.getElementById("closeMySalaryBtn");
+  const container = document.getElementById("mySalaryOutput");
+  const totalQtyBlock = document.getElementById("totalQty");
   
   // Блокируем обе кнопки во время загрузки
   if (showBtn) {
@@ -2559,30 +2561,38 @@ async function loadMySalary() {
     closeBtn.style.cursor = "not-allowed";
   }
 
+  // Очищаем старые данные сразу
+  container.innerHTML = "";
+  totalQtyBlock.innerHTML = "";
+
   try {
     const employee = localStorage.getItem("currentUser") || "";
     const start = document.getElementById("salaryStart").value;
     const end = document.getElementById("salaryEnd").value;
 
     if (!employee || !start || !end) {
-      alert("⚠️ Укажите все поля");
+      container.innerHTML = "<p style='text-align:center; color:#f59e0b;'>⚠️ Укажите все поля: период и сотрудник</p>";
       return;
     }
 
-      const container = document.getElementById("mySalaryOutput");
-      const totalQtyBlock = document.getElementById("totalQty");
-    
-    // Очищаем старые данные
-    container.innerHTML = "";
-    totalQtyBlock.innerHTML = "";
-
     const res = await fetch(`${scriptURL}?type=mySalary&employee=${encodeURIComponent(employee)}&start=${start}&end=${end}`);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
 
-      if (!data.records || data.records.length === 0) {
-        container.innerHTML = "<p style='text-align:center;'>Нет данных за выбранный период.</p>";
-        return;
-      }
+    // Проверяем наличие ошибки с сервера
+    if (data.error) {
+      container.innerHTML = `<p style='text-align:center; color:#dc2626;'>${data.error}</p>`;
+      return;
+    }
+
+    if (!data.records || data.records.length === 0) {
+      container.innerHTML = "<p style='text-align:center; color:#6b7280;'>📭 Нет данных за выбранный период</p>";
+      return;
+    }
 
       // 📦 Группировка по дате
       const grouped = {};
@@ -2690,13 +2700,22 @@ async function loadMySalary() {
     if (closeBtn) closeBtn.style.display = "inline-block";
 
     } catch (err) {
-      alert("❌ Ошибка загрузки: " + err.message);
-    
-    // Очищаем состояние при ошибке
-    const container = document.getElementById("mySalaryOutput");
-    const totalQtyBlock = document.getElementById("totalQty");
-    if (container) container.innerHTML = '<p style="text-align:center; color:red;">❌ Ошибка загрузки</p>';
-    if (totalQtyBlock) totalQtyBlock.innerHTML = "";
+      console.error("Ошибка загрузки зарплаты:", err);
+      
+      // Показываем пользователю понятное сообщение об ошибке
+      let userMessage = "❌ Ошибка загрузки данных";
+      if (err.message.includes("fetch")) {
+        userMessage = "🌐 Проблемы с подключением к серверу";
+      } else if (err.message.includes("JSON")) {
+        userMessage = "📄 Ошибка обработки данных с сервера";
+      } else if (err.message.includes("HTTP 403")) {
+        userMessage = "🔒 Недостаточно прав доступа";
+      } else if (err.message.includes("HTTP 500")) {
+        userMessage = "⚙️ Ошибка сервера, попробуйте позже";
+      }
+      
+      container.innerHTML = `<p style="text-align:center; color:#dc2626;">${userMessage}</p>`;
+      totalQtyBlock.innerHTML = "";
     
   } finally {
     isMySalaryLoading = false;
@@ -3761,11 +3780,11 @@ async function loadStats() {
         totalRepackaged += quantity;
       }
 
-      // Считаем эффективность
-      if (rec.efficiency !== null && rec.efficiency !== undefined) {
-        totalEfficiency += rec.efficiency;
-        efficiencyCount++;
-      }
+      // Считаем эффективность - включаем ВСЕ операции (null/undefined как 0%)
+      // Логика: средняя арифметическая готовых значений (как в анализе штатных)
+      const efficiency = rec.efficiency !== null && rec.efficiency !== undefined ? rec.efficiency : 0;
+      totalEfficiency += efficiency;
+      efficiencyCount++;
       
       // Рассчитываем время на основе нормы
       if (rec.normPerHour && rec.quantity) {
@@ -3785,7 +3804,7 @@ async function loadStats() {
           <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
           <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
           <p><strong>🧩 Набор:</strong> ${rec.setNumber || "-"}</p>
-          ${rec.mentor ? `<p><strong>👨‍🏫 Наставник:</strong> ${rec.mentor}</p>` : ""}
+          ${rec.mentor ? `<p><strong>👨‍🏫 Наставник/Стажер:</strong> ${rec.mentor}</p>` : ""}
           <p><strong>🔢 Кол-во:</strong> ${rec.quantity}</p>
           <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
           <p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>
@@ -3797,21 +3816,57 @@ async function loadStats() {
       `;
     });
     
-    container.innerHTML = cardsHTML;
+    // Получаем бонус наставника и детали из данных сервера
+    const mentorBonus = data.totals ? data.totals.totalMentorBonus || 0 : 0;
+    const mentorBonusDetails = data.mentorBonusDetails || { trainees: [], isTrainee: false, mentor: null };
+    
+    // Добавляем информационную карточку о бонусе наставника если применимо
+    let mentorBonusInfoHTML = "";
+    if (mentorBonus > 0) {
+      if (mentorBonusDetails.isTrainee && mentorBonusDetails.mentor) {
+        mentorBonusInfoHTML = `
+          <div class="stat-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; margin-bottom: 16px;">
+            <p style="text-align: center; font-weight: bold; color: #0369a1; margin: 0;"><strong>👨‍🎓 Информация о наставничестве</strong></p>
+            <p style="margin: 8px 0 0 0;"><strong>👨‍🏫 Ваш наставник:</strong> ${mentorBonusDetails.mentor}</p>
+            <p style="margin: 8px 0 0 0;"><strong>💰 Бонус наставника за вашу работу:</strong> ${mentorBonus.toFixed(2)} ₽</p>
+            <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
+              ℹ️ За каждую вашу смену наставник получает фиксированный бонус 1750₽. Это мотивирует его помогать вам развиваться профессионально.
+            </p>
+          </div>
+        `;
+      } else if (mentorBonusDetails.trainees && mentorBonusDetails.trainees.length > 0) {
+        const traineesText = mentorBonusDetails.trainees.join(', ');
+        mentorBonusInfoHTML = `
+          <div class="stat-card" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #10b981; margin-bottom: 16px;">
+            <p style="text-align: center; font-weight: bold; color: #065f46; margin: 0;"><strong>👨‍🏫 Информация о наставничестве</strong></p>
+            <p style="margin: 8px 0 0 0;"><strong>👨‍🎓 Ваши стажеры:</strong> ${traineesText}</p>
+            <p style="margin: 8px 0 0 0;"><strong>💰 Общий бонус за наставничество:</strong> ${mentorBonus.toFixed(2)} ₽</p>
+            <p style="margin: 8px 0 0 0; font-size: 13px; color: #6b7280;">
+              ℹ️ За каждого работающего стажера вы получаете 1750₽ за смену. Всего стажеров работало: ${mentorBonusDetails.trainees.length}
+            </p>
+          </div>
+        `;
+      }
+    }
+    
+    container.innerHTML = mentorBonusInfoHTML + cardsHTML;
     
     // Рассчитываем средняю эффективность
     const avgEfficiency = efficiencyCount ? Math.round(totalEfficiency / efficiencyCount) : "-";
     
-    // Рассчитываем выполнение норм по операциям (количество операций с эффективностью >= 100%)
+    // Рассчитываем выполнение норм по операциям (количество операций с эффективностью >= 90%)
+    // Логика: операции с бонусом (+3% при 90%+ или +5% при 100%+) считаются выполненными
+    // ИСПРАВЛЕНО: учитываем ВСЕ операции в totalOperations (как в расчете средней эффективности)
     let normsCompleted = 0;
     let totalOperations = 0;
     
     filtered.forEach(rec => {
-      if (rec.efficiency !== null && rec.efficiency !== undefined) {
-        totalOperations++;
-        if (rec.efficiency >= 100) {
-          normsCompleted++;
-        }
+      // Учитываем ВСЕ операции в общем количестве (как в расчете средней эффективности)
+      totalOperations++;
+      
+      // Для выполнения норм считаем только операции с известной эффективностью ≥90%
+      if (rec.efficiency !== null && rec.efficiency !== undefined && rec.efficiency >= 90) {
+        normsCompleted++;
       }
     });
     
@@ -3822,7 +3877,28 @@ async function loadStats() {
       normCompletion = `${normsCompleted}/${totalOperations} (${normPercent}%)`;
     }
 
-    totalElem.textContent = `💵 Всего: ${totalWage.toFixed(2)} ₽ | 📦 Переупакованная: ${totalRepackaged} шт | 🏷️ Маркированная: ${totalStickered} шт | 📊 Выполнение норм: ${normCompletion} | ⚙️ Эффективность: ${avgEfficiency}%`;
+    // Обновляем общую сумму с учетом бонуса наставника
+    const totalWageWithMentorBonus = totalWage + mentorBonus;
+    
+    // Формируем строку с итогами включая бонус наставника
+    let totalText = `💵 Всего: ${totalWageWithMentorBonus.toFixed(2)} ₽ | 📦 Переупакованная: ${totalRepackaged} шт | 🏷️ Маркированная: ${totalStickered} шт | 📊 Выполнение норм: ${normCompletion} | ⚙️ Эффективность: ${avgEfficiency}%`;
+    
+    // Добавляем детализацию о бонусе наставника с улучшенным описанием
+    if (mentorBonus > 0) {
+      if (mentorBonusDetails.isTrainee && mentorBonusDetails.mentor) {
+        // Для стажера показываем, что его наставник получает бонус
+        totalText += ` | 👨‍🏫 Бонус наставника ${mentorBonusDetails.mentor}: ${mentorBonus.toFixed(2)} ₽ (за вашу работу)`;
+      } else if (mentorBonusDetails.trainees && mentorBonusDetails.trainees.length > 0) {
+        // Для наставника показываем, за каких стажеров получен бонус
+        const traineesText = mentorBonusDetails.trainees.join(', ');
+        totalText += ` | 👨‍🏫 Бонус наставника: ${mentorBonus.toFixed(2)} ₽ (за стажеров: ${traineesText})`;
+      } else {
+        // Общий случай
+        totalText += ` | 👨‍🏫 Бонус наставника: ${mentorBonus.toFixed(2)} ₽`;
+      }
+    }
+    
+    totalElem.textContent = totalText;
 
     if (selectedOperation) {
       totalElem.textContent += ` | 🔍 Фильтр: ${selectedOperation}`;
