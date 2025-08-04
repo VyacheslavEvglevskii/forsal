@@ -1354,10 +1354,12 @@ button.danger:hover {
   <button onclick="loadShiftStats()">📊 Сводка по смене</button>
   <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ штатных упаковщиков</button>
   <button onclick="openUpdateAllModal()" id="updateAllBtn" style="background:#8b5cf6;">🔄 Выборочное обновление</button>
+
   <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт показателей за период</button>
   <button onclick="loadSeniorsReport()" id="seniorsReportBtn" style="background:#8b5cf6;">👨‍💼 Анализ старших смен</button>
   <button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты HR</button>
   <button onclick="loadNormativesAnalysis()" id="normativesBtn" style="background:#f59e0b;">🔍 Анализ нормативов</button>
+  <button onclick="openDoplataManager()" id="doplataBtn" style="background:#ec4899;">💰 Управление доплатами</button>
 </div>
 
 <!-- 🧾 Единый контейнер для отчётов -->
@@ -1477,6 +1479,63 @@ button.danger:hover {
   </div>
 </div>
 
+<!-- 💰 Контейнер управления доплатами -->
+<div class="container" style="display:none;" id="doplataContainer">
+  <h2>💰 Управление доплатами сотрудников</h2>
+  
+  <!-- Форма добавления доплаты -->
+  <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0; color: #059669;">➕ Добавить доплату</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+      <div>
+        <label style="display: block; margin-bottom: 4px; font-weight: 600;">👤 Сотрудник:</label>
+        <select id="doplataEmployee" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+          <option value="">Выберите сотрудника</option>
+        </select>
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Дата начала:</label>
+        <input type="date" id="doplataStartDate" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Дата окончания:</label>
+        <input type="date" id="doplataEndDate" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 4px; font-weight: 600;">💰 Сумма (₽):</label>
+        <input type="number" id="doplataAmount" min="1" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Сумма в рублях">
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; margin-bottom: 4px; font-weight: 600;">📝 Причина доплаты:</label>
+      <input type="text" id="doplataReason" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Укажите причину доплаты">
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+      <button onclick="addDoplata()" id="addDoplataBtn" style="background: #059669; color: white; flex: 1;">💰 Добавить доплату</button>
+      <button onclick="loadDoplaty()" style="background: #3b82f6; color: white; flex: 1;">🔄 Обновить список</button>
+    </div>
+  </div>
+  
+  <!-- Список существующих доплат -->
+  <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="margin-top: 0; color: #3b82f6;">📋 Существующие доплаты</h3>
+    <div id="doplataList" style="margin-top: 16px;">
+      <p style="text-align: center; color: #6b7280;">Загрузка...</p>
+    </div>
+  </div>
+  
+  <!-- Кнопка закрытия -->
+  <div style="margin-top: 20px; text-align: center;">
+    <button onclick="closeDoplataManager()" style="background: #6b7280; color: white; padding: 10px 20px;">❌ Закрыть</button>
+  </div>
+</div>
+
 <!-- 💵 Моя зарплата — перемещён ВНЕ adminContainer -->
 <div class="container" style="display:none;" id="mySalaryContainer">
   <h2>💵 Моя зарплата</h2>
@@ -1521,7 +1580,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbylaBmexgqDeJVksslWHVIVojpTjI_wFRqtvC9Gy0x1EnrA2cgcVXgFLivL9dF4quI/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycby2CWhQiXphO3uuqnuZKeD_Gh-kWd9WQjXZC7tVNEREpdqdbLS661UFCDdNNYnUWBw/exec";
   
   // Проверяем URL при загрузке
 
@@ -2065,6 +2124,15 @@ async function saveProfile() {
   localStorage.setItem("profileStatus", statusValue);
   localStorage.setItem("profilePackingModel", packingModel);
   localStorage.setItem("profilePayType", payType);
+  
+  // === 🌙 ЛОГИКА НОЧНЫХ СМЕН ===
+  if (shiftValue === "Ночь") {
+    const nightShiftDate = calculateNightShiftDate();
+    localStorage.setItem("nightShiftDate", nightShiftDate.toISOString().split('T')[0]);
+    showNightShiftDateNotification(nightShiftDate);
+  } else {
+    localStorage.removeItem("nightShiftDate");
+  }
 
   // Если выбран "Оклад + сделка", подтягиваем оклад с сервера
   let salary = "";
@@ -2680,13 +2748,20 @@ async function loadMySalary() {
     
     // === НОВЫЕ ИТОГОВЫЕ ПОКАЗАТЕЛИ ===
     const totals = data.totals || {};
-    const totalBasicWage = (totals.totalWage || 0) - (totals.totalMentorBonus || 0);
+    const totalBasicWage = (totals.totalWage || 0) - (totals.totalMentorBonus || 0) - (totals.totalDoplata || 0);
+    
+    // Формируем HTML с доплатами (если есть)
+    let doplataHtml = '';
+    if (totals.totalDoplata && totals.totalDoplata > 0) {
+      doplataHtml = `<div><strong>💸 Доплата:</strong><br>${(totals.totalDoplata || 0).toFixed(2)} ₽</div>`;
+    }
     
     totalQtyBlock.innerHTML = `
       <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding:16px; border-radius:12px; border:2px solid #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); margin-top: 16px; color: #000000 !important;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: center; font-size: 13px; line-height: 1.4;">
           <div><strong>💰 Основная:</strong><br>${totalBasicWage.toFixed(2)} ₽</div>
           <div><strong>👨‍🏫 Бонус наставника:</strong><br>${(totals.totalMentorBonus || 0).toFixed(2)} ₽</div>
+          ${doplataHtml}
           <div><strong>💵 Итого:</strong><br>${(totals.totalWage || 0).toFixed(2)} ₽</div>
           <div><strong>📦 Переупак.:</strong><br>${totals.totalRepackaged || 0} шт</div>
           <div><strong>🏷️ Маркир.:</strong><br>${totals.totalStickered || 0} шт</div>
@@ -3075,6 +3150,21 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   formData.append("employeeStatus", currentStatus);
   formData.append("payType", localStorage.getItem("profilePayType") || "");
   formData.append("salary", localStorage.getItem("profileSalary") || "");
+  
+  // === 🌙 АВТОМАТИЧЕСКАЯ ДАТА ДЛЯ НОЧНЫХ СМЕН ===
+  if (currentShift === "Ночь") {
+    const nightShiftDate = localStorage.getItem("nightShiftDate");
+    if (nightShiftDate) {
+      formData.append("operationDate", nightShiftDate);
+    } else {
+      // Если нет сохраненной даты - вычисляем на лету
+      const calculatedDate = calculateNightShiftDate();
+      formData.append("operationDate", calculatedDate.toISOString().split('T')[0]);
+    }
+  } else {
+    // Для дневных смен используем текущую дату
+    formData.append("operationDate", new Date().toISOString().split('T')[0]);
+  }
   
 
 
@@ -4017,6 +4107,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   // ❌ УДАЛЕН весь код инициализации для авторизованных пользователей - теперь только через handleLogin()
 
   // 🗑️ Подсказка сохранения профиля убрана - теперь только ручной ввод
+  
+  // === 🌙 ИНИЦИАЛИЗАЦИЯ НОЧНЫХ СМЕН ===
+  // Проверяем дату ночной смены при загрузке с задержкой
+  setTimeout(() => {
+    checkAndUpdateNightShiftDate();
+    // Проверяем корректность выбора смены в дневное время
+    setTimeout(() => {
+      checkNightShiftReset();
+    }, 2000);
+  }, 1500);
 });
 
 async function loadPackingModels() {
@@ -4385,6 +4485,18 @@ function selectOnlySeniors() {
   document.getElementById("updateOutsourcingIndicators").checked = false;
 }
 
+function selectOnlyStaff() {
+  document.getElementById("updateSeniorsSalary").checked = false;
+  document.getElementById("updateStaffIndicators").checked = true;
+  document.getElementById("updateOutsourcingIndicators").checked = false;
+}
+
+function selectOnlyOutsourcing() {
+  document.getElementById("updateSeniorsSalary").checked = false;
+  document.getElementById("updateStaffIndicators").checked = false;
+  document.getElementById("updateOutsourcingIndicators").checked = true;
+}
+
 // Новая функция выборочного обновления
 async function submitSelectiveUpdate() {
   const btn = document.getElementById("submitUpdateAllBtn");
@@ -4445,36 +4557,42 @@ async function submitSelectiveUpdate() {
       resultMessage += "⏭️ Зарплаты старших смен: пропущено\n";
     }
     
-    // 2. Обновляем показатели (если выбрано что-то из показателей)
-    if (updateStaff || updateOutsourcing) {
-      resultBox.textContent = resultMessage + "🔄 Обновление показателей...";
+    // 2. Обновление показателей штатных сотрудников
+    if (updateStaff) {
+      resultBox.textContent = resultMessage + "🔄 Обновление показателей штатных сотрудников...";
       
-      // Определяем тип обновления на основе выбранных чекбоксов
-      let updateType = "";
-      if (updateStaff && updateOutsourcing) {
-        updateType = "both"; // обновляем и штат и аутсорсинг
-      } else if (updateStaff) {
-        updateType = "staff"; // только штат
-      } else if (updateOutsourcing) {
-        updateType = "outsourcing"; // только аутсорсинг
-      }
+      const staffResponse = await fetch(`${scriptURL}?type=updatePeriodStaff&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+      const staffResult = await staffResponse.json();
       
-      const exportResponse = await fetch(`${scriptURL}?type=exportNow&date=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}&components=${updateType}`);
-      const exportResult = await exportResponse.text();
-      
-      if (exportResult.includes("✅")) {
-        if (updateStaff && updateOutsourcing) {
-          resultMessage += "✅ Показатели штата и аутсорсинга обновлены\n";
-        } else if (updateStaff) {
-          resultMessage += "✅ Показатели штатных сотрудников обновлены\n";
-        } else if (updateOutsourcing) {
-          resultMessage += "✅ Показатели аутсорсинга обновлены\n";
+      if (staffResult.status === "success") {
+        resultMessage += `✅ Штатные показатели: ${staffResult.message}\n`;
+        if (staffResult.updated) {
+          resultMessage += `   📊 Обновлено: ${staffResult.updated} записей\n`;
         }
       } else {
-        resultMessage += `⚠️ Показатели: ${exportResult}\n`;
+        resultMessage += `⚠️ Штатные показатели: ${staffResult.message || 'ошибка обновления'}\n`;
       }
     } else {
-      resultMessage += "⏭️ Показатели: пропущено\n";
+      resultMessage += "⏭️ Показатели штата: пропущено\n";
+    }
+    
+    // 3. Обновление показателей аутсорсинга
+    if (updateOutsourcing) {
+      resultBox.textContent = resultMessage + "🔄 Обновление показателей аутсорсинга...";
+      
+      const outsourcingResponse = await fetch(`${scriptURL}?type=updatePeriodOutsourcing&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+      const outsourcingResult = await outsourcingResponse.json();
+      
+      if (outsourcingResult.status === "success") {
+        resultMessage += `✅ Аутсорсинг показатели: ${outsourcingResult.message}\n`;
+        if (outsourcingResult.updated) {
+          resultMessage += `   🏢 Обновлено: ${outsourcingResult.updated} записей\n`;
+        }
+      } else {
+        resultMessage += `⚠️ Аутсорсинг показатели: ${outsourcingResult.message || 'ошибка обновления'}\n`;
+      }
+    } else {
+      resultMessage += "⏭️ Показатели аутсорсинга: пропущено\n";
     }
     
     resultBox.style.color = '#059669';
@@ -4491,6 +4609,8 @@ async function submitSelectiveUpdate() {
     btn.textContent = originalText;
   }
 }
+
+
 
 // Старая функция для обратной совместимости
 async function submitUpdateAll() {
@@ -5643,7 +5763,7 @@ async function loadSeniorsReport() {
         let rowStyle = "";
         if (item.efficiency >= 100) {
           rowStyle = "background:#ecfdf5;"; // Зеленый для высокой эффективности
-        } else if (item.efficiency >= 80) {
+        } else if (item.efficiency >= 90) {
           rowStyle = "background:#fef3c7;"; // Желтый для средней эффективности
         } else {
           rowStyle = "background:#fef2f2;"; // Красный для низкой эффективности
@@ -5654,12 +5774,12 @@ async function loadSeniorsReport() {
           <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.shift}</td>
           <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.name}</td>
           <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
-            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 80 ? '#d97706' : '#dc2626'}">
+            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 90 ? '#d97706' : '#dc2626'}">
               ${item.efficiency}%
             </span>
           </td>
           <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
-            <span style="font-weight:bold; color:${item.norm >= 80 ? '#059669' : '#dc2626'}">
+            <span style="font-weight:bold; color:${item.norm >= 90 ? '#059669' : '#dc2626'}">
               ${item.norm}%
             </span>
           </td>
@@ -5723,6 +5843,16 @@ if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
 window.addEventListener("DOMContentLoaded", () => {
   const loginInput = document.getElementById("login");
   if (loginInput) loginInput.focus();
+});
+
+// === 🌙 МОНИТОРИНГ НОЧНЫХ СМЕН ===
+// Проверяем дату при возврате в приложение
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+    setTimeout(() => {
+      checkAndUpdateNightShiftDate();
+    }, 500);
+  }
 });
 
 // 🧼 Сброс ошибки при вводе
@@ -7394,6 +7524,217 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// === ФУНКЦИИ УПРАВЛЕНИЯ ДОПЛАТАМИ ===
+
+/**
+ * Открытие менеджера доплат
+ */
+function openDoplataManager() {
+  // Скрываем все контейнеры
+  document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+  
+  // Показываем контейнер доплат
+  document.getElementById('doplataContainer').style.display = 'block';
+  
+  // Загружаем список сотрудников и доплат
+  populateEmployeeList();
+  loadDoplaty();
+}
+
+/**
+ * Закрытие менеджера доплат
+ */
+function closeDoplataManager() {
+  document.getElementById('doplataContainer').style.display = 'none';
+  document.getElementById('adminContainer').style.display = 'block';
+}
+
+/**
+ * Заполнение списка сотрудников
+ */
+async function populateEmployeeList() {
+  try {
+    const response = await fetch(`${scriptURL}?type=employees`);
+    const data = await response.json();
+    
+    const select = document.getElementById('doplataEmployee');
+    select.innerHTML = '<option value="">Выберите сотрудника</option>';
+    
+    if (data.employees && data.employees.length > 0) {
+      data.employees.forEach(emp => {
+        if (emp.status === 'Штат') { // Только штатные сотрудники
+          const option = document.createElement('option');
+          option.value = emp.name;
+          option.textContent = emp.name;
+          select.appendChild(option);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки сотрудников:', error);
+    showTemporaryNotification('❌ Ошибка загрузки списка сотрудников', 'error');
+  }
+}
+
+/**
+ * Загрузка списка доплат
+ */
+async function loadDoplaty() {
+  try {
+    const listContainer = document.getElementById('doplataList');
+    listContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">⏳ Загрузка доплат...</p>';
+    
+    const response = await fetch(`${scriptURL}?type=getDoplaty`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      if (data.doplaty && data.doplaty.length > 0) {
+        let html = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+        html += `
+          <thead>
+            <tr style="background: #f8fafc;">
+              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">ID</th>
+              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">Сотрудник</th>
+              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">Период</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #e5e7eb;">Сумма</th>
+              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">Причина</th>
+              <th style="padding: 12px; text-align: center; border: 1px solid #e5e7eb;">Статус</th>
+              <th style="padding: 12px; text-align: center; border: 1px solid #e5e7eb;">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        
+        data.doplaty.forEach(doplata => {
+          const statusStyle = doplata.status === 'Активна' ? 'color: #059669; font-weight: bold;' : 'color: #dc2626;';
+          const actionButton = doplata.status === 'Активна' 
+            ? `<button onclick="cancelDoplata(${doplata.id})" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer;">❌ Отменить</button>`
+            : '<span style="color: #6b7280;">—</span>';
+            
+          html += `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.id}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.employee}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.startDate} — ${doplata.endDate}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${doplata.amount}₽</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.reason}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; ${statusStyle}">${doplata.status}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">${actionButton}</td>
+            </tr>
+          `;
+        });
+        
+        html += '</tbody></table></div>';
+        listContainer.innerHTML = html;
+      } else {
+        listContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">📭 Доплат пока нет</p>';
+      }
+    } else {
+      listContainer.innerHTML = `<p style="text-align: center; color: #dc2626;">❌ Ошибка: ${data.message}</p>`;
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки доплат:', error);
+    document.getElementById('doplataList').innerHTML = '<p style="text-align: center; color: #dc2626;">❌ Ошибка загрузки данных</p>';
+  }
+}
+
+/**
+ * Добавление новой доплаты
+ */
+async function addDoplata() {
+  try {
+    const employee = document.getElementById('doplataEmployee').value;
+    const startDate = document.getElementById('doplataStartDate').value;
+    const endDate = document.getElementById('doplataEndDate').value;
+    const amount = document.getElementById('doplataAmount').value;
+    const reason = document.getElementById('doplataReason').value;
+    
+    // Валидация
+    if (!employee || !startDate || !endDate || !amount || !reason) {
+      showTemporaryNotification('❗ Заполните все поля', 'warning');
+      return;
+    }
+    
+    if (Number(amount) <= 0) {
+      showTemporaryNotification('❗ Сумма должна быть больше 0', 'warning');
+      return;
+    }
+    
+    if (new Date(endDate) < new Date(startDate)) {
+      showTemporaryNotification('❗ Дата окончания не может быть раньше даты начала', 'warning');
+      return;
+    }
+    
+    // Блокируем кнопку
+    const btn = document.getElementById('addDoplataBtn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Добавление...';
+    
+    // Отправляем запрос
+    const params = new URLSearchParams({
+      type: 'addDoplata',
+      employee: employee,
+      startDate: startDate,
+      endDate: endDate,
+      amount: amount,
+      reason: reason,
+      createdBy: localStorage.getItem('currentUser') || 'admin'
+    });
+    
+    const response = await fetch(`${scriptURL}?${params}`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      showTemporaryNotification(`✅ ${data.message}`, 'success');
+      
+      // Очищаем форму
+      document.getElementById('doplataEmployee').value = '';
+      document.getElementById('doplataStartDate').value = '';
+      document.getElementById('doplataEndDate').value = '';
+      document.getElementById('doplataAmount').value = '';
+      document.getElementById('doplataReason').value = '';
+      
+      // Обновляем список
+      loadDoplaty();
+    } else {
+      showTemporaryNotification(`❌ Ошибка: ${data.message}`, 'error');
+    }
+  } catch (error) {
+    console.error('Ошибка добавления доплаты:', error);
+    showTemporaryNotification('❌ Ошибка при добавлении доплаты', 'error');
+  } finally {
+    // Разблокируем кнопку
+    const btn = document.getElementById('addDoplataBtn');
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+/**
+ * Отмена доплаты
+ */
+async function cancelDoplata(id) {
+  if (!confirm('Вы уверены, что хотите отменить эту доплату?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${scriptURL}?type=deleteDoplata&id=${id}`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      showTemporaryNotification(`✅ ${data.message}`, 'success');
+      loadDoplaty(); // Обновляем список
+    } else {
+      showTemporaryNotification(`❌ Ошибка: ${data.message}`, 'error');
+    }
+  } catch (error) {
+    console.error('Ошибка отмены доплаты:', error);
+    showTemporaryNotification('❌ Ошибка при отмене доплаты', 'error');
+  }
+}
+
 </script>
 <div id="editModal" style="display:none; position:fixed; top:10%; left:0; right:0; margin:auto; max-width:500px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:1000;">
   <h3>✏️ Редактировать запись</h3>
@@ -7501,7 +7842,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="checkbox" id="updateStaffIndicators" checked style="width:16px; height:16px;">
           <div>
             <strong>📊 Показатели штатных сотрудников</strong>
-            <div style="font-size:12px; color:#000000;">Обновление эффективности и норм штата</div>
+            <div style="font-size:12px; color:#000000;">Обновление показателей штата и стажеров</div>
           </div>
         </label>
         
@@ -7509,16 +7850,18 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="checkbox" id="updateOutsourcingIndicators" checked style="width:16px; height:16px;">
           <div>
             <strong>🏢 Показатели аутсорсинга</strong>
-            <div style="font-size:12px; color:#000000;">Обновление данных внешних подрядчиков</div>
+            <div style="font-size:12px; color:#000000;">Обновление показателей внешних упаковщиков</div>
           </div>
         </label>
       </div>
       
       <!-- Кнопки быстрого выбора -->
-      <div style="margin-top:16px; display:flex; gap:8px; border-top:1px solid #e5e7eb; padding-top:12px;">
-        <button type="button" onclick="selectAllUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">✅ Все</button>
-        <button type="button" onclick="selectNoneUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">❌ Ничего</button>
-        <button type="button" onclick="selectOnlySeniors()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">👨‍💼 Только старшие</button>
+      <div style="margin-top:16px; display:flex; gap:4px; border-top:1px solid #e5e7eb; padding-top:12px;">
+        <button type="button" onclick="selectAllUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">✅ Все</button>
+        <button type="button" onclick="selectNoneUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">❌ Ничего</button>
+        <button type="button" onclick="selectOnlySeniors()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">👨‍💼 Старшие</button>
+        <button type="button" onclick="selectOnlyStaff()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">📊 Штат</button>
+        <button type="button" onclick="selectOnlyOutsourcing()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">🏢 Аутсорс</button>
       </div>
     </div>
     
@@ -7773,6 +8116,229 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 5000); // ЗАДЕРЖКА 3 секунды
   });
+// === 🌙 ЛОГИКА НОЧНЫХ СМЕН ===
+
+/**
+ * Вычисляет правильную дату для ночной смены на основе текущего времени
+ * Ночная смена: 20:30-08:30
+ * @returns {Date} Эффективная дата для ночной смены
+ */
+function calculateNightShiftDate() {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour * 60 + currentMinute; // минуты с начала дня
+  
+  const nightShiftStart = 20 * 60 + 30; // 20:30 = 1230 минут
+  const nightShiftEnd = 8 * 60 + 30;    // 08:30 = 510 минут
+  
+  let shiftDate = new Date(now);
+  
+  if (currentTime >= nightShiftStart) {
+    // 20:30-23:59 - начало ночной смены сегодня
+    // Операции записываются на сегодняшнюю дату
+  } else if (currentTime <= nightShiftEnd) {
+    // 00:00-08:30 - продолжение ночной смены вчерашнего дня
+    // Операции записываются на вчерашнюю дату
+    shiftDate.setDate(shiftDate.getDate() - 1);
+  } else {
+    // 08:31-20:29 - дневное время, но ночная смена выбрана
+    // Возможно планирование на сегодня, оставляем текущую дату
+  }
+  
+  return shiftDate;
+}
+
+/**
+ * Форматирует время в формате ЧЧ:ММ
+ */
+function formatTime(hour, minute) {
+  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Форматирует дату в формате ДД.ММ.ГГГГ
+ */
+function formatDate(date) {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
+/**
+ * Показывает стилизованное уведомление
+ */
+function showAutoNotification({title, message, type = 'info', duration = 4000}) {
+  // Создаем контейнер если его нет
+  let container = document.getElementById('auto-notifications');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'auto-notifications';
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      max-width: 400px;
+    `;
+    document.body.appendChild(container);
+  }
+  
+  // Создаем уведомление
+  const notification = document.createElement('div');
+  const bgColor = type === 'warning' ? '#ff9800' : type === 'success' ? '#4caf50' : '#2196f3';
+  
+  notification.style.cssText = `
+    background: ${bgColor};
+    color: white;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    font-size: 14px;
+    line-height: 1.4;
+  `;
+  
+  notification.innerHTML = `
+    <div style="font-weight: bold; margin-bottom: 4px;">${title}</div>
+    <div>${message}</div>
+  `;
+  
+  container.appendChild(notification);
+  
+  // Анимация появления
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Удаление
+  setTimeout(() => {
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, duration);
+}
+
+/**
+ * Показывает уведомление об автоматически вычисленной дате ночной смены
+ */
+function showNightShiftDateNotification(calculatedDate) {
+  const now = new Date();
+  const currentTime = formatTime(now.getHours(), now.getMinutes());
+  const dateStr = formatDate(calculatedDate);
+  
+  showAutoNotification({
+    title: '🌙 Ночная смена',
+    message: `Автоматически установлена дата: ${dateStr} (текущее время: ${currentTime})`,
+    type: 'info',
+    duration: 5000
+  });
+}
+
+/**
+ * Показывает различные уведомления об обновлении даты ночной смены
+ */
+function showNightShiftUpdateNotification(action, actualDate, currentHour, currentMinute, savedDateStr = null) {
+  const currentTime = formatTime(currentHour, currentMinute);
+  const actualDateStr = formatDate(actualDate);
+  
+  switch (action) {
+    case 'new':
+      showAutoNotification({
+        title: '🌙 Ночная смена активирована',
+        message: `Установлена дата операций: ${actualDateStr}<br>Время: ${currentTime}`,
+        type: 'success',
+        duration: 4000
+      });
+      break;
+      
+    case 'updated':
+      const savedDate = new Date(savedDateStr + 'T00:00:00');
+      const savedDateFormatted = formatDate(savedDate);
+      showAutoNotification({
+        title: '🔄 Дата ночной смены обновлена',
+        message: `Было: ${savedDateFormatted}<br>Стало: ${actualDateStr}<br>Время: ${currentTime}`,
+        type: 'warning',
+        duration: 5000
+      });
+      break;
+      
+    case 'confirmed':
+      showAutoNotification({
+        title: '✅ Дата ночной смены актуальна',
+        message: `Дата операций: ${actualDateStr}<br>Время: ${currentTime}`,
+        type: 'success',
+        duration: 3000
+      });
+      break;
+  }
+}
+
+/**
+ * Проверяет и обновляет дату ночной смены при входе в приложение
+ */
+function checkAndUpdateNightShiftDate() {
+  const currentShift = localStorage.getItem("profileShiftType");
+  
+  // Если не ночная смена - удаляем сохраненную дату
+  if (currentShift !== "Ночь") {
+    localStorage.removeItem("nightShiftDate");
+    return;
+  }
+  
+  // Вычисляем актуальную дату
+  const actualDate = calculateNightShiftDate();
+  const actualDateStr = actualDate.toISOString().split('T')[0]; // YYYY-MM-DD
+  const savedDateStr = localStorage.getItem("nightShiftDate");
+  
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  
+  if (!savedDateStr) {
+    // Первый раз устанавливаем дату
+    localStorage.setItem("nightShiftDate", actualDateStr);
+    showNightShiftUpdateNotification("new", actualDate, currentHour, currentMinute);
+  } else if (savedDateStr !== actualDateStr) {
+    // Дата изменилась - обновляем
+    localStorage.setItem("nightShiftDate", actualDateStr);
+    showNightShiftUpdateNotification("updated", actualDate, currentHour, currentMinute, savedDateStr);
+  } else {
+    // Дата актуальна - подтверждаем
+    showNightShiftUpdateNotification("confirmed", actualDate, currentHour, currentMinute);
+  }
+}
+
+/**
+ * Предупреждает пользователя если выбрана ночная смена в дневное время
+ */
+function checkNightShiftReset() {
+  const currentShift = localStorage.getItem("profileShiftType");
+  
+  if (currentShift !== "Ночь") return;
+  
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const dayTimeStart = 8 * 60 + 31;  // 08:31
+  const dayTimeEnd = 20 * 60 + 29;   // 20:29
+  
+  if (currentTime >= dayTimeStart && currentTime <= dayTimeEnd) {
+    const currentTimeStr = formatTime(now.getHours(), now.getMinutes());
+    showAutoNotification({
+      title: '⚠️ Проверьте настройки',
+      message: `Сейчас ${currentTimeStr} - дневное время, но выбрана ночная смена. Возможно, нужно переключиться на дневную смену в профиле?`,
+      type: 'warning',
+      duration: 6000
+    });
+  }
+}
+
 </script>
 </body>
 </html>
