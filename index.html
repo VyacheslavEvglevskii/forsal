@@ -1269,8 +1269,11 @@ button.danger:hover {
   </select>
 </label>
 <div id="salaryBlock" style="display:none;">
-  <label>Оклад <span style="color:red;">*</span>:
+  <label>Оклад (дневная смена) <span style="color:red;">*</span>:
     <input id="profileSalary" type="number" readonly />
+  </label>
+  <label>Оклад (ночная смена) <span style="color:red;">*</span>:
+    <input id="profileNightSalary" type="number" readonly />
   </label>
 </div>
   <!-- ВСТАВЬ СЮДА: -->
@@ -1284,7 +1287,8 @@ button.danger:hover {
   <button id="saveProfileBtn" onclick="saveProfile()">💾 Сохранить</button>
   <p id="profileSaved" style="color:green; text-align:center; display:none;">✅ Сохранено</p>
       <p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
-      ⚠️ Заполните все поля профиля (включая оклад для типа "Оклад + сделка") и нажмите кнопку «Сохранить», чтобы получить доступ к вкладкам системы.
+      ⚠️ Заполните все поля профиля (включая оклады для типа "Оклад + сделка") и нажмите кнопку «Сохранить», чтобы получить доступ к вкладкам системы.<br>
+      <small style="color:#6b7280;">💡 Оклад дневной смены: колонка E, ночной смены: колонка H в справочнике пользователей</small>
     </p>
     <p id="profileUnsaved" style="color:#f59e0b; font-size:14px; text-align:center; margin-top:8px; display:none;">
       💾 Есть несохраненные изменения! Нажмите кнопку «Сохранить».
@@ -1580,7 +1584,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycby2CWhQiXphO3uuqnuZKeD_Gh-kWd9WQjXZC7tVNEREpdqdbLS661UFCDdNNYnUWBw/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwLMZLumwFgRUBNjPJbYxH9nkB2Bg_JMe5VVyFaFgqQ-jKdOLhvqNnI41-wnZfxGrw/exec";
   
   // Проверяем URL при загрузке
 
@@ -1725,6 +1729,7 @@ function setupPayTypeListener() {
     
     const salaryBlock = document.getElementById("salaryBlock");
     const salaryInput = document.getElementById("profileSalary");
+    const nightSalaryInput = document.getElementById("profileNightSalary");
     
     activateSaveButton();
     
@@ -1734,29 +1739,47 @@ function setupPayTypeListener() {
       // Мгновенно заполняем из кэша если есть
       smartFillSalaryField();
       
-      // Подгружаем оклад с сервера для актуальности
+      // Подгружаем оклады с сервера для актуальности
       const currentUser = localStorage.getItem("currentUser") || "";
       
       if (!currentUser) {
         salaryInput.value = "";
+        nightSalaryInput.value = "";
         return;
       }
       
       try {        
-        const salary = await getSalaryWithCache(currentUser);
-        salaryInput.value = salary || "";
+        const salaryData = await getSalaryWithCache(currentUser);
+        salaryInput.value = salaryData.daySalary || "";
+        nightSalaryInput.value = salaryData.nightSalary || "";
       } catch (err) {
         salaryInput.value = "";
+        nightSalaryInput.value = "";
       }
           } else {
         salaryBlock.style.display = "none";
         salaryInput.value = "";
+        nightSalaryInput.value = "";
       }
   });
 }
 
 // === ЛОГИКА: Инициализация слушателя для profilePayType ===
 setupPayTypeListener();
+
+// === ФУНКЦИЯ: Обновление отображения оклада в зависимости от смены ===
+function updateSalaryDisplay(salaryData) {
+  const salaryInput = document.getElementById("profileSalary");
+  const nightSalaryInput = document.getElementById("profileNightSalary");
+  
+  console.log("🔄 updateSalaryDisplay:", { salaryData });
+  
+  salaryInput.value = salaryData.daySalary || "";
+  nightSalaryInput.value = salaryData.nightSalary || "";
+  
+  console.log("☀️ Установлен дневной оклад:", salaryData.daySalary);
+  console.log("🌙 Установлен ночной оклад:", salaryData.nightSalary);
+}
 
 // === ЛОГИКА: Активация кнопки сохранения при изменении модели упаковки ===
 document.getElementById("profilePackingModel").addEventListener("change", function() {
@@ -2134,27 +2157,31 @@ async function saveProfile() {
     localStorage.removeItem("nightShiftDate");
   }
 
-  // Если выбран "Оклад + сделка", подтягиваем оклад с сервера
-  let salary = "";
+  // Если выбран "Оклад + сделка", подтягиваем оклады с сервера
+  let salaryData = { daySalary: "", nightSalary: "" };
   if (payType === "Оклад + сделка") {
     try {
       const currentUser = localStorage.getItem("currentUser") || "";
-      salary = await getSalaryWithCache(currentUser) || "";
+      salaryData = await getSalaryWithCache(currentUser) || { daySalary: "", nightSalary: "" };
     } catch (err) {
-      salary = "";
+      salaryData = { daySalary: "", nightSalary: "" };
     }
-    salaryInput.value = salary;
+    salaryInput.value = salaryData.daySalary || "";
+    document.getElementById("profileNightSalary").value = salaryData.nightSalary || "";
     
-    if (!salary || salary.trim() === "") {
+    if (!salaryData.daySalary || salaryData.daySalary.trim() === "") {
       alert(`❌ Не удалось загрузить оклад с сервера!\n\nПроверьте:\n• Правильность имени пользователя\n• Наличие оклада в базе данных\n• Подключение к интернету`);
       return;
     }
     
-    localStorage.setItem("profileSalary", salary);
+    localStorage.setItem("profileSalary", salaryData.daySalary);
+    localStorage.setItem("profileNightSalary", salaryData.nightSalary);
     document.getElementById("salaryBlock").style.display = "block";
   } else {
     salaryInput.value = "";
+    document.getElementById("profileNightSalary").value = "";
     localStorage.removeItem("profileSalary");
+    localStorage.removeItem("profileNightSalary");
     document.getElementById("salaryBlock").style.display = "none";
   }
 
@@ -2163,7 +2190,8 @@ async function saveProfile() {
     let isFilled = shiftValue && statusValue && packingModel && payType;
     if (payType === "Оклад + сделка") {
       const currentSalary = salaryInput.value;
-      isFilled = isFilled && currentSalary && currentSalary.trim() !== "";
+      const currentNightSalary = document.getElementById("profileNightSalary").value;
+      isFilled = isFilled && currentSalary && currentSalary.trim() !== "" && currentNightSalary && currentNightSalary.trim() !== "";
     }
     const hint = document.getElementById("profileHint");
     const msg = document.getElementById("profileSaved");
@@ -2261,6 +2289,8 @@ function switchTab(tabName) {
     case "profile":
       document.getElementById("profileContainer").style.display = "block";
       document.getElementById("tabProfile").disabled = true;
+      
+
       break;
 
     case "app":
@@ -2398,11 +2428,23 @@ async function handleLogin() {
         document.getElementById("profileSalary").value = "";
         document.getElementById("salaryBlock").style.display = "none";
         
+
+        
         // Восстанавливаем все опции типа оплаты
         updatePayTypeOptions("");
         
         // 🚀 Предзагружаем оклад для текущего пользователя
         preloadCurrentUserSalary();
+        
+        // Принудительно загружаем оклад при входе
+        setTimeout(async () => {
+          try {
+            const salaryData = await getSalaryWithCache(currentUser);
+            console.log("🚀 Загружен оклад при входе:", salaryData);
+          } catch (err) {
+            console.error("❌ Ошибка загрузки оклада при входе:", err);
+          }
+        }, 500);
         
         // 🛠️ Активируем кнопку сохранения и показываем подсказку
         const saveBtn = document.getElementById("saveProfileBtn");
@@ -3149,7 +3191,22 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   formData.append("shiftType", currentShift);
   formData.append("employeeStatus", currentStatus);
   formData.append("payType", localStorage.getItem("profilePayType") || "");
-  formData.append("salary", localStorage.getItem("profileSalary") || "");
+  
+  // Выбираем правильный оклад в зависимости от смены
+  const daySalary = localStorage.getItem("profileSalary") || "";
+  const nightSalary = localStorage.getItem("profileNightSalary") || "";
+  
+  console.log(`🌙 Отправка данных: смена=${currentShift}, дневной оклад=${daySalary}, ночной оклад=${nightSalary}`);
+  
+  if (currentShift === "Ночь") {
+    formData.append("salary", nightSalary);
+    formData.append("nightSalary", nightSalary);
+    console.log(`✅ Для ночной смены отправляем оклад: ${nightSalary}`);
+  } else {
+    formData.append("salary", daySalary);
+    formData.append("nightSalary", nightSalary);
+    console.log(`✅ Для дневной смены отправляем оклад: ${daySalary}`);
+  }
   
   // === 🌙 АВТОМАТИЧЕСКАЯ ДАТА ДЛЯ НОЧНЫХ СМЕН ===
   if (currentShift === "Ночь") {
@@ -4290,8 +4347,10 @@ async function getSalaryWithCache(employee) {
   // Проверяем кэш
   const cached = dataCache.salaries[employee];
   if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-
-    return cached.salary;
+    return {
+      daySalary: cached.daySalary || "",
+      nightSalary: cached.nightSalary || ""
+    };
   }
 
   // Пытаемся загрузить из localStorage
@@ -4299,7 +4358,8 @@ async function getSalaryWithCache(employee) {
   if (localData !== null) {
     // Сохраняем в оперативный кэш
     dataCache.salaries[employee] = {
-      salary: localData,
+      daySalary: localData.daySalary || "",
+      nightSalary: localData.nightSalary || "",
       timestamp: Date.now() - 1000 // Чуть старше, чтобы обновилось в фоне
     };
     
@@ -4308,8 +4368,10 @@ async function getSalaryWithCache(employee) {
       fetchSalaryFromServer(employee);
     }, 500);
     
-
-    return localData;
+    return {
+      daySalary: localData.daySalary || "",
+      nightSalary: localData.nightSalary || ""
+    };
   }
 
   // Загружаем с сервера
@@ -4319,8 +4381,6 @@ async function getSalaryWithCache(employee) {
 // Функция загрузки оклада с сервера
 async function fetchSalaryFromServer(employee) {
   try {
-
-    
     const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(employee)}`);
     
     if (!res.ok) {
@@ -4328,19 +4388,23 @@ async function fetchSalaryFromServer(employee) {
     }
     
     const data = await res.json();
-    const salary = String(data.salary || "");
+    const daySalary = String(data.daySalary || data.salary || "");
+    const nightSalary = String(data.nightSalary || "");
     
     // Сохраняем в кэш
     dataCache.salaries[employee] = {
-      salary: salary,
+      daySalary: daySalary,
+      nightSalary: nightSalary,
       timestamp: Date.now()
     };
     
     // Сохраняем в localStorage
-    saveSalaryToStorage(employee, salary);
+    saveSalaryToStorage(employee, { daySalary, nightSalary });
     
-
-    return salary;
+    return {
+      daySalary: daySalary,
+      nightSalary: nightSalary
+    };
     
   } catch (err) {
     console.error(`❌ Ошибка загрузки оклада для "${employee}":`, err);
@@ -4348,20 +4412,23 @@ async function fetchSalaryFromServer(employee) {
     // Пытаемся загрузить из localStorage как fallback
     const fallback = tryLoadSalaryFromStorage(employee);
     if (fallback !== null) {
-  
       return fallback;
     }
     
-    return null;
+    return {
+      daySalary: "",
+      nightSalary: ""
+    };
   }
 }
 
 // Функция сохранения оклада в localStorage
-function saveSalaryToStorage(employee, salary) {
+function saveSalaryToStorage(employee, salaryData) {
   try {
     const salariesCache = JSON.parse(localStorage.getItem('salariesCache') || '{}');
     salariesCache[employee] = {
-      salary: salary,
+      daySalary: salaryData.daySalary || "",
+      nightSalary: salaryData.nightSalary || "",
       timestamp: Date.now()
     };
     localStorage.setItem('salariesCache', JSON.stringify(salariesCache));
@@ -4380,7 +4447,10 @@ function tryLoadSalaryFromStorage(employee) {
       // Проверяем что данные не старше 24 часов
       const maxAge = 24 * 60 * 60 * 1000; // 24 часа
       if (Date.now() - cached.timestamp < maxAge) {
-        return cached.salary;
+        return {
+          daySalary: cached.daySalary || cached.salary || "",
+          nightSalary: cached.nightSalary || ""
+        };
       }
     }
   } catch (e) {
@@ -4397,10 +4467,10 @@ function preloadCurrentUserSalary() {
     const cachedSalary = tryLoadSalaryFromStorage(currentUser);
     if (cachedSalary !== null) {
       dataCache.salaries[currentUser] = {
-        salary: cachedSalary,
+        daySalary: cachedSalary.daySalary || "",
+        nightSalary: cachedSalary.nightSalary || "",
         timestamp: Date.now() - 1000 // Чуть старше для фонового обновления
       };
-  
       
       // Обновляем в фоне
       setTimeout(() => {
@@ -4410,38 +4480,40 @@ function preloadCurrentUserSalary() {
   }
 }
 
-// Функция "умного" заполнения поля оклада
+// Функция "умного" заполнения полей оклада
 function smartFillSalaryField() {
   const currentUser = localStorage.getItem("currentUser");
   const salaryInput = document.getElementById("profileSalary");
+  const nightSalaryInput = document.getElementById("profileNightSalary");
   
-  if (!currentUser || !salaryInput) return;
+  if (!currentUser || !salaryInput || !nightSalaryInput) return;
   
   // Проверяем есть ли оклад в кэше
   const cached = dataCache.salaries[currentUser];
   if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-    salaryInput.value = cached.salary;
-
+    salaryInput.value = cached.daySalary || "";
+    nightSalaryInput.value = cached.nightSalary || "";
     return;
   }
   
   // Проверяем localStorage
   const localSalary = tryLoadSalaryFromStorage(currentUser);
   if (localSalary !== null) {
-    salaryInput.value = localSalary;
-
+    salaryInput.value = localSalary.daySalary || "";
+    nightSalaryInput.value = localSalary.nightSalary || "";
     
     // Обновляем кэш и проверяем актуальность в фоне
     dataCache.salaries[currentUser] = {
-      salary: localSalary,
+      daySalary: localSalary.daySalary,
+      nightSalary: localSalary.nightSalary,
       timestamp: Date.now() - 1000
     };
     
     setTimeout(() => {
-      fetchSalaryFromServer(currentUser).then(newSalary => {
-        if (newSalary && newSalary !== localSalary) {
-          salaryInput.value = newSalary;
-      
+      fetchSalaryFromServer(currentUser).then(newSalaryData => {
+        if (newSalaryData && (newSalaryData.daySalary !== localSalary.daySalary || newSalaryData.nightSalary !== localSalary.nightSalary)) {
+          salaryInput.value = newSalaryData.daySalary || "";
+          nightSalaryInput.value = newSalaryData.nightSalary || "";
         }
       });
     }, 1000);
