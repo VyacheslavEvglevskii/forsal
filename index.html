@@ -1584,7 +1584,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwLMZLumwFgRUBNjPJbYxH9nkB2Bg_JMe5VVyFaFgqQ-jKdOLhvqNnI41-wnZfxGrw/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbw4pkFhyXAY2t8kxlONL2DIVnc62K1UY3g-cclkC_q5RdiIXYkmHP3IFTSANbz-FyY/exec";
   
   // Проверяем URL при загрузке
 
@@ -2704,13 +2704,18 @@ async function loadMySalary() {
       return;
     }
 
-      // 📦 Группировка по дате
+      // 📦 Группировка по дате и смене
       const grouped = {};
 
       data.records.forEach(r => {
         const date = formatDate(r.date);
-        if (!grouped[date]) {
-        grouped[date] = { 
+        const shift = r.shift || "День";
+        const key = `${date}|${shift}`;
+        
+        if (!grouped[key]) {
+        grouped[key] = { 
+          date: date,
+          shift: shift,
           qty: 0, 
           wage: 0,
           mentorBonus: 0,
@@ -2721,23 +2726,23 @@ async function loadMySalary() {
         };
         }
       
-        grouped[date].qty += r.quantity || 0;
-        grouped[date].wage += r.wage || 0;
-        grouped[date].mentorBonus += r.mentorBonus || 0;
+        grouped[key].qty += r.quantity || 0;
+        grouped[key].wage += r.wage || 0;
+        grouped[key].mentorBonus += r.mentorBonus || 0;
       
         if (r.efficiency !== undefined && r.efficiency !== null) {
-          grouped[date].effs.push(r.efficiency);
+          grouped[key].effs.push(r.efficiency);
         }
 
       // Разделяем по типам операций
       if (r.operation === "Маркировка продукции ш/к") {
-        grouped[date].stickered += r.quantity || 0;
+        grouped[key].stickered += r.quantity || 0;
       } else {
-        grouped[date].repackaged += r.quantity || 0;
+        grouped[key].repackaged += r.quantity || 0;
       }
       
       // Сохраняем детали операций
-      grouped[date].operations.push({
+      grouped[key].operations.push({
         operation: r.operation,
         quantity: r.quantity,
         efficiency: r.efficiency,
@@ -2749,10 +2754,11 @@ async function loadMySalary() {
       });
 
       let html = `
-      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 800px;">
+      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 900px;">
           <thead style="background:#f3f4f6;">
             <tr>
               <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
+              <th style="padding:8px; border:1px solid #ccc;">🌅 Смена</th>
             <th style="padding:8px; border:1px solid #ccc;">📦 Переупак.</th>
             <th style="padding:8px; border:1px solid #ccc;">🏷️ Маркир.</th>
             <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффект.</th>
@@ -2764,7 +2770,7 @@ async function loadMySalary() {
           <tbody>
       `;
 
-      Object.entries(grouped).forEach(([date, stats]) => {
+      Object.entries(grouped).forEach(([key, stats]) => {
         const avgEff = stats.effs.length
           ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
           : "-";
@@ -2772,11 +2778,15 @@ async function loadMySalary() {
         // Рассчитываем основную зарплату (общая - бонус наставника)
         const basicWage = stats.wage - stats.mentorBonus;
         
+        // Определяем цвет фона для ночных смен
+        const shiftBgColor = stats.shift === "Ночь" ? "background:#1e293b; color:white;" : "";
+        
         html += `
           <tr>
-            <td style="padding:6px; border:1px solid #ccc;">${date}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${stats.date}</td>
+            <td style="padding:6px; border:1px solid #ccc; ${shiftBgColor}">${stats.shift}</td>
           <td style="padding:6px; border:1px solid #ccc;">${stats.repackaged}</td>
-          <td style="padding:6px; border:1px solid #ccc;">${stats.stickered}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${stats.stickered}</td>
             <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
             <td style="padding:6px; border:1px solid #ccc;">${basicWage.toFixed(2)} ₽</td>
             <td style="padding:6px; border:1px solid #ccc; ${stats.mentorBonus > 0 ? 'background:#f0f9ff; font-weight:bold;' : ''}">${stats.mentorBonus.toFixed(2)} ₽</td>
@@ -2809,6 +2819,14 @@ async function loadMySalary() {
           <div><strong>🏷️ Маркир.:</strong><br>${totals.totalStickered || 0} шт</div>
           <div><strong>⚙️ Эффект.:</strong><br>${totals.avgEfficiency || 0}%</div>
           <div><strong>📊 Нормы:</strong><br>${totals.normsCompleted || 0}/${totals.totalNorms || 0} (${totals.normPercentage || 0}%)</div>
+        </div>
+        
+        <!-- Информация по сменам -->
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: center; font-size: 13px; line-height: 1.4;">
+            <div style="background: #fef3c7; padding: 4px; border-radius: 4px;"><strong>🌅 Дневная смена:</strong><br>${(totals.dayQuantity || 0)} шт / ${(totals.dayWage || 0).toFixed(2)} ₽</div>
+            <div style="background: #1e293b; color: white; padding: 4px; border-radius: 4px;"><strong>🌙 Ночная смена:</strong><br>${(totals.nightQuantity || 0)} шт / ${(totals.nightWage || 0).toFixed(2)} ₽</div>
+          </div>
         </div>
       </div>
     `;
