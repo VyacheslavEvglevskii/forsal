@@ -1227,6 +1227,20 @@ button.danger:hover {
     </select>
   </label>
 
+  <!-- 🌙 БЛОК ДЛЯ НОЧНЫХ СМЕН -->
+  <div id="nightShiftDateBlock" style="display:none;">
+    <label>📅 Дата текущей ночной смены:
+      <input type="date" id="nightShiftDate" style="font-size: 16px;" />
+    </label>
+    <small style="color:#6b7280; font-size:12px; margin-top:4px; display:block;">
+      ℹ️ Укажите дату, к которой относится ваша ночная смена (обычно вчерашний день)
+    </small>
+    <div style="margin-top: 8px; display: flex; gap: 8px;">
+      <button type="button" id="setYesterday" style="padding: 6px 12px; font-size: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">📅 Вчера</button>
+      <button type="button" id="setToday" style="padding: 6px 12px; font-size: 12px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer;">📅 Сегодня</button>
+    </div>
+  </div>
+
   <label>Статус сотрудника:
     <select id="employeeStatus" required onchange="handleStatusChange()">
       <option value="">-- Выберите --</option>
@@ -1269,11 +1283,8 @@ button.danger:hover {
   </select>
 </label>
 <div id="salaryBlock" style="display:none;">
-  <label>Оклад (дневная смена) <span style="color:red;">*</span>:
+  <label>Оклад <span style="color:red;">*</span>:
     <input id="profileSalary" type="number" readonly />
-  </label>
-  <label>Оклад (ночная смена) <span style="color:red;">*</span>:
-    <input id="profileNightSalary" type="number" readonly />
   </label>
 </div>
   <!-- ВСТАВЬ СЮДА: -->
@@ -1287,8 +1298,7 @@ button.danger:hover {
   <button id="saveProfileBtn" onclick="saveProfile()">💾 Сохранить</button>
   <p id="profileSaved" style="color:green; text-align:center; display:none;">✅ Сохранено</p>
       <p id="profileHint" style="color:#dc2626; font-size:14px; text-align:center; margin-top:12px;">
-      ⚠️ Заполните все поля профиля (включая оклады для типа "Оклад + сделка") и нажмите кнопку «Сохранить», чтобы получить доступ к вкладкам системы.<br>
-      <small style="color:#6b7280;">💡 Оклад дневной смены: колонка E, ночной смены: колонка H в справочнике пользователей</small>
+      ⚠️ Заполните все поля профиля (включая оклад для типа "Оклад + сделка") и нажмите кнопку «Сохранить», чтобы получить доступ к вкладкам системы.
     </p>
     <p id="profileUnsaved" style="color:#f59e0b; font-size:14px; text-align:center; margin-top:8px; display:none;">
       💾 Есть несохраненные изменения! Нажмите кнопку «Сохранить».
@@ -1358,12 +1368,10 @@ button.danger:hover {
   <button onclick="loadShiftStats()">📊 Сводка по смене</button>
   <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ штатных упаковщиков</button>
   <button onclick="openUpdateAllModal()" id="updateAllBtn" style="background:#8b5cf6;">🔄 Выборочное обновление</button>
-
   <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт показателей за период</button>
   <button onclick="loadSeniorsReport()" id="seniorsReportBtn" style="background:#8b5cf6;">👨‍💼 Анализ старших смен</button>
   <button onclick="openSalaryExportModal()" id="salaryExportBtn" style="background:#10b981;">💵 Выгрузка зарплаты HR</button>
   <button onclick="loadNormativesAnalysis()" id="normativesBtn" style="background:#f59e0b;">🔍 Анализ нормативов</button>
-  <button onclick="openDoplataManager()" id="doplataBtn" style="background:#ec4899;">💰 Управление доплатами</button>
 </div>
 
 <!-- 🧾 Единый контейнер для отчётов -->
@@ -1483,63 +1491,6 @@ button.danger:hover {
   </div>
 </div>
 
-<!-- 💰 Контейнер управления доплатами -->
-<div class="container" style="display:none;" id="doplataContainer">
-  <h2>💰 Управление доплатами сотрудников</h2>
-  
-  <!-- Форма добавления доплаты -->
-  <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-    <h3 style="margin-top: 0; color: #059669;">➕ Добавить доплату</h3>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
-      <div>
-        <label style="display: block; margin-bottom: 4px; font-weight: 600;">👤 Сотрудник:</label>
-        <select id="doplataEmployee" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
-          <option value="">Выберите сотрудника</option>
-        </select>
-      </div>
-      
-      <div>
-        <label style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Дата начала:</label>
-        <input type="date" id="doplataStartDate" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
-      </div>
-      
-      <div>
-        <label style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Дата окончания:</label>
-        <input type="date" id="doplataEndDate" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
-      </div>
-      
-      <div>
-        <label style="display: block; margin-bottom: 4px; font-weight: 600;">💰 Сумма (₽):</label>
-        <input type="number" id="doplataAmount" min="1" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Сумма в рублях">
-      </div>
-    </div>
-    
-    <div style="margin-bottom: 16px;">
-      <label style="display: block; margin-bottom: 4px; font-weight: 600;">📝 Причина доплаты:</label>
-      <input type="text" id="doplataReason" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Укажите причину доплаты">
-    </div>
-    
-    <div style="display: flex; gap: 10px;">
-      <button onclick="addDoplata()" id="addDoplataBtn" style="background: #059669; color: white; flex: 1;">💰 Добавить доплату</button>
-      <button onclick="loadDoplaty()" style="background: #3b82f6; color: white; flex: 1;">🔄 Обновить список</button>
-    </div>
-  </div>
-  
-  <!-- Список существующих доплат -->
-  <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="margin-top: 0; color: #3b82f6;">📋 Существующие доплаты</h3>
-    <div id="doplataList" style="margin-top: 16px;">
-      <p style="text-align: center; color: #6b7280;">Загрузка...</p>
-    </div>
-  </div>
-  
-  <!-- Кнопка закрытия -->
-  <div style="margin-top: 20px; text-align: center;">
-    <button onclick="closeDoplataManager()" style="background: #6b7280; color: white; padding: 10px 20px;">❌ Закрыть</button>
-  </div>
-</div>
-
 <!-- 💵 Моя зарплата — перемещён ВНЕ adminContainer -->
 <div class="container" style="display:none;" id="mySalaryContainer">
   <h2>💵 Моя зарплата</h2>
@@ -1584,7 +1535,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbw4pkFhyXAY2t8kxlONL2DIVnc62K1UY3g-cclkC_q5RdiIXYkmHP3IFTSANbz-FyY/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxl6v2wc5KxH0Sdh3I2WcZcgBiEARhG6nGvVyD0Li7qTs0OfIiED3qOZ0wRc10ddeE/exec";
   
   // Проверяем URL при загрузке
 
@@ -1729,7 +1680,6 @@ function setupPayTypeListener() {
     
     const salaryBlock = document.getElementById("salaryBlock");
     const salaryInput = document.getElementById("profileSalary");
-    const nightSalaryInput = document.getElementById("profileNightSalary");
     
     activateSaveButton();
     
@@ -1739,47 +1689,37 @@ function setupPayTypeListener() {
       // Мгновенно заполняем из кэша если есть
       smartFillSalaryField();
       
-      // Подгружаем оклады с сервера для актуальности
+      // Подгружаем оклад с сервера для актуальности
       const currentUser = localStorage.getItem("currentUser") || "";
       
       if (!currentUser) {
         salaryInput.value = "";
-        nightSalaryInput.value = "";
         return;
       }
       
       try {        
-        const salaryData = await getSalaryWithCache(currentUser);
-        salaryInput.value = salaryData.daySalary || "";
-        nightSalaryInput.value = salaryData.nightSalary || "";
+        // 🌙 Используем новую функцию с учетом типа смены
+        const shiftType = document.getElementById("shiftType").value;
+        if (shiftType) {
+          const salary = await fetchSalaryByShift(currentUser, shiftType);
+          salaryInput.value = salary || "";
+        } else {
+          // Fallback к старой функции если смена не выбрана
+          const salary = await getSalaryWithCache(currentUser);
+          salaryInput.value = salary || "";
+        }
       } catch (err) {
         salaryInput.value = "";
-        nightSalaryInput.value = "";
       }
           } else {
         salaryBlock.style.display = "none";
         salaryInput.value = "";
-        nightSalaryInput.value = "";
       }
   });
 }
 
 // === ЛОГИКА: Инициализация слушателя для profilePayType ===
 setupPayTypeListener();
-
-// === ФУНКЦИЯ: Обновление отображения оклада в зависимости от смены ===
-function updateSalaryDisplay(salaryData) {
-  const salaryInput = document.getElementById("profileSalary");
-  const nightSalaryInput = document.getElementById("profileNightSalary");
-  
-  console.log("🔄 updateSalaryDisplay:", { salaryData });
-  
-  salaryInput.value = salaryData.daySalary || "";
-  nightSalaryInput.value = salaryData.nightSalary || "";
-  
-  console.log("☀️ Установлен дневной оклад:", salaryData.daySalary);
-  console.log("🌙 Установлен ночной оклад:", salaryData.nightSalary);
-}
 
 // === ЛОГИКА: Активация кнопки сохранения при изменении модели упаковки ===
 document.getElementById("profilePackingModel").addEventListener("change", function() {
@@ -1791,6 +1731,45 @@ document.getElementById("profilePackingModel").addEventListener("change", functi
 
 // === ЛОГИКА: Активация кнопки сохранения при изменении смены ===
 document.getElementById("shiftType").addEventListener("change", function() {
+  const nightShiftBlock = document.getElementById("nightShiftDateBlock");
+  const nightShiftInput = document.getElementById("nightShiftDate");
+  
+  if (this.value === "Ночь") {
+    nightShiftBlock.style.display = "block";
+    
+    // Автоматически предлагаем вчерашний день если поле пустое
+    if (!nightShiftInput.value) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      nightShiftInput.value = yesterday.toISOString().split('T')[0];
+    }
+  } else {
+    nightShiftBlock.style.display = "none";
+    nightShiftInput.value = "";
+  }
+  
+  // 🌙 Обновляем оклад при изменении типа смены
+  updateSalaryForShift(this.value);
+  
+  activateSaveButton();
+});
+
+// === ЛОГИКА: Кнопки быстрого выбора даты ===
+document.getElementById("setYesterday").addEventListener("click", function() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  document.getElementById("nightShiftDate").value = yesterday.toISOString().split('T')[0];
+  activateSaveButton();
+});
+
+document.getElementById("setToday").addEventListener("click", function() {
+  const today = new Date();
+  document.getElementById("nightShiftDate").value = today.toISOString().split('T')[0];
+  activateSaveButton();
+});
+
+// === ЛОГИКА: Активация кнопки сохранения при изменении даты ночной смены ===
+document.getElementById("nightShiftDate").addEventListener("change", function() {
   activateSaveButton();
 });
 
@@ -1813,16 +1792,29 @@ document.getElementById("employeeStatus").addEventListener("change", function() 
     // Мгновенно заполняем из кэша если есть
     smartFillSalaryField();
     
-    // Автоматически загружаем оклад с сервера для актуальности
+    // Автоматически загружаем оклад с сервера для актуальности с учетом смены
     const currentUser = localStorage.getItem("currentUser") || "";
     if (currentUser) {
-      getSalaryWithCache(currentUser)
-        .then(salary => {
-          document.getElementById("profileSalary").value = salary || "";
-        })
-        .catch(() => {
-          document.getElementById("profileSalary").value = "";
-        });
+      // 🌙 Используем новую функцию с учетом типа смены
+      const shiftType = document.getElementById("shiftType").value;
+      if (shiftType) {
+        fetchSalaryByShift(currentUser, shiftType)
+          .then(salary => {
+            document.getElementById("profileSalary").value = salary || "";
+          })
+          .catch(() => {
+            document.getElementById("profileSalary").value = "";
+          });
+      } else {
+        // Fallback к старой функции если смена не выбрана
+        getSalaryWithCache(currentUser)
+          .then(salary => {
+            document.getElementById("profileSalary").value = salary || "";
+          })
+          .catch(() => {
+            document.getElementById("profileSalary").value = "";
+          });
+      }
     }
   }
   
@@ -1882,6 +1874,15 @@ function handleStatusChange() {
   } else if (status === "Стажер") {
     traineeBlock.style.display = "block";
     loadCurrentMentorInfo(); // Загружаем информацию о текущем наставнике
+  } else if (status === "Аутсорсинг") {
+    // 🌙 Для аутсорсеров запускаем специальную настройку профиля
+    // Только если это ручное изменение, а не автоматическое при входе
+    if (currentStatus !== "Аутсорсинг") {
+      setupOutsourcingProfile();
+    }
+  } else {
+    // 🌙 Если выбран другой статус, очищаем настройки аутсорсера
+    clearOutsourcingSettings();
   }
 }
 
@@ -1978,6 +1979,13 @@ async function updateProfileFromServer() {
         // Вызываем обработчик изменения статуса для обновления блоков
         handleStatusChange();
         
+        // 🌙 Проверяем является ли пользователь аутсорсером
+        if (userData.status === "Аутсорсинг") {
+          setupOutsourcingProfile();
+        } else {
+          clearOutsourcingSettings(); // Очищаем если больше не аутсорсер
+        }
+        
         // Быстрое обновление отображения связей без дополнительных запросов
         await updateProfileConnectionsDisplay(userData);
       }
@@ -2065,6 +2073,28 @@ let traineesCacheTimestamp = 0;
 let mentorsCacheTimestamp = 0;
 const LIST_CACHE_DURATION = 60 * 1000; // 1 минута
 
+// 🌙 Функция загрузки сохраненного профиля
+function loadSavedProfile() {
+  const savedShift = localStorage.getItem("profileShiftType");
+  const savedNightDate = localStorage.getItem("profileNightShiftDate");
+  
+  if (savedShift) {
+    document.getElementById("shiftType").value = savedShift;
+    
+    if (savedShift === "Ночь") {
+      document.getElementById("nightShiftDateBlock").style.display = "block";
+      if (savedNightDate) {
+        document.getElementById("nightShiftDate").value = savedNightDate;
+      } else {
+        // Если нет сохраненной даты, предлагаем вчерашний день
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        document.getElementById("nightShiftDate").value = yesterday.toISOString().split('T')[0];
+      }
+    }
+  }
+}
+
 // Получение списка стажеров с кэшированием
 async function getTraineesListCached() {
   if (traineesCache && (Date.now() - traineesCacheTimestamp) < LIST_CACHE_DURATION) {
@@ -2147,41 +2177,41 @@ async function saveProfile() {
   localStorage.setItem("profileStatus", statusValue);
   localStorage.setItem("profilePackingModel", packingModel);
   localStorage.setItem("profilePayType", payType);
-  
-  // === 🌙 ЛОГИКА НОЧНЫХ СМЕН ===
+
+  // 🌙 Сохранение даты ночной смены
+  const nightShiftDate = document.getElementById("nightShiftDate").value;
   if (shiftValue === "Ночь") {
-    const nightShiftDate = calculateNightShiftDate();
-    localStorage.setItem("nightShiftDate", nightShiftDate.toISOString().split('T')[0]);
-    showNightShiftDateNotification(nightShiftDate);
+    if (!nightShiftDate) {
+      alert("❌ Для ночной смены необходимо указать дату смены!");
+      return;
+    }
+    localStorage.setItem("profileNightShiftDate", nightShiftDate);
   } else {
-    localStorage.removeItem("nightShiftDate");
+    localStorage.removeItem("profileNightShiftDate");
   }
 
-  // Если выбран "Оклад + сделка", подтягиваем оклады с сервера
-  let salaryData = { daySalary: "", nightSalary: "" };
+  // Если выбран "Оклад + сделка", подтягиваем оклад с сервера с учетом смены
+  let salary = "";
   if (payType === "Оклад + сделка") {
     try {
       const currentUser = localStorage.getItem("currentUser") || "";
-      salaryData = await getSalaryWithCache(currentUser) || { daySalary: "", nightSalary: "" };
+      // 🌙 Используем новую функцию с учетом типа смены
+      salary = await fetchSalaryByShift(currentUser, shiftValue) || "";
     } catch (err) {
-      salaryData = { daySalary: "", nightSalary: "" };
+      salary = "";
     }
-    salaryInput.value = salaryData.daySalary || "";
-    document.getElementById("profileNightSalary").value = salaryData.nightSalary || "";
+    salaryInput.value = salary;
     
-    if (!salaryData.daySalary || salaryData.daySalary.trim() === "") {
-      alert(`❌ Не удалось загрузить оклад с сервера!\n\nПроверьте:\n• Правильность имени пользователя\n• Наличие оклада в базе данных\n• Подключение к интернету`);
+    if (!salary || salary.trim() === "") {
+      alert(`❌ Не удалось загрузить оклад с сервера!\n\nПроверьте:\n• Правильность имени пользователя\n• Наличие оклада для выбранной смены в базе данных\n• Подключение к интернету`);
       return;
     }
     
-    localStorage.setItem("profileSalary", salaryData.daySalary);
-    localStorage.setItem("profileNightSalary", salaryData.nightSalary);
+    localStorage.setItem("profileSalary", salary);
     document.getElementById("salaryBlock").style.display = "block";
   } else {
     salaryInput.value = "";
-    document.getElementById("profileNightSalary").value = "";
     localStorage.removeItem("profileSalary");
-    localStorage.removeItem("profileNightSalary");
     document.getElementById("salaryBlock").style.display = "none";
   }
 
@@ -2190,8 +2220,7 @@ async function saveProfile() {
     let isFilled = shiftValue && statusValue && packingModel && payType;
     if (payType === "Оклад + сделка") {
       const currentSalary = salaryInput.value;
-      const currentNightSalary = document.getElementById("profileNightSalary").value;
-      isFilled = isFilled && currentSalary && currentSalary.trim() !== "" && currentNightSalary && currentNightSalary.trim() !== "";
+      isFilled = isFilled && currentSalary && currentSalary.trim() !== "";
     }
     const hint = document.getElementById("profileHint");
     const msg = document.getElementById("profileSaved");
@@ -2289,8 +2318,6 @@ function switchTab(tabName) {
     case "profile":
       document.getElementById("profileContainer").style.display = "block";
       document.getElementById("tabProfile").disabled = true;
-      
-
       break;
 
     case "app":
@@ -2363,12 +2390,15 @@ async function handleLogin() {
     if (data.status === "ok") {
       currentUser = login;
       currentUserRole = data.role || 'user';
-      currentStatus = data.employeeStatus || 'Штат'; // Получаем статус с сервера (без автосохранения)
-
+      currentStatus = data.employeeStatus || 'Штат'; // Получаем статус с сервера
 
       localStorage.setItem("currentUser", login);
       localStorage.setItem("currentUserRole", currentUserRole);
       
+      // 🌙 Автоматическая настройка профиля для аутсорсеров
+      if (currentStatus === "Аутсорсинг") {
+        setupOutsourcingProfile();
+      }
       
               // 🗑️ УДАЛЕНО сохранение данных с сервера - только ручной ввод
 
@@ -2426,25 +2456,15 @@ async function handleLogin() {
         document.getElementById("profilePackingModel").value = "";
         document.getElementById("profilePayType").value = "";
         document.getElementById("profileSalary").value = "";
+        document.getElementById("nightShiftDate").value = "";
+        document.getElementById("nightShiftDateBlock").style.display = "none";
         document.getElementById("salaryBlock").style.display = "none";
-        
-
         
         // Восстанавливаем все опции типа оплаты
         updatePayTypeOptions("");
         
         // 🚀 Предзагружаем оклад для текущего пользователя
         preloadCurrentUserSalary();
-        
-        // Принудительно загружаем оклад при входе
-        setTimeout(async () => {
-          try {
-            const salaryData = await getSalaryWithCache(currentUser);
-            console.log("🚀 Загружен оклад при входе:", salaryData);
-          } catch (err) {
-            console.error("❌ Ошибка загрузки оклада при входе:", err);
-          }
-        }, 500);
         
         // 🛠️ Активируем кнопку сохранения и показываем подсказку
         const saveBtn = document.getElementById("saveProfileBtn");
@@ -2472,6 +2492,9 @@ async function handleLogin() {
             document.getElementById("employeeStatus").value = currentStatus;
             handleStatusChange(); // Показываем соответствующий блок
           }
+          
+          // 🌙 Загружаем сохраненные данные профиля
+          loadSavedProfile();
         }, 100);
         
         // 🔄 Быстрая загрузка справочников (с кэшированием)
@@ -2480,6 +2503,9 @@ async function handleLogin() {
           loadSetNumbers(),
           loadTodayRecords()
         ]);
+        
+        // 🛡️ Настраиваем валидацию в реальном времени для проверки дубликатов
+        setupRealTimeValidation();
         
         // Загружаем остальные данные в фоне
         loadRatesTable();
@@ -2546,8 +2572,13 @@ function handleLogout() {
   document.querySelector('[name="employeeName"]').value = "";
   document.getElementById("shiftType").value = "";
   document.getElementById("employeeStatus").value = "";
+  document.getElementById("nightShiftDate").value = "";
+  document.getElementById("nightShiftDateBlock").style.display = "none";
   document.getElementById("profileSaved").style.display = "none";
   document.getElementById("profileHint").style.display = "block";
+  
+  // 🌙 Очистка настроек аутсорсера
+  clearOutsourcingSettings();
   
   // Восстанавливаем все опции типа оплаты
   updatePayTypeOptions("");
@@ -2709,21 +2740,21 @@ async function loadMySalary() {
 
       data.records.forEach(r => {
         const date = formatDate(r.date);
-        const shift = r.shift || "День";
-        const key = `${date}|${shift}`;
+        const shift = r.shift || "День"; // Fallback для старых записей
+        const key = `${date}-${shift}`;
         
         if (!grouped[key]) {
-        grouped[key] = { 
-          date: date,
-          shift: shift,
-          qty: 0, 
-          wage: 0,
-          mentorBonus: 0,
-          effs: [],
-          repackaged: 0,
-          stickered: 0,
-          operations: []
-        };
+          grouped[key] = { 
+            date: date,
+            shift: shift,
+            qty: 0, 
+            wage: 0,
+            mentorBonus: 0,
+            effs: [],
+            repackaged: 0,
+            stickered: 0,
+            operations: []
+          };
         }
       
         grouped[key].qty += r.quantity || 0;
@@ -2734,34 +2765,34 @@ async function loadMySalary() {
           grouped[key].effs.push(r.efficiency);
         }
 
-      // Разделяем по типам операций
-      if (r.operation === "Маркировка продукции ш/к") {
-        grouped[key].stickered += r.quantity || 0;
-      } else {
-        grouped[key].repackaged += r.quantity || 0;
-      }
-      
-      // Сохраняем детали операций
-      grouped[key].operations.push({
-        operation: r.operation,
-        quantity: r.quantity,
-        efficiency: r.efficiency,
-        wage: r.wage,
-        mentorBonus: r.mentorBonus,
-        bonusPercent: r.bonusPercent,
-        normStatus: r.normStatus
-      });
+        // Разделяем по типам операций
+        if (r.operation === "Маркировка продукции ш/к") {
+          grouped[key].stickered += r.quantity || 0;
+        } else {
+          grouped[key].repackaged += r.quantity || 0;
+        }
+        
+        // Сохраняем детали операций
+        grouped[key].operations.push({
+          operation: r.operation,
+          quantity: r.quantity,
+          efficiency: r.efficiency,
+          wage: r.wage,
+          mentorBonus: r.mentorBonus,
+          bonusPercent: r.bonusPercent,
+          normStatus: r.normStatus
+        });
       });
 
       let html = `
-      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 900px;">
+      <table style="width:100%; border-collapse: collapse; font-size:14px; min-width: 800px;">
           <thead style="background:#f3f4f6;">
             <tr>
               <th style="padding:8px; border:1px solid #ccc;">📅 Дата</th>
               <th style="padding:8px; border:1px solid #ccc;">🌅 Смена</th>
-            <th style="padding:8px; border:1px solid #ccc;">📦 Переупак.</th>
-            <th style="padding:8px; border:1px solid #ccc;">🏷️ Маркир.</th>
-            <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффект.</th>
+              <th style="padding:8px; border:1px solid #ccc;">📦 Переупак.</th>
+              <th style="padding:8px; border:1px solid #ccc;">🏷️ Маркир.</th>
+              <th style="padding:8px; border:1px solid #ccc;">⚙️ Эффект.</th>
               <th style="padding:8px; border:1px solid #ccc;">💰 Основная</th>
               <th style="padding:8px; border:1px solid #ccc;">👨‍🏫 Бонус наставника</th>
               <th style="padding:8px; border:1px solid #ccc;">💵 Итого</th>
@@ -2770,7 +2801,18 @@ async function loadMySalary() {
           <tbody>
       `;
 
-      Object.entries(grouped).forEach(([key, stats]) => {
+      // Сортируем по дате и смене
+      const sortedEntries = Object.entries(grouped).sort(([a], [b]) => {
+        const [dateA, shiftA] = a.split('-');
+        const [dateB, shiftB] = b.split('-');
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+        // День идет перед Ночью
+        if (shiftA === 'День' && shiftB === 'Ночь') return -1;
+        if (shiftA === 'Ночь' && shiftB === 'День') return 1;
+        return 0;
+      });
+
+      sortedEntries.forEach(([key, stats]) => {
         const avgEff = stats.effs.length
           ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
           : "-";
@@ -2778,14 +2820,15 @@ async function loadMySalary() {
         // Рассчитываем основную зарплату (общая - бонус наставника)
         const basicWage = stats.wage - stats.mentorBonus;
         
-        // Определяем цвет фона для ночных смен
-        const shiftBgColor = stats.shift === "Ночь" ? "background:#1e293b; color:white;" : "";
+        // Иконка и цвет для смены
+        const shiftIcon = stats.shift === 'День' ? '☀️' : '🌙';
+        const shiftBg = stats.shift === 'День' ? '#fef3c7' : '#ddd6fe';
         
         html += `
           <tr>
             <td style="padding:6px; border:1px solid #ccc;">${stats.date}</td>
-            <td style="padding:6px; border:1px solid #ccc; ${shiftBgColor}">${stats.shift}</td>
-          <td style="padding:6px; border:1px solid #ccc;">${stats.repackaged}</td>
+            <td style="padding:6px; border:1px solid #ccc; background:${shiftBg}; font-weight:bold;">${shiftIcon} ${stats.shift}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${stats.repackaged}</td>
             <td style="padding:6px; border:1px solid #ccc;">${stats.stickered}</td>
             <td style="padding:6px; border:1px solid #ccc;">${avgEff}%</td>
             <td style="padding:6px; border:1px solid #ccc;">${basicWage.toFixed(2)} ₽</td>
@@ -2798,35 +2841,64 @@ async function loadMySalary() {
       html += `</tbody></table>`;
       container.innerHTML = html;
     
-    // === НОВЫЕ ИТОГОВЫЕ ПОКАЗАТЕЛИ ===
+    // === ИТОГОВЫЕ ПОКАЗАТЕЛИ С РАЗДЕЛЕНИЕМ ПО СМЕНАМ ===
     const totals = data.totals || {};
-    const totalBasicWage = (totals.totalWage || 0) - (totals.totalMentorBonus || 0) - (totals.totalDoplata || 0);
+    const dayTotals = data.dayTotals || {};
+    const nightTotals = data.nightTotals || {};
     
-    // Формируем HTML с доплатами (если есть)
-    let doplataHtml = '';
-    if (totals.totalDoplata && totals.totalDoplata > 0) {
-      doplataHtml = `<div><strong>💸 Доплата:</strong><br>${(totals.totalDoplata || 0).toFixed(2)} ₽</div>`;
+    const totalBasicWage = (totals.totalWage || 0) - (totals.totalMentorBonus || 0);
+    const dayBasicWage = (dayTotals.totalWage || 0) - (dayTotals.totalMentorBonus || 0);
+    const nightBasicWage = (nightTotals.totalWage || 0) - (nightTotals.totalMentorBonus || 0);
+    
+    // Создаем блоки только если есть данные для соответствующей смены
+    let shiftsHTML = '';
+    
+    if (dayTotals.totalQuantity > 0) {
+      shiftsHTML += `
+        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde047 20%); padding:12px; border-radius:8px; border:1px solid #eab308; margin-bottom: 8px;">
+          <div style="text-align: center; font-weight: bold; margin-bottom: 8px; color: #000000;">☀️ Дневные смены</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; text-align: center; font-size: 12px; color: #000000;">
+            <div><strong>💰 Основная:</strong><br>${dayBasicWage.toFixed(2)} ₽</div>
+            <div><strong>👨‍🏫 Бонус наставника:</strong><br>${(dayTotals.totalMentorBonus || 0).toFixed(2)} ₽</div>
+            <div><strong>💵 Итого:</strong><br>${(dayTotals.totalWage || 0).toFixed(2)} ₽</div>
+            <div><strong>📦 Переупак.:</strong><br>${dayTotals.totalRepackaged || 0} шт</div>
+            <div><strong>🏷️ Маркир.:</strong><br>${dayTotals.totalStickered || 0} шт</div>
+            <div><strong>⚙️ Эффект.:</strong><br>${dayTotals.avgEfficiency || 0}%</div>
+            <div><strong>📊 Нормы:</strong><br>${dayTotals.normsCompleted || 0}/${dayTotals.totalNorms || 0} (${dayTotals.normPercentage || 0}%)</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    if (nightTotals.totalQuantity > 0) {
+      shiftsHTML += `
+        <div style="background: linear-gradient(135deg, #ddd6fe 0%, #c084fc 20%); padding:12px; border-radius:8px; border:1px solid #8b5cf6; margin-bottom: 8px;">
+          <div style="text-align: center; font-weight: bold; margin-bottom: 8px; color: #000000;">🌙 Ночные смены</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; text-align: center; font-size: 12px; color: #000000;">
+            <div><strong>💰 Основная:</strong><br>${nightBasicWage.toFixed(2)} ₽</div>
+            <div><strong>👨‍🏫 Бонус наставника:</strong><br>${(nightTotals.totalMentorBonus || 0).toFixed(2)} ₽</div>
+            <div><strong>💵 Итого:</strong><br>${(nightTotals.totalWage || 0).toFixed(2)} ₽</div>
+            <div><strong>📦 Переупак.:</strong><br>${nightTotals.totalRepackaged || 0} шт</div>
+            <div><strong>🏷️ Маркир.:</strong><br>${nightTotals.totalStickered || 0} шт</div>
+            <div><strong>⚙️ Эффект.:</strong><br>${nightTotals.avgEfficiency || 0}%</div>
+            <div><strong>📊 Нормы:</strong><br>${nightTotals.normsCompleted || 0}/${nightTotals.totalNorms || 0} (${nightTotals.normPercentage || 0}%)</div>
+          </div>
+        </div>
+      `;
     }
     
     totalQtyBlock.innerHTML = `
-      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding:16px; border-radius:12px; border:2px solid #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); margin-top: 16px; color: #000000 !important;">
+      ${shiftsHTML}
+      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding:16px; border-radius:12px; border:2px solid #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); color: #000000 !important;">
+        <div style="text-align: center; font-weight: bold; margin-bottom: 12px; font-size: 16px;">💵 Итого</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: center; font-size: 13px; line-height: 1.4;">
           <div><strong>💰 Основная:</strong><br>${totalBasicWage.toFixed(2)} ₽</div>
           <div><strong>👨‍🏫 Бонус наставника:</strong><br>${(totals.totalMentorBonus || 0).toFixed(2)} ₽</div>
-          ${doplataHtml}
           <div><strong>💵 Итого:</strong><br>${(totals.totalWage || 0).toFixed(2)} ₽</div>
           <div><strong>📦 Переупак.:</strong><br>${totals.totalRepackaged || 0} шт</div>
           <div><strong>🏷️ Маркир.:</strong><br>${totals.totalStickered || 0} шт</div>
           <div><strong>⚙️ Эффект.:</strong><br>${totals.avgEfficiency || 0}%</div>
           <div><strong>📊 Нормы:</strong><br>${totals.normsCompleted || 0}/${totals.totalNorms || 0} (${totals.normPercentage || 0}%)</div>
-        </div>
-        
-        <!-- Информация по сменам -->
-        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: center; font-size: 13px; line-height: 1.4;">
-            <div style="background: #fef3c7; padding: 4px; border-radius: 4px;"><strong>🌅 Дневная смена:</strong><br>${(totals.dayQuantity || 0)} шт / ${(totals.dayWage || 0).toFixed(2)} ₽</div>
-            <div style="background: #1e293b; color: white; padding: 4px; border-radius: 4px;"><strong>🌙 Ночная смена:</strong><br>${(totals.nightQuantity || 0)} шт / ${(totals.nightWage || 0).toFixed(2)} ₽</div>
-          </div>
         </div>
       </div>
     `;
@@ -3097,6 +3169,17 @@ async function deleteRecord(index) {
 
 
 async function updateRateDisplay() {
+  // 🌙 Проверяем статус пользователя - для аутсорсеров не показываем тарифы
+  const employeeStatus = document.getElementById("employeeStatus")?.value;
+  if (employeeStatus === "Аутсорсинг") {
+    // Скрываем блоки для аутсорсеров
+    const block = document.getElementById("rateInfo");
+    const calcBlock = document.getElementById("calcBlock");
+    if (block) block.style.display = "none";
+    if (calcBlock) calcBlock.style.display = "none";
+    return; // Выходим из функции
+  }
+
   const operationType = document.querySelector('[name="operationType"]').value;
   const volume = document.querySelector('[name="volume"]').value;
   const setNumber = document.querySelector('[name="setNumber"]').value;
@@ -3185,8 +3268,90 @@ document.querySelector('[name="endTime"]').addEventListener("change", () => upda
 document.getElementById("dataForm").addEventListener("submit", async function(e) {
   e.preventDefault();
   const form = e.target;
-  const formData = new FormData(form);
   const result = document.getElementById("result");
+  const submitBtn = form.querySelector('button[type="submit"]');
+  
+  // Проверяем, не заблокирована ли уже кнопка (предотвращаем двойную отправку)
+  if (submitBtn.disabled) {
+    return;
+  }
+
+  // 🚀 БЫСТРАЯ ОТПРАВКА для аутсорсеров
+  const isOutsourcing = currentStatus === "Аутсорсинг";
+  
+  if (isOutsourcing) {
+    await handleOutsourcingSubmit(form, submitBtn, result);
+  } else {
+    await handleRegularSubmit(form, submitBtn, result);
+  }
+});
+
+// 🚀 Оптимизированная отправка для аутсорсеров  
+async function handleOutsourcingSubmit(form, submitBtn, result) {
+  // Минимальная блокировка UI
+  submitBtn.disabled = true;
+  submitBtn.textContent = "⏳ Отправка...";
+  result.style.display = "none";
+
+  // Быстрое формирование данных
+  const formData = new FormData(form);
+  
+  // Добавляем только необходимые данные
+  formData.append("packingModel", document.getElementById("profilePackingModel").value);
+  formData.append("shiftType", currentShift);
+  formData.append("employeeStatus", currentStatus);
+  formData.append("payType", "Сделка"); // Фиксированное для аутсорсеров
+  
+  // 🌙 Дата ночной смены если нужно
+  if (currentShift === "Ночь") {
+    const nightShiftDate = localStorage.getItem("profileNightShiftDate");
+    if (nightShiftDate) {
+      formData.append("nightShiftDate", nightShiftDate);
+    }
+  }
+
+  // Быстрая отправка без лишних проверок
+  try {
+    const response = await fetch(scriptURL, {
+      method: "POST",
+      body: formData // Используем FormData напрямую для скорости
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const resultData = await response.json();
+    
+    if (resultData.status === "success") {
+      // 🚀 Быстрый сброс для аутсорсеров
+      form.reset();
+      document.querySelector('[name="employeeName"]').value = currentUser;
+      showTemporaryNotification("✅ Данные отправлены!", "success");
+      
+      // Асинхронное обновление без блокировки
+      setTimeout(() => loadTodayRecords(), 100);
+    } else {
+      result.textContent = resultData.message;
+      result.style.display = "block";
+      result.className = "error-message";
+    }
+    
+  } catch (error) {
+    console.error("❌ Ошибка отправки:", error);
+    result.textContent = "❌ Ошибка: " + error.message;
+    result.style.display = "block";
+    result.className = "error-message";
+  } finally {
+    // Быстрая разблокировка
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+  }
+}
+
+// Стандартная отправка для штатных сотрудников
+async function handleRegularSubmit(form, submitBtn, result) {
+  const formData = new FormData(form);
 
   // Добавляем модель упаковки из профиля
   const packingModel = document.getElementById("profilePackingModel").value;
@@ -3209,45 +3374,14 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   formData.append("shiftType", currentShift);
   formData.append("employeeStatus", currentStatus);
   formData.append("payType", localStorage.getItem("profilePayType") || "");
+  formData.append("salary", localStorage.getItem("profileSalary") || "");
   
-  // Выбираем правильный оклад в зависимости от смены
-  const daySalary = localStorage.getItem("profileSalary") || "";
-  const nightSalary = localStorage.getItem("profileNightSalary") || "";
-  
-  console.log(`🌙 Отправка данных: смена=${currentShift}, дневной оклад=${daySalary}, ночной оклад=${nightSalary}`);
-  
+  // 🌙 Добавляем дату ночной смены если это ночная смена
   if (currentShift === "Ночь") {
-    formData.append("salary", nightSalary);
-    formData.append("nightSalary", nightSalary);
-    console.log(`✅ Для ночной смены отправляем оклад: ${nightSalary}`);
-  } else {
-    formData.append("salary", daySalary);
-    formData.append("nightSalary", nightSalary);
-    console.log(`✅ Для дневной смены отправляем оклад: ${daySalary}`);
-  }
-  
-  // === 🌙 АВТОМАТИЧЕСКАЯ ДАТА ДЛЯ НОЧНЫХ СМЕН ===
-  if (currentShift === "Ночь") {
-    const nightShiftDate = localStorage.getItem("nightShiftDate");
+    const nightShiftDate = localStorage.getItem("profileNightShiftDate");
     if (nightShiftDate) {
-      formData.append("operationDate", nightShiftDate);
-    } else {
-      // Если нет сохраненной даты - вычисляем на лету
-      const calculatedDate = calculateNightShiftDate();
-      formData.append("operationDate", calculatedDate.toISOString().split('T')[0]);
+      formData.append("nightShiftDate", nightShiftDate);
     }
-  } else {
-    // Для дневных смен используем текущую дату
-    formData.append("operationDate", new Date().toISOString().split('T')[0]);
-  }
-  
-
-
-  const submitBtn = form.querySelector('button[type="submit"]');
-  
-  // Проверяем, не заблокирована ли уже кнопка (предотвращаем двойную отправку)
-  if (submitBtn.disabled) {
-    return;
   }
 
   // === Блокировка кнопки и изменение интерфейса ===
@@ -3271,7 +3405,6 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   });
 
   try {
-    // Убираем проверку дубликатов перед отправкой - делаем это на сервере
     const response = await fetch(scriptURL, {
       method: "POST",
       body: params,
@@ -3315,7 +3448,7 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
     result.className = "error-message";
     enableSubmitButton();
   }
-});
+}
 
 
 async function loadRatesTable() {
@@ -3850,6 +3983,8 @@ function closeStats() {
 
 let isStatsLoading = false;
 
+
+
 async function loadStats() {
   if (isStatsLoading) return;
   isStatsLoading = true;
@@ -3907,16 +4042,24 @@ async function loadStats() {
       return;
     }
 
-    let totalWage = 0;
-    let totalEfficiency = 0;
-    let efficiencyCount = 0;
+    // 🌙 РАЗДЕЛЕНИЕ ПО СМЕНАМ
+    const dayRecords = (data.dayRecords || []).filter(r => 
+      selectedOperation ? r.operationType === selectedOperation : true
+    );
+    const nightRecords = (data.nightRecords || []).filter(r => 
+      selectedOperation ? r.operationType === selectedOperation : true
+    );
 
-    const filtered = selectedOperation
-      ? data.records.filter(r => r.operationType === selectedOperation)
-      : data.records;
+    // 👥 РАЗДЕЛЕНИЕ ПО СТАТУСУ СОТРУДНИКОВ
+    const staffRecords = (data.staffRecords || []).filter(r => 
+      selectedOperation ? r.operationType === selectedOperation : true
+    );
+    const traineeRecords = (data.traineeRecords || []).filter(r => 
+      selectedOperation ? r.operationType === selectedOperation : true
+    );
 
-    // === ПРОВЕРЯЕМ ЕСТЬ ЛИ ЗАПИСИ ПОСЛЕ ФИЛЬТРАЦИИ ===
-    if (!filtered.length) {
+    // Проверяем есть ли записи после фильтрации
+    if (!dayRecords.length && !nightRecords.length && !staffRecords.length && !traineeRecords.length) {
       container.innerHTML = selectedOperation 
         ? '<p style="text-align:center;">Нет данных для выбранной операции</p>'
         : '<p style="text-align:center;">Нет данных за выбранную дату</p>';
@@ -3924,70 +4067,134 @@ async function loadStats() {
       return;
     }
 
-    // Ускоренное создание карточек через innerHTML
+    // 🌙 СОЗДАНИЕ РАЗДЕЛЬНЫХ БЛОКОВ ПО СМЕНАМ
     const today = new Date().toISOString().split("T")[0];
     let cardsHTML = "";
-    let totalQuantity = 0;
-    let totalRepackaged = 0; // 📦 Переупакованная продукция
-    let totalStickered = 0;  // 🏷️ Маркированная продукция
-    let totalNormTime = 0; // Для расчета % выполнения норм
     
-    filtered.forEach(rec => {
-      const wage = rec.wage || 0;
-      totalWage += wage;
-      const quantity = rec.quantity || 0;
-      totalQuantity += quantity;
+    // 🏢 Проверяем статус для аутсорсинга (единая переменная для всего блока)
+    const isOutsourcing = currentStatus === "Аутсорсинг";
+    
+    // Функция проверки возможности редактирования (последние 2 суток)
+    function isWithinEditPeriod(dateStr) {
+      const recordDate = new Date(dateStr + "T00:00:00");
+      const currentDate = new Date();
+      const diffDays = Math.floor((currentDate - recordDate) / (1000 * 60 * 60 * 24));
+      return diffDays <= 2;
+    }
+    
+    // Функция для создания карточек определенной смены
+    function createShiftCards(records, shiftName, shiftIcon) {
+      if (!records.length) return "";
       
-      // Разделяем по типам операций
-      if (rec.operationType === "Маркировка продукции ш/к") {
-        totalStickered += quantity;
-      } else {
-        totalRepackaged += quantity;
-      }
-
-      // Считаем эффективность - включаем ВСЕ операции (null/undefined как 0%)
-      // Логика: средняя арифметическая готовых значений (как в анализе штатных)
-      const efficiency = rec.efficiency !== null && rec.efficiency !== undefined ? rec.efficiency : 0;
-      totalEfficiency += efficiency;
-      efficiencyCount++;
+      let shiftWage = 0;
+      let shiftEfficiency = 0;
+      let shiftEfficiencyCount = 0;
+      let shiftRepackaged = 0;
+      let shiftStickered = 0;
       
-      // Рассчитываем время на основе нормы
-      if (rec.normPerHour && rec.quantity) {
-        totalNormTime += (rec.quantity / rec.normPerHour) * 60; // в минутах
-      }
-
-      const buttonsHTML = (rec.rowIndex !== undefined && date === today) 
-        ? `<div style="margin-top:10px;">
-             <button onclick="openEditModal(${rec.rowIndex}, ${JSON.stringify(rec).replace(/"/g, '&quot;')})">✏️ Редактировать</button>
-             <button onclick="deleteRecord(${rec.rowIndex})" class="danger" style="margin-left:10px;">🗑 Удалить</button>
-           </div>`
-        : "";
-
-      cardsHTML += `
-        <div class="stat-card" ${rec.rowIndex !== undefined ? `data-record-index="${rec.rowIndex}"` : ""}>
-          <p><strong>🕒 Время:</strong> ${rec.startTime} – ${rec.endTime}</p>
-          <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
-          <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
-          <p><strong>🧩 Набор:</strong> ${rec.setNumber || "-"}</p>
-          ${rec.mentor ? `<p><strong>👨‍🏫 Наставник/Стажер:</strong> ${rec.mentor}</p>` : ""}
-          <p><strong>🔢 Кол-во:</strong> ${rec.quantity}</p>
-          <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
-          <p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>
-          <p><strong>💰 Тариф за шт:</strong> ${rec.ratePerUnit?.toFixed(2) ?? "-"} ₽</p>
-          ${rec.bonusPercent ? `<p><strong>🎁 Бонус:</strong> ${rec.bonusIcon || "🎁"} ${rec.bonusPercent}</p>` : ""}
-          <p><strong>💸 Заработано:</strong> ${wage.toFixed(2)} ₽</p>
-          ${buttonsHTML}
-        </div>
+      let shiftCardsHTML = `
+        <div style="margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #64748b;">
+          <h3 style="margin: 0 0 15px 0; text-align: center; color: #334155;">${shiftIcon} ${shiftName}</h3>
       `;
-    });
+      
+      records.forEach(rec => {
+        const wage = rec.wage || 0;
+        shiftWage += wage;
+        const quantity = rec.quantity || 0;
+        
+        // Разделяем по типам операций
+        if (rec.operationType === "Маркировка продукции ш/к") {
+          shiftStickered += quantity;
+        } else {
+          shiftRepackaged += quantity;
+        }
+
+        // Считаем эффективность
+        const efficiency = rec.efficiency !== null && rec.efficiency !== undefined ? rec.efficiency : 0;
+        shiftEfficiency += efficiency;
+        shiftEfficiencyCount++;
+
+        // Проверяем, можно ли редактировать (за последние 2 суток)
+        const canEdit = rec.rowIndex !== undefined && isWithinEditPeriod(date);
+        const buttonsHTML = canEdit
+          ? `<div style="margin-top:10px;">
+               <button onclick="openEditModal(${rec.rowIndex}, ${JSON.stringify(rec).replace(/"/g, '&quot;')})">✏️ Редактировать</button>
+               <button onclick="deleteRecord(${rec.rowIndex})" class="danger" style="margin-left:10px;">🗑 Удалить</button>
+             </div>`
+          : "";
+
+        
+        shiftCardsHTML += `
+          <div class="stat-card" ${rec.rowIndex !== undefined ? `data-record-index="${rec.rowIndex}"` : ""}>
+            <p><strong>🕒 Время:</strong> ${rec.startTime} – ${rec.endTime}</p>
+            <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
+            <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
+            <p><strong>🧩 Набор:</strong> ${rec.setNumber || "-"}</p>
+            ${rec.mentor ? `<p><strong>👨‍🏫 Наставник/Стажер:</strong> ${rec.mentor}</p>` : ""}
+            <p><strong>🔢 Кол-во:</strong> ${rec.quantity}</p>
+            <p><strong>⚙️ Эффективность:</strong> ${rec.efficiency ?? "-"}%</p>
+            ${!isOutsourcing ? `<p><strong>⏱ Норма в час:</strong> ${rec.normPerHour ?? "-"}</p>` : ""}
+            ${!isOutsourcing ? `<p><strong>💰 Тариф за шт:</strong> ${rec.ratePerUnit?.toFixed(2) ?? "-"} ₽</p>` : ""}
+            ${!isOutsourcing && rec.bonusPercent ? `<p><strong>🎁 Бонус:</strong> ${rec.bonusIcon || "🎁"} ${rec.bonusPercent}</p>` : ""}
+            ${!isOutsourcing ? `<p><strong>💸 Заработано:</strong> ${wage.toFixed(2)} ₽</p>` : ""}
+            ${buttonsHTML}
+          </div>
+        `;
+      });
+      
+      // Итоги по смене
+      const avgEfficiency = shiftEfficiencyCount ? Math.round(shiftEfficiency / shiftEfficiencyCount) : "-";
+      
+      if (isOutsourcing) {
+        // Для аутсорсинга - без информации о заработке
+        shiftCardsHTML += `
+          <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.7); border-radius: 8px; text-align: center; font-weight: bold;">
+            📦 Переупак.: ${shiftRepackaged} шт | 
+            🏷️ Маркир.: ${shiftStickered} шт | 
+            ⚙️ Эффект.: ${avgEfficiency}%
+          </div>
+        </div>`;
+      } else {
+        // Для штатных - с информацией о заработке
+        shiftCardsHTML += `
+          <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.7); border-radius: 8px; text-align: center; font-weight: bold;">
+            💵 Итого за ${shiftName.toLowerCase()}: ${shiftWage.toFixed(2)} ₽ | 
+            📦 Переупак.: ${shiftRepackaged} шт | 
+            🏷️ Маркир.: ${shiftStickered} шт | 
+            ⚙️ Эффект.: ${avgEfficiency}%
+          </div>
+        </div>`;
+      }
+      
+      return shiftCardsHTML;
+    }
+    
+    // Создаем блоки для каждой смены
+    if (dayRecords.length > 0) {
+      cardsHTML += createShiftCards(dayRecords, "Дневная смена", "☀️");
+    }
+    
+    if (nightRecords.length > 0) {
+      cardsHTML += createShiftCards(nightRecords, "Ночная смена", "🌙");
+    }
+
+    // 👥 Создаем блоки для каждого статуса сотрудников
+    if (staffRecords.length > 0) {
+      cardsHTML += createShiftCards(staffRecords, "Штатные сотрудники", "👥");
+    }
+    
+    if (traineeRecords.length > 0) {
+      cardsHTML += createShiftCards(traineeRecords, "Стажеры", "👨‍🎓");
+    }
     
     // Получаем бонус наставника и детали из данных сервера
     const mentorBonus = data.totals ? data.totals.totalMentorBonus || 0 : 0;
     const mentorBonusDetails = data.mentorBonusDetails || { trainees: [], isTrainee: false, mentor: null };
     
-    // Добавляем информационную карточку о бонусе наставника если применимо
+    // Добавляем информационную карточку о бонусе наставника если применимо (только для штатных)
     let mentorBonusInfoHTML = "";
-    if (mentorBonus > 0) {
+    
+    if (!isOutsourcing && mentorBonus > 0) {
       if (mentorBonusDetails.isTrainee && mentorBonusDetails.mentor) {
         mentorBonusInfoHTML = `
           <div class="stat-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; margin-bottom: 16px;">
@@ -4017,49 +4224,46 @@ async function loadStats() {
     container.innerHTML = mentorBonusInfoHTML + cardsHTML;
     
     // Рассчитываем средняю эффективность
-    const avgEfficiency = efficiencyCount ? Math.round(totalEfficiency / efficiencyCount) : "-";
-    
-    // Рассчитываем выполнение норм по операциям (количество операций с эффективностью >= 90%)
-    // Логика: операции с бонусом (+3% при 90%+ или +5% при 100%+) считаются выполненными
-    // ИСПРАВЛЕНО: учитываем ВСЕ операции в totalOperations (как в расчете средней эффективности)
-    let normsCompleted = 0;
-    let totalOperations = 0;
-    
-    filtered.forEach(rec => {
-      // Учитываем ВСЕ операции в общем количестве (как в расчете средней эффективности)
-      totalOperations++;
-      
-      // Для выполнения норм считаем только операции с известной эффективностью ≥90%
-      if (rec.efficiency !== null && rec.efficiency !== undefined && rec.efficiency >= 90) {
-        normsCompleted++;
-      }
-    });
-    
-    // Формируем строку выполнения норм в формате "4/10 (40%)"
-    let normCompletion = "-";
-    if (totalOperations > 0) {
-      const normPercent = Math.round((normsCompleted / totalOperations) * 100);
-      normCompletion = `${normsCompleted}/${totalOperations} (${normPercent}%)`;
-    }
 
-    // Обновляем общую сумму с учетом бонуса наставника
-    const totalWageWithMentorBonus = totalWage + mentorBonus;
     
-    // Формируем строку с итогами включая бонус наставника
-    let totalText = `💵 Всего: ${totalWageWithMentorBonus.toFixed(2)} ₽ | 📦 Переупакованная: ${totalRepackaged} шт | 🏷️ Маркированная: ${totalStickered} шт | 📊 Выполнение норм: ${normCompletion} | ⚙️ Эффективность: ${avgEfficiency}%`;
     
-    // Добавляем детализацию о бонусе наставника с улучшенным описанием
-    if (mentorBonus > 0) {
+    // 🌙 ИСПОЛЬЗУЕМ ИТОГИ ОТ BACKEND'А
+    const dayTotals = data.dayTotals || { totalWage: 0, totalRepackaged: 0, totalStickered: 0 };
+    const nightTotals = data.nightTotals || { totalWage: 0, totalRepackaged: 0, totalStickered: 0 };
+    const staffTotals = data.staffTotals || { totalWage: 0, totalRepackaged: 0, totalStickered: 0 };
+    const traineeTotals = data.traineeTotals || { totalWage: 0, totalRepackaged: 0, totalStickered: 0 };
+    const totalTotals = data.totals || { totalWage: 0, totalRepackaged: 0, totalStickered: 0, totalMentorBonus: 0 };
+    
+    // Формируем итоговую строку с разбивкой
+    let totalText;
+    
+    if (isOutsourcing) {
+      // Для аутсорсинга - без информации о заработке
+      totalText = `📊 Всего за день: 📦 Переупак.: ${totalTotals.totalRepackaged} шт | 🏷️ Маркир.: ${totalTotals.totalStickered} шт`;
+    } else {
+      // Для штатных - с информацией о заработке
+      totalText = `💵 Всего за день: ${totalTotals.totalWage.toFixed(2)} ₽`;
+      
+      // Добавляем разбивку по сменам если есть обе
+      if (dayRecords.length > 0 && nightRecords.length > 0) {
+        totalText += ` (☀️ День: ${dayTotals.totalWage.toFixed(2)} ₽ | 🌙 Ночь: ${nightTotals.totalWage.toFixed(2)} ₽)`;
+      }
+      
+      // Добавляем разбивку по статусу если есть и штатные и стажеры
+      if (staffRecords.length > 0 && traineeRecords.length > 0) {
+        totalText += ` (👥 Штат: ${staffTotals.totalWage.toFixed(2)} ₽ | 👨‍🎓 Стажеры: ${traineeTotals.totalWage.toFixed(2)} ₽)`;
+      }
+      
+      totalText += ` | 📦 Переупак.: ${totalTotals.totalRepackaged} шт | 🏷️ Маркир.: ${totalTotals.totalStickered} шт`;
+    }
+    
+    // Добавляем детализацию о бонусе наставника (только для штатных)
+    if (!isOutsourcing && mentorBonus > 0) {
       if (mentorBonusDetails.isTrainee && mentorBonusDetails.mentor) {
-        // Для стажера показываем, что его наставник получает бонус
-        totalText += ` | 👨‍🏫 Бонус наставника ${mentorBonusDetails.mentor}: ${mentorBonus.toFixed(2)} ₽ (за вашу работу)`;
+        totalText += ` | 👨‍🏫 Бонус наставника ${mentorBonusDetails.mentor}: ${mentorBonus.toFixed(2)} ₽`;
       } else if (mentorBonusDetails.trainees && mentorBonusDetails.trainees.length > 0) {
-        // Для наставника показываем, за каких стажеров получен бонус
         const traineesText = mentorBonusDetails.trainees.join(', ');
         totalText += ` | 👨‍🏫 Бонус наставника: ${mentorBonus.toFixed(2)} ₽ (за стажеров: ${traineesText})`;
-      } else {
-        // Общий случай
-        totalText += ` | 👨‍🏫 Бонус наставника: ${mentorBonus.toFixed(2)} ₽`;
       }
     }
     
@@ -4080,7 +4284,6 @@ async function loadStats() {
     if (closeBtn) closeBtn.style.display = "inline-block";
 
   } catch (error) {
-    console.error("❌ Ошибка загрузки статистики:", error);
     showTemporaryNotification("❌ Ошибка загрузки статистики: " + error.message, "error");
     
     // Очищаем состояние при ошибке
@@ -4182,16 +4385,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   // ❌ УДАЛЕН весь код инициализации для авторизованных пользователей - теперь только через handleLogin()
 
   // 🗑️ Подсказка сохранения профиля убрана - теперь только ручной ввод
-  
-  // === 🌙 ИНИЦИАЛИЗАЦИЯ НОЧНЫХ СМЕН ===
-  // Проверяем дату ночной смены при загрузке с задержкой
-  setTimeout(() => {
-    checkAndUpdateNightShiftDate();
-    // Проверяем корректность выбора смены в дневное время
-    setTimeout(() => {
-      checkNightShiftReset();
-    }, 2000);
-  }, 1500);
 });
 
 async function loadPackingModels() {
@@ -4365,10 +4558,8 @@ async function getSalaryWithCache(employee) {
   // Проверяем кэш
   const cached = dataCache.salaries[employee];
   if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-    return {
-      daySalary: cached.daySalary || "",
-      nightSalary: cached.nightSalary || ""
-    };
+
+    return cached.salary;
   }
 
   // Пытаемся загрузить из localStorage
@@ -4376,8 +4567,7 @@ async function getSalaryWithCache(employee) {
   if (localData !== null) {
     // Сохраняем в оперативный кэш
     dataCache.salaries[employee] = {
-      daySalary: localData.daySalary || "",
-      nightSalary: localData.nightSalary || "",
+      salary: localData,
       timestamp: Date.now() - 1000 // Чуть старше, чтобы обновилось в фоне
     };
     
@@ -4386,10 +4576,8 @@ async function getSalaryWithCache(employee) {
       fetchSalaryFromServer(employee);
     }, 500);
     
-    return {
-      daySalary: localData.daySalary || "",
-      nightSalary: localData.nightSalary || ""
-    };
+
+    return localData;
   }
 
   // Загружаем с сервера
@@ -4399,6 +4587,8 @@ async function getSalaryWithCache(employee) {
 // Функция загрузки оклада с сервера
 async function fetchSalaryFromServer(employee) {
   try {
+
+    
     const res = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(employee)}`);
     
     if (!res.ok) {
@@ -4406,23 +4596,19 @@ async function fetchSalaryFromServer(employee) {
     }
     
     const data = await res.json();
-    const daySalary = String(data.daySalary || data.salary || "");
-    const nightSalary = String(data.nightSalary || "");
+    const salary = String(data.salary || "");
     
     // Сохраняем в кэш
     dataCache.salaries[employee] = {
-      daySalary: daySalary,
-      nightSalary: nightSalary,
+      salary: salary,
       timestamp: Date.now()
     };
     
     // Сохраняем в localStorage
-    saveSalaryToStorage(employee, { daySalary, nightSalary });
+    saveSalaryToStorage(employee, salary);
     
-    return {
-      daySalary: daySalary,
-      nightSalary: nightSalary
-    };
+
+    return salary;
     
   } catch (err) {
     console.error(`❌ Ошибка загрузки оклада для "${employee}":`, err);
@@ -4430,23 +4616,194 @@ async function fetchSalaryFromServer(employee) {
     // Пытаемся загрузить из localStorage как fallback
     const fallback = tryLoadSalaryFromStorage(employee);
     if (fallback !== null) {
+  
       return fallback;
     }
     
-    return {
-      daySalary: "",
-      nightSalary: ""
-    };
+    return null;
+  }
+}
+
+// 🌙 Новая функция для загрузки оклада с учетом смены
+async function fetchSalaryByShift(employee, shiftType) {
+  try {
+    const res = await fetch(`${scriptURL}?type=getSalaryByShift&employee=${encodeURIComponent(employee)}&shift=${encodeURIComponent(shiftType)}`);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    const salary = String(data.salary || "");
+    
+    console.log(`🌙 Загружен оклад для ${employee} (${shiftType}): ${salary}`);
+    
+    return salary;
+    
+  } catch (err) {
+    console.error(`❌ Ошибка загрузки оклада для "${employee}" (${shiftType}):`, err);
+    return null;
+  }
+}
+
+// 🌙 Функция обновления оклада при изменении смены
+async function updateSalaryForShift(shiftType) {
+  const currentUser = localStorage.getItem("currentUser");
+  const payType = document.getElementById("profilePayType").value;
+  const salaryInput = document.getElementById("profileSalary");
+  
+  // Обновляем оклад только если выбран "Оклад + сделка"
+  if (payType !== "Оклад + сделка" || !currentUser || !shiftType) {
+    return;
+  }
+  
+  try {
+    const salary = await fetchSalaryByShift(currentUser, shiftType);
+    if (salary !== null) {
+      salaryInput.value = salary;
+      console.log(`✅ Оклад обновлен для смены "${shiftType}": ${salary}`);
+    }
+  } catch (err) {
+    console.error("❌ Ошибка обновления оклада:", err);
+  }
+}
+
+// 🌙 Функция автоматической настройки профиля для аутсорсеров
+function setupOutsourcingProfile() {
+  console.log("🚚 Настройка профиля аутсорсера");
+  
+  // Автоматически устанавливаем статус "Аутсорсинг"
+  const statusSelect = document.getElementById("employeeStatus");
+  if (statusSelect) {
+    statusSelect.value = "Аутсорсинг";
+    statusSelect.disabled = true; // Блокируем изменение
+    statusSelect.style.backgroundColor = "#f3f4f6";
+    statusSelect.style.cursor = "not-allowed";
+  }
+  
+  // Автоматически устанавливаем тип оплаты "Сделка"
+  const payTypeSelect = document.getElementById("profilePayType");
+  if (payTypeSelect) {
+    // Сначала обновляем опции для аутсорсинга
+    updatePayTypeOptions("Аутсорсинг");
+    
+    // Затем устанавливаем "Сделка"
+    payTypeSelect.value = "Сделка";
+    payTypeSelect.disabled = true; // Блокируем изменение
+    payTypeSelect.style.backgroundColor = "#f3f4f6";
+    payTypeSelect.style.cursor = "not-allowed";
+  }
+  
+  // Скрываем блок оклада для аутсорсеров
+  const salaryBlock = document.getElementById("salaryBlock");
+  if (salaryBlock) {
+    salaryBlock.style.display = "none";
+  }
+  
+  // Скрываем ненужные вкладки для аутсорсеров (оставляем статистику для редактирования записей)
+  const tabMySalary = document.getElementById("tabMySalary");
+  const tabRates = document.getElementById("tabRates");
+  
+  if (tabMySalary) tabMySalary.style.display = "none";
+  if (tabRates) tabRates.style.display = "none";
+  
+  // 📊 СТАТИСТИКА ОСТАЕТСЯ ДОСТУПНОЙ для редактирования и удаления записей
+  
+  // Скрываем блоки тарифов и расчета оплаты для аутсорсеров
+  const rateInfo = document.getElementById("rateInfo");
+  const calcBlock = document.getElementById("calcBlock");
+  
+  if (rateInfo) rateInfo.style.display = "none";
+  if (calcBlock) calcBlock.style.display = "none";
+  
+  // Добавляем индикатор аутсорсера
+  addOutsourcingIndicator();
+  
+  console.log("✅ Профиль аутсорсера настроен");
+}
+
+// 🌙 Функция добавления индикатора аутсорсера
+function addOutsourcingIndicator() {
+  // Проверяем есть ли уже индикатор
+  if (document.getElementById("outsourcingIndicator")) return;
+  
+  // Создаем индикатор
+  const indicator = document.createElement("div");
+  indicator.id = "outsourcingIndicator";
+  indicator.innerHTML = "🚚 Аутсорсинг";
+  indicator.style.cssText = `
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    border: 2px solid #fbbf24;
+  `;
+  
+  // Вставляем в начало профиля
+  const profileContainer = document.getElementById("profileContainer");
+  const firstChild = profileContainer.querySelector("h2");
+  if (firstChild) {
+    firstChild.insertAdjacentElement("afterend", indicator);
+  }
+}
+
+// 🌙 Функция очистки настроек аутсорсера
+function clearOutsourcingSettings() {
+  // Разблокируем поля
+  const statusSelect = document.getElementById("employeeStatus");
+  if (statusSelect) {
+    statusSelect.disabled = false;
+    statusSelect.style.backgroundColor = "";
+    statusSelect.style.cursor = "";
+  }
+  
+  const payTypeSelect = document.getElementById("profilePayType");
+  if (payTypeSelect) {
+    payTypeSelect.disabled = false;
+    payTypeSelect.style.backgroundColor = "";
+    payTypeSelect.style.cursor = "";
+  }
+  
+  // Показываем блок оклада
+  const salaryBlock = document.getElementById("salaryBlock");
+  if (salaryBlock) {
+    salaryBlock.style.display = "none"; // Скрыто по умолчанию
+  }
+  
+  // Показываем вкладки для обычных пользователей
+  const tabMySalary = document.getElementById("tabMySalary");
+  const tabStats = document.getElementById("tabStats");
+  const tabRates = document.getElementById("tabRates");
+  
+  if (tabMySalary) tabMySalary.style.display = "inline-block";
+  if (tabStats) tabStats.style.display = "inline-block"; 
+  if (tabRates) tabRates.style.display = "inline-block";
+  
+  // Показываем блоки тарифов и расчета оплаты для обычных пользователей
+  const rateInfo = document.getElementById("rateInfo");
+  const calcBlock = document.getElementById("calcBlock");
+  
+  // Не показываем их принудительно, пусть updateRateDisplay() решает
+  if (rateInfo) rateInfo.style.display = "";
+  if (calcBlock) calcBlock.style.display = "";
+  
+  // Удаляем индикатор аутсорсера
+  const indicator = document.getElementById("outsourcingIndicator");
+  if (indicator) {
+    indicator.remove();
   }
 }
 
 // Функция сохранения оклада в localStorage
-function saveSalaryToStorage(employee, salaryData) {
+function saveSalaryToStorage(employee, salary) {
   try {
     const salariesCache = JSON.parse(localStorage.getItem('salariesCache') || '{}');
     salariesCache[employee] = {
-      daySalary: salaryData.daySalary || "",
-      nightSalary: salaryData.nightSalary || "",
+      salary: salary,
       timestamp: Date.now()
     };
     localStorage.setItem('salariesCache', JSON.stringify(salariesCache));
@@ -4465,10 +4822,7 @@ function tryLoadSalaryFromStorage(employee) {
       // Проверяем что данные не старше 24 часов
       const maxAge = 24 * 60 * 60 * 1000; // 24 часа
       if (Date.now() - cached.timestamp < maxAge) {
-        return {
-          daySalary: cached.daySalary || cached.salary || "",
-          nightSalary: cached.nightSalary || ""
-        };
+        return cached.salary;
       }
     }
   } catch (e) {
@@ -4485,10 +4839,10 @@ function preloadCurrentUserSalary() {
     const cachedSalary = tryLoadSalaryFromStorage(currentUser);
     if (cachedSalary !== null) {
       dataCache.salaries[currentUser] = {
-        daySalary: cachedSalary.daySalary || "",
-        nightSalary: cachedSalary.nightSalary || "",
+        salary: cachedSalary,
         timestamp: Date.now() - 1000 // Чуть старше для фонового обновления
       };
+  
       
       // Обновляем в фоне
       setTimeout(() => {
@@ -4498,40 +4852,38 @@ function preloadCurrentUserSalary() {
   }
 }
 
-// Функция "умного" заполнения полей оклада
+// Функция "умного" заполнения поля оклада
 function smartFillSalaryField() {
   const currentUser = localStorage.getItem("currentUser");
   const salaryInput = document.getElementById("profileSalary");
-  const nightSalaryInput = document.getElementById("profileNightSalary");
   
-  if (!currentUser || !salaryInput || !nightSalaryInput) return;
+  if (!currentUser || !salaryInput) return;
   
   // Проверяем есть ли оклад в кэше
   const cached = dataCache.salaries[currentUser];
   if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-    salaryInput.value = cached.daySalary || "";
-    nightSalaryInput.value = cached.nightSalary || "";
+    salaryInput.value = cached.salary;
+
     return;
   }
   
   // Проверяем localStorage
   const localSalary = tryLoadSalaryFromStorage(currentUser);
   if (localSalary !== null) {
-    salaryInput.value = localSalary.daySalary || "";
-    nightSalaryInput.value = localSalary.nightSalary || "";
+    salaryInput.value = localSalary;
+
     
     // Обновляем кэш и проверяем актуальность в фоне
     dataCache.salaries[currentUser] = {
-      daySalary: localSalary.daySalary,
-      nightSalary: localSalary.nightSalary,
+      salary: localSalary,
       timestamp: Date.now() - 1000
     };
     
     setTimeout(() => {
-      fetchSalaryFromServer(currentUser).then(newSalaryData => {
-        if (newSalaryData && (newSalaryData.daySalary !== localSalary.daySalary || newSalaryData.nightSalary !== localSalary.nightSalary)) {
-          salaryInput.value = newSalaryData.daySalary || "";
-          nightSalaryInput.value = newSalaryData.nightSalary || "";
+      fetchSalaryFromServer(currentUser).then(newSalary => {
+        if (newSalary && newSalary !== localSalary) {
+          salaryInput.value = newSalary;
+      
         }
       });
     }, 1000);
@@ -4573,18 +4925,6 @@ function selectOnlySeniors() {
   document.getElementById("updateSeniorsSalary").checked = true;
   document.getElementById("updateStaffIndicators").checked = false;
   document.getElementById("updateOutsourcingIndicators").checked = false;
-}
-
-function selectOnlyStaff() {
-  document.getElementById("updateSeniorsSalary").checked = false;
-  document.getElementById("updateStaffIndicators").checked = true;
-  document.getElementById("updateOutsourcingIndicators").checked = false;
-}
-
-function selectOnlyOutsourcing() {
-  document.getElementById("updateSeniorsSalary").checked = false;
-  document.getElementById("updateStaffIndicators").checked = false;
-  document.getElementById("updateOutsourcingIndicators").checked = true;
 }
 
 // Новая функция выборочного обновления
@@ -4647,42 +4987,36 @@ async function submitSelectiveUpdate() {
       resultMessage += "⏭️ Зарплаты старших смен: пропущено\n";
     }
     
-    // 2. Обновление показателей штатных сотрудников
-    if (updateStaff) {
-      resultBox.textContent = resultMessage + "🔄 Обновление показателей штатных сотрудников...";
+    // 2. Обновляем показатели (если выбрано что-то из показателей)
+    if (updateStaff || updateOutsourcing) {
+      resultBox.textContent = resultMessage + "🔄 Обновление показателей...";
       
-      const staffResponse = await fetch(`${scriptURL}?type=updatePeriodStaff&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
-      const staffResult = await staffResponse.json();
+      // Определяем тип обновления на основе выбранных чекбоксов
+      let updateType = "";
+      if (updateStaff && updateOutsourcing) {
+        updateType = "both"; // обновляем и штат и аутсорсинг
+      } else if (updateStaff) {
+        updateType = "staff"; // только штат
+      } else if (updateOutsourcing) {
+        updateType = "outsourcing"; // только аутсорсинг
+      }
       
-      if (staffResult.status === "success") {
-        resultMessage += `✅ Штатные показатели: ${staffResult.message}\n`;
-        if (staffResult.updated) {
-          resultMessage += `   📊 Обновлено: ${staffResult.updated} записей\n`;
+      const exportResponse = await fetch(`${scriptURL}?type=exportNow&date=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}&components=${updateType}`);
+      const exportResult = await exportResponse.text();
+      
+      if (exportResult.includes("✅")) {
+        if (updateStaff && updateOutsourcing) {
+          resultMessage += "✅ Показатели штата и аутсорсинга обновлены\n";
+        } else if (updateStaff) {
+          resultMessage += "✅ Показатели штатных сотрудников обновлены\n";
+        } else if (updateOutsourcing) {
+          resultMessage += "✅ Показатели аутсорсинга обновлены\n";
         }
       } else {
-        resultMessage += `⚠️ Штатные показатели: ${staffResult.message || 'ошибка обновления'}\n`;
+        resultMessage += `⚠️ Показатели: ${exportResult}\n`;
       }
     } else {
-      resultMessage += "⏭️ Показатели штата: пропущено\n";
-    }
-    
-    // 3. Обновление показателей аутсорсинга
-    if (updateOutsourcing) {
-      resultBox.textContent = resultMessage + "🔄 Обновление показателей аутсорсинга...";
-      
-      const outsourcingResponse = await fetch(`${scriptURL}?type=updatePeriodOutsourcing&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
-      const outsourcingResult = await outsourcingResponse.json();
-      
-      if (outsourcingResult.status === "success") {
-        resultMessage += `✅ Аутсорсинг показатели: ${outsourcingResult.message}\n`;
-        if (outsourcingResult.updated) {
-          resultMessage += `   🏢 Обновлено: ${outsourcingResult.updated} записей\n`;
-        }
-      } else {
-        resultMessage += `⚠️ Аутсорсинг показатели: ${outsourcingResult.message || 'ошибка обновления'}\n`;
-      }
-    } else {
-      resultMessage += "⏭️ Показатели аутсорсинга: пропущено\n";
+      resultMessage += "⏭️ Показатели: пропущено\n";
     }
     
     resultBox.style.color = '#059669';
@@ -4699,8 +5033,6 @@ async function submitSelectiveUpdate() {
     btn.textContent = originalText;
   }
 }
-
-
 
 // Старая функция для обратной совместимости
 async function submitUpdateAll() {
@@ -5853,7 +6185,7 @@ async function loadSeniorsReport() {
         let rowStyle = "";
         if (item.efficiency >= 100) {
           rowStyle = "background:#ecfdf5;"; // Зеленый для высокой эффективности
-        } else if (item.efficiency >= 90) {
+        } else if (item.efficiency >= 80) {
           rowStyle = "background:#fef3c7;"; // Желтый для средней эффективности
         } else {
           rowStyle = "background:#fef2f2;"; // Красный для низкой эффективности
@@ -5864,12 +6196,12 @@ async function loadSeniorsReport() {
           <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.shift}</td>
           <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.name}</td>
           <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
-            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 90 ? '#d97706' : '#dc2626'}">
+            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 80 ? '#d97706' : '#dc2626'}">
               ${item.efficiency}%
             </span>
           </td>
           <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
-            <span style="font-weight:bold; color:${item.norm >= 90 ? '#059669' : '#dc2626'}">
+            <span style="font-weight:bold; color:${item.norm >= 80 ? '#059669' : '#dc2626'}">
               ${item.norm}%
             </span>
           </td>
@@ -5933,16 +6265,6 @@ if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
 window.addEventListener("DOMContentLoaded", () => {
   const loginInput = document.getElementById("login");
   if (loginInput) loginInput.focus();
-});
-
-// === 🌙 МОНИТОРИНГ НОЧНЫХ СМЕН ===
-// Проверяем дату при возврате в приложение
-document.addEventListener('visibilitychange', function() {
-  if (!document.hidden) {
-    setTimeout(() => {
-      checkAndUpdateNightShiftDate();
-    }, 500);
-  }
 });
 
 // 🧼 Сброс ошибки при вводе
@@ -6622,8 +6944,8 @@ function validateFormRealTime() {
   if (payload.employeeName && payload.quantity && payload.startTime && 
       payload.endTime && payload.operationType) {
     
-    analyzeAllDuplicates(payload);
-    showDuplicateWarnings();
+    // 🚫 ОТКЛЮЧЕНО: analyzeAllDuplicates(payload);
+    // 🚫 ОТКЛЮЧЕНО: showDuplicateWarnings();
     saveDraft(); // Сохраняем черновик
   }
 }
@@ -7614,217 +7936,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// === ФУНКЦИИ УПРАВЛЕНИЯ ДОПЛАТАМИ ===
-
-/**
- * Открытие менеджера доплат
- */
-function openDoplataManager() {
-  // Скрываем все контейнеры
-  document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
-  
-  // Показываем контейнер доплат
-  document.getElementById('doplataContainer').style.display = 'block';
-  
-  // Загружаем список сотрудников и доплат
-  populateEmployeeList();
-  loadDoplaty();
-}
-
-/**
- * Закрытие менеджера доплат
- */
-function closeDoplataManager() {
-  document.getElementById('doplataContainer').style.display = 'none';
-  document.getElementById('adminContainer').style.display = 'block';
-}
-
-/**
- * Заполнение списка сотрудников
- */
-async function populateEmployeeList() {
-  try {
-    const response = await fetch(`${scriptURL}?type=employees`);
-    const data = await response.json();
-    
-    const select = document.getElementById('doplataEmployee');
-    select.innerHTML = '<option value="">Выберите сотрудника</option>';
-    
-    if (data.employees && data.employees.length > 0) {
-      data.employees.forEach(emp => {
-        if (emp.status === 'Штат') { // Только штатные сотрудники
-          const option = document.createElement('option');
-          option.value = emp.name;
-          option.textContent = emp.name;
-          select.appendChild(option);
-        }
-      });
-    }
-  } catch (error) {
-    console.error('Ошибка загрузки сотрудников:', error);
-    showTemporaryNotification('❌ Ошибка загрузки списка сотрудников', 'error');
-  }
-}
-
-/**
- * Загрузка списка доплат
- */
-async function loadDoplaty() {
-  try {
-    const listContainer = document.getElementById('doplataList');
-    listContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">⏳ Загрузка доплат...</p>';
-    
-    const response = await fetch(`${scriptURL}?type=getDoplaty`);
-    const data = await response.json();
-    
-    if (data.status === 'success') {
-      if (data.doplaty && data.doplaty.length > 0) {
-        let html = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
-        html += `
-          <thead>
-            <tr style="background: #f8fafc;">
-              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">ID</th>
-              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">Сотрудник</th>
-              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">Период</th>
-              <th style="padding: 12px; text-align: right; border: 1px solid #e5e7eb;">Сумма</th>
-              <th style="padding: 12px; text-align: left; border: 1px solid #e5e7eb;">Причина</th>
-              <th style="padding: 12px; text-align: center; border: 1px solid #e5e7eb;">Статус</th>
-              <th style="padding: 12px; text-align: center; border: 1px solid #e5e7eb;">Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-        `;
-        
-        data.doplaty.forEach(doplata => {
-          const statusStyle = doplata.status === 'Активна' ? 'color: #059669; font-weight: bold;' : 'color: #dc2626;';
-          const actionButton = doplata.status === 'Активна' 
-            ? `<button onclick="cancelDoplata(${doplata.id})" style="background: #dc2626; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer;">❌ Отменить</button>`
-            : '<span style="color: #6b7280;">—</span>';
-            
-          html += `
-            <tr style="border-bottom: 1px solid #e5e7eb;">
-              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.id}</td>
-              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.employee}</td>
-              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.startDate} — ${doplata.endDate}</td>
-              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${doplata.amount}₽</td>
-              <td style="padding: 8px; border: 1px solid #e5e7eb;">${doplata.reason}</td>
-              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; ${statusStyle}">${doplata.status}</td>
-              <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">${actionButton}</td>
-            </tr>
-          `;
-        });
-        
-        html += '</tbody></table></div>';
-        listContainer.innerHTML = html;
-      } else {
-        listContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">📭 Доплат пока нет</p>';
-      }
-    } else {
-      listContainer.innerHTML = `<p style="text-align: center; color: #dc2626;">❌ Ошибка: ${data.message}</p>`;
-    }
-  } catch (error) {
-    console.error('Ошибка загрузки доплат:', error);
-    document.getElementById('doplataList').innerHTML = '<p style="text-align: center; color: #dc2626;">❌ Ошибка загрузки данных</p>';
-  }
-}
-
-/**
- * Добавление новой доплаты
- */
-async function addDoplata() {
-  try {
-    const employee = document.getElementById('doplataEmployee').value;
-    const startDate = document.getElementById('doplataStartDate').value;
-    const endDate = document.getElementById('doplataEndDate').value;
-    const amount = document.getElementById('doplataAmount').value;
-    const reason = document.getElementById('doplataReason').value;
-    
-    // Валидация
-    if (!employee || !startDate || !endDate || !amount || !reason) {
-      showTemporaryNotification('❗ Заполните все поля', 'warning');
-      return;
-    }
-    
-    if (Number(amount) <= 0) {
-      showTemporaryNotification('❗ Сумма должна быть больше 0', 'warning');
-      return;
-    }
-    
-    if (new Date(endDate) < new Date(startDate)) {
-      showTemporaryNotification('❗ Дата окончания не может быть раньше даты начала', 'warning');
-      return;
-    }
-    
-    // Блокируем кнопку
-    const btn = document.getElementById('addDoplataBtn');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '⏳ Добавление...';
-    
-    // Отправляем запрос
-    const params = new URLSearchParams({
-      type: 'addDoplata',
-      employee: employee,
-      startDate: startDate,
-      endDate: endDate,
-      amount: amount,
-      reason: reason,
-      createdBy: localStorage.getItem('currentUser') || 'admin'
-    });
-    
-    const response = await fetch(`${scriptURL}?${params}`);
-    const data = await response.json();
-    
-    if (data.status === 'success') {
-      showTemporaryNotification(`✅ ${data.message}`, 'success');
-      
-      // Очищаем форму
-      document.getElementById('doplataEmployee').value = '';
-      document.getElementById('doplataStartDate').value = '';
-      document.getElementById('doplataEndDate').value = '';
-      document.getElementById('doplataAmount').value = '';
-      document.getElementById('doplataReason').value = '';
-      
-      // Обновляем список
-      loadDoplaty();
-    } else {
-      showTemporaryNotification(`❌ Ошибка: ${data.message}`, 'error');
-    }
-  } catch (error) {
-    console.error('Ошибка добавления доплаты:', error);
-    showTemporaryNotification('❌ Ошибка при добавлении доплаты', 'error');
-  } finally {
-    // Разблокируем кнопку
-    const btn = document.getElementById('addDoplataBtn');
-    btn.disabled = false;
-    btn.textContent = originalText;
-  }
-}
-
-/**
- * Отмена доплаты
- */
-async function cancelDoplata(id) {
-  if (!confirm('Вы уверены, что хотите отменить эту доплату?')) {
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${scriptURL}?type=deleteDoplata&id=${id}`);
-    const data = await response.json();
-    
-    if (data.status === 'success') {
-      showTemporaryNotification(`✅ ${data.message}`, 'success');
-      loadDoplaty(); // Обновляем список
-    } else {
-      showTemporaryNotification(`❌ Ошибка: ${data.message}`, 'error');
-    }
-  } catch (error) {
-    console.error('Ошибка отмены доплаты:', error);
-    showTemporaryNotification('❌ Ошибка при отмене доплаты', 'error');
-  }
-}
-
 </script>
 <div id="editModal" style="display:none; position:fixed; top:10%; left:0; right:0; margin:auto; max-width:500px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.3); z-index:1000;">
   <h3>✏️ Редактировать запись</h3>
@@ -7932,7 +8043,7 @@ async function cancelDoplata(id) {
           <input type="checkbox" id="updateStaffIndicators" checked style="width:16px; height:16px;">
           <div>
             <strong>📊 Показатели штатных сотрудников</strong>
-            <div style="font-size:12px; color:#000000;">Обновление показателей штата и стажеров</div>
+            <div style="font-size:12px; color:#000000;">Обновление эффективности и норм штата</div>
           </div>
         </label>
         
@@ -7940,18 +8051,16 @@ async function cancelDoplata(id) {
           <input type="checkbox" id="updateOutsourcingIndicators" checked style="width:16px; height:16px;">
           <div>
             <strong>🏢 Показатели аутсорсинга</strong>
-            <div style="font-size:12px; color:#000000;">Обновление показателей внешних упаковщиков</div>
+            <div style="font-size:12px; color:#000000;">Обновление данных внешних подрядчиков</div>
           </div>
         </label>
       </div>
       
       <!-- Кнопки быстрого выбора -->
-      <div style="margin-top:16px; display:flex; gap:4px; border-top:1px solid #e5e7eb; padding-top:12px;">
-        <button type="button" onclick="selectAllUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">✅ Все</button>
-        <button type="button" onclick="selectNoneUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">❌ Ничего</button>
-        <button type="button" onclick="selectOnlySeniors()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">👨‍💼 Старшие</button>
-        <button type="button" onclick="selectOnlyStaff()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">📊 Штат</button>
-        <button type="button" onclick="selectOnlyOutsourcing()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 8px; border-radius:4px; font-size:12px; cursor:pointer;">🏢 Аутсорс</button>
+      <div style="margin-top:16px; display:flex; gap:8px; border-top:1px solid #e5e7eb; padding-top:12px;">
+        <button type="button" onclick="selectAllUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">✅ Все</button>
+        <button type="button" onclick="selectNoneUpdates()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">❌ Ничего</button>
+        <button type="button" onclick="selectOnlySeniors()" style="flex:1; background:#e5e7eb; color:#000000; border:none; padding:6px 12px; border-radius:4px; font-size:12px; cursor:pointer;">👨‍💼 Только старшие</button>
       </div>
     </div>
     
@@ -8206,229 +8315,6 @@ async function cancelDoplata(id) {
       }
     }, 5000); // ЗАДЕРЖКА 3 секунды
   });
-// === 🌙 ЛОГИКА НОЧНЫХ СМЕН ===
-
-/**
- * Вычисляет правильную дату для ночной смены на основе текущего времени
- * Ночная смена: 20:30-08:30
- * @returns {Date} Эффективная дата для ночной смены
- */
-function calculateNightShiftDate() {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const currentTime = currentHour * 60 + currentMinute; // минуты с начала дня
-  
-  const nightShiftStart = 20 * 60 + 30; // 20:30 = 1230 минут
-  const nightShiftEnd = 8 * 60 + 30;    // 08:30 = 510 минут
-  
-  let shiftDate = new Date(now);
-  
-  if (currentTime >= nightShiftStart) {
-    // 20:30-23:59 - начало ночной смены сегодня
-    // Операции записываются на сегодняшнюю дату
-  } else if (currentTime <= nightShiftEnd) {
-    // 00:00-08:30 - продолжение ночной смены вчерашнего дня
-    // Операции записываются на вчерашнюю дату
-    shiftDate.setDate(shiftDate.getDate() - 1);
-  } else {
-    // 08:31-20:29 - дневное время, но ночная смена выбрана
-    // Возможно планирование на сегодня, оставляем текущую дату
-  }
-  
-  return shiftDate;
-}
-
-/**
- * Форматирует время в формате ЧЧ:ММ
- */
-function formatTime(hour, minute) {
-  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-}
-
-/**
- * Форматирует дату в формате ДД.ММ.ГГГГ
- */
-function formatDate(date) {
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
-}
-
-/**
- * Показывает стилизованное уведомление
- */
-function showAutoNotification({title, message, type = 'info', duration = 4000}) {
-  // Создаем контейнер если его нет
-  let container = document.getElementById('auto-notifications');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'auto-notifications';
-    container.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      max-width: 400px;
-    `;
-    document.body.appendChild(container);
-  }
-  
-  // Создаем уведомление
-  const notification = document.createElement('div');
-  const bgColor = type === 'warning' ? '#ff9800' : type === 'success' ? '#4caf50' : '#2196f3';
-  
-  notification.style.cssText = `
-    background: ${bgColor};
-    color: white;
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    font-size: 14px;
-    line-height: 1.4;
-  `;
-  
-  notification.innerHTML = `
-    <div style="font-weight: bold; margin-bottom: 4px;">${title}</div>
-    <div>${message}</div>
-  `;
-  
-  container.appendChild(notification);
-  
-  // Анимация появления
-  setTimeout(() => {
-    notification.style.transform = 'translateX(0)';
-  }, 100);
-  
-  // Удаление
-  setTimeout(() => {
-    notification.style.transform = 'translateX(100%)';
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 300);
-  }, duration);
-}
-
-/**
- * Показывает уведомление об автоматически вычисленной дате ночной смены
- */
-function showNightShiftDateNotification(calculatedDate) {
-  const now = new Date();
-  const currentTime = formatTime(now.getHours(), now.getMinutes());
-  const dateStr = formatDate(calculatedDate);
-  
-  showAutoNotification({
-    title: '🌙 Ночная смена',
-    message: `Автоматически установлена дата: ${dateStr} (текущее время: ${currentTime})`,
-    type: 'info',
-    duration: 5000
-  });
-}
-
-/**
- * Показывает различные уведомления об обновлении даты ночной смены
- */
-function showNightShiftUpdateNotification(action, actualDate, currentHour, currentMinute, savedDateStr = null) {
-  const currentTime = formatTime(currentHour, currentMinute);
-  const actualDateStr = formatDate(actualDate);
-  
-  switch (action) {
-    case 'new':
-      showAutoNotification({
-        title: '🌙 Ночная смена активирована',
-        message: `Установлена дата операций: ${actualDateStr}<br>Время: ${currentTime}`,
-        type: 'success',
-        duration: 4000
-      });
-      break;
-      
-    case 'updated':
-      const savedDate = new Date(savedDateStr + 'T00:00:00');
-      const savedDateFormatted = formatDate(savedDate);
-      showAutoNotification({
-        title: '🔄 Дата ночной смены обновлена',
-        message: `Было: ${savedDateFormatted}<br>Стало: ${actualDateStr}<br>Время: ${currentTime}`,
-        type: 'warning',
-        duration: 5000
-      });
-      break;
-      
-    case 'confirmed':
-      showAutoNotification({
-        title: '✅ Дата ночной смены актуальна',
-        message: `Дата операций: ${actualDateStr}<br>Время: ${currentTime}`,
-        type: 'success',
-        duration: 3000
-      });
-      break;
-  }
-}
-
-/**
- * Проверяет и обновляет дату ночной смены при входе в приложение
- */
-function checkAndUpdateNightShiftDate() {
-  const currentShift = localStorage.getItem("profileShiftType");
-  
-  // Если не ночная смена - удаляем сохраненную дату
-  if (currentShift !== "Ночь") {
-    localStorage.removeItem("nightShiftDate");
-    return;
-  }
-  
-  // Вычисляем актуальную дату
-  const actualDate = calculateNightShiftDate();
-  const actualDateStr = actualDate.toISOString().split('T')[0]; // YYYY-MM-DD
-  const savedDateStr = localStorage.getItem("nightShiftDate");
-  
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  
-  if (!savedDateStr) {
-    // Первый раз устанавливаем дату
-    localStorage.setItem("nightShiftDate", actualDateStr);
-    showNightShiftUpdateNotification("new", actualDate, currentHour, currentMinute);
-  } else if (savedDateStr !== actualDateStr) {
-    // Дата изменилась - обновляем
-    localStorage.setItem("nightShiftDate", actualDateStr);
-    showNightShiftUpdateNotification("updated", actualDate, currentHour, currentMinute, savedDateStr);
-  } else {
-    // Дата актуальна - подтверждаем
-    showNightShiftUpdateNotification("confirmed", actualDate, currentHour, currentMinute);
-  }
-}
-
-/**
- * Предупреждает пользователя если выбрана ночная смена в дневное время
- */
-function checkNightShiftReset() {
-  const currentShift = localStorage.getItem("profileShiftType");
-  
-  if (currentShift !== "Ночь") return;
-  
-  const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
-  const dayTimeStart = 8 * 60 + 31;  // 08:31
-  const dayTimeEnd = 20 * 60 + 29;   // 20:29
-  
-  if (currentTime >= dayTimeStart && currentTime <= dayTimeEnd) {
-    const currentTimeStr = formatTime(now.getHours(), now.getMinutes());
-    showAutoNotification({
-      title: '⚠️ Проверьте настройки',
-      message: `Сейчас ${currentTimeStr} - дневное время, но выбрана ночная смена. Возможно, нужно переключиться на дневную смену в профиле?`,
-      type: 'warning',
-      duration: 6000
-    });
-  }
-}
-
 </script>
 </body>
 </html>
