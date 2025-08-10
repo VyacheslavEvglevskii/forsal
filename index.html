@@ -1561,7 +1561,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbw2SJwxfJ7inNWCAXq5yC4f-GhzCc6yMCKRcSirn7Fyc19ZyH6qSCK2-b-GFHpgkUA/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzpg9L0ZHmZkBETWA4gnASMDWy3T-64_UWYJlbAkqcM1_TD5ounRzpxWWN6-Zq2Og/exec";
   
   // Проверяем URL при загрузке
 
@@ -6486,56 +6486,64 @@ async function showSeniorShiftForm() {
   const container = document.getElementById("reportContainer");
   
   container.innerHTML = `
-    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-      <h3 style="text-align: center; color: #22c55e; margin-bottom: 20px;">➕ Добавить запись старшего смены</h3>
+    <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 100%;">
+      <h3 style="text-align: center; color: #22c55e; margin-bottom: 20px; font-size: 18px;">👥 Добавить смену</h3>
       
-      <div style="max-width: 600px; margin: 0 auto;">
-        <!-- Выбор старшего смены -->
-        <div style="margin-bottom: 16px;">
-          <label for="seniorSelect" style="display: block; margin-bottom: 8px; font-weight: 600;">👤 Старший смены:</label>
-          <select id="seniorSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px;" required>
-            <option value="">⌛ Загрузка списка...</option>
-          </select>
+      <div style="max-width: 100%; margin: 0 auto;">
+        <!-- Выбор старшего смены и помощника в одной строке для десктопа -->
+        <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px;">
+            <label for="seniorSelect" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">👨‍💼 Старший смены:</label>
+            <select id="seniorSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;" required>
+              <option value="">⌛ Загрузка списка...</option>
+            </select>
+          </div>
+          
+          <div style="flex: 1; min-width: 250px;">
+            <label for="helperSelect" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">👤 Помощник <small style="color: #6b7280; font-weight: normal;">(необязательно)</small>:</label>
+            <select id="helperSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+              <option value="">⌛ Загрузка списка...</option>
+            </select>
+          </div>
         </div>
         
-        <!-- Тип смены -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600;">🌅🌙 Тип смены:</label>
-          <div style="display: flex; gap: 16px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="radio" name="shiftType" value="День" checked style="transform: scale(1.2);">
-              <span style="font-size: 16px;">🌅 День</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="radio" name="shiftType" value="Ночь" style="transform: scale(1.2);">
-              <span style="font-size: 16px;">🌙 Ночь</span>
-            </label>
+        <!-- Тип смены и дата в адаптивном блоке -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">🌅🌙 Тип смены:</label>
+            <div style="display: flex; gap: 16px; justify-content: center; padding: 8px; background: #f3f4f6; border-radius: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" name="shiftType" value="День" checked style="transform: scale(1.3);">
+                <span style="font-size: 16px; font-weight: 500;">🌅 День</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" name="shiftType" value="Ночь" style="transform: scale(1.3);">
+                <span style="font-size: 16px; font-weight: 500;">🌙 Ночь</span>
+              </label>
+            </div>
           </div>
-          <small style="color: #6b7280; margin-top: 4px; display: block;">
+          
+          <div style="flex: 1; min-width: 200px;">
+            <label for="customDate" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">📅 Дата (опционально):</label>
+            <input type="date" id="customDate" 
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+          <small style="color: #6b7280; font-size: 13px;">
             💡 Дата определится автоматически по типу смены и текущему времени
           </small>
         </div>
         
-
-        
-        <!-- Опциональная дата -->
-        <div style="margin-bottom: 20px;">
-          <label for="customDate" style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Дата (опционально):</label>
-          <input type="date" id="customDate" 
-                 style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px;">
-          <small style="color: #6b7280; margin-top: 4px; display: block;">
-            💡 Оставьте пустым для автоматического определения даты
-          </small>
-        </div>
-        
-        <!-- Кнопки -->
-        <div style="display: flex; gap: 12px; justify-content: center;">
+        <!-- Кнопки для мобильной адаптации -->
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
           <button onclick="addSeniorShiftRecord()" id="addSeniorRecordBtn" 
-                  style="background: #22c55e; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; flex: 1; max-width: 200px;">
-            ➕ Добавить запись
+                  style="background: #22c55e; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1; min-width: 140px; max-width: 180px; touch-action: manipulation;">
+            ➕ Добавить
           </button>
           <button onclick="clearReports()" 
-                  style="background: #6b7280; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; flex: 1; max-width: 200px;">
+                  style="background: #6b7280; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1; min-width: 140px; max-width: 180px; touch-action: manipulation;">
             ❌ Отменить
           </button>
         </div>
@@ -6550,31 +6558,74 @@ async function showSeniorShiftForm() {
   await loadSeniorsListForForm();
 }
 
-// Загрузка списка старших смен для формы
+// Загрузка списка старших смен для формы из справочника
 async function loadSeniorsListForForm() {
   try {
-    const res = await fetch(`${scriptURL}?type=getSeniorsList`);
+    const res = await fetch(`${scriptURL}?type=getSeniorsAndHelpers`);
     const data = await res.json();
 
-    const seniors = Array.from(new Set((data.seniors || []))).sort();
-    const select = document.getElementById("seniorSelect");
+    const seniorSelect = document.getElementById("seniorSelect");
+    const helperSelect = document.getElementById("helperSelect");
 
-    if (seniors.length === 0) {
-      select.innerHTML = `<option value="">❌ Нет данных о старших сменах</option>`;
+    if (data.error) {
+      console.error("Ошибка API:", data.error);
+      seniorSelect.innerHTML = `<option value="">❌ ${data.error}</option>`;
+      helperSelect.innerHTML = `<option value="">-- Без помощника --</option>`;
       return;
     }
 
-    select.innerHTML = `<option value="">-- Выберите старшего смены --</option>`;
+    const seniors = data.seniors || [];
+    const helpers = data.helpers || [];
+    const pairs = data.pairs || [];
+
+    if (seniors.length === 0) {
+      seniorSelect.innerHTML = `<option value="">❌ Нет данных в справочнике</option>`;
+      helperSelect.innerHTML = `<option value="">-- Без помощника --</option>`;
+      return;
+    }
+
+    // Заполняем список старших смен
+    seniorSelect.innerHTML = `<option value="">-- Выберите старшего смены --</option>`;
     seniors.forEach(senior => {
       const opt = document.createElement("option");
       opt.value = senior;
       opt.textContent = senior;
-      select.appendChild(opt);
+      seniorSelect.appendChild(opt);
     });
+
+    // Заполняем список помощников (уникальный список помощников + опция без помощника)
+    helperSelect.innerHTML = `<option value="">-- Без помощника --</option>`;
+    helpers.forEach(helper => {
+      const opt = document.createElement("option");
+      opt.value = helper;
+      opt.textContent = helper;
+      helperSelect.appendChild(opt);
+    });
+
+    // Сохраняем данные о парах для автоматического выбора
+    window.seniorHelperPairs = pairs;
+
+    // Добавляем обработчик для автоматического выбора помощника
+    seniorSelect.addEventListener('change', function() {
+      const selectedSenior = this.value;
+      if (selectedSenior && window.seniorHelperPairs) {
+        const pair = window.seniorHelperPairs.find(p => p.senior === selectedSenior);
+        if (pair && pair.helper) {
+          helperSelect.value = pair.helper;
+          console.log(`🤖 Автоматически выбран помощник: ${pair.helper} для ${selectedSenior}`);
+        } else {
+          helperSelect.value = "";
+        }
+      }
+    });
+
+    console.log(`✅ Загружено: ${seniors.length} старших, ${helpers.length} помощников, ${pairs.length} пар`);
   } catch (err) {
-    const select = document.getElementById("seniorSelect");
-    select.innerHTML = `<option value="">❌ Ошибка загрузки списка</option>`;
-    console.error("Ошибка при загрузке старших смен:", err);
+    const seniorSelect = document.getElementById("seniorSelect");
+    const helperSelect = document.getElementById("helperSelect");
+    seniorSelect.innerHTML = `<option value="">❌ Ошибка загрузки справочника</option>`;
+    helperSelect.innerHTML = `<option value="">-- Без помощника --</option>`;
+    console.error("Ошибка при загрузке справочника старших смен:", err);
   }
 }
 
@@ -6585,6 +6636,7 @@ async function addSeniorShiftRecord() {
   
   // Получаем данные из формы
   const seniorName = document.getElementById("seniorSelect").value.trim();
+  const helperName = document.getElementById("helperSelect").value.trim();
   const shiftType = document.querySelector('input[name="shiftType"]:checked').value;
   const customDate = document.getElementById("customDate").value;
   
@@ -6595,6 +6647,12 @@ async function addSeniorShiftRecord() {
     return;
   }
   
+  if (helperName && seniorName === helperName) {
+    resultBox.style.color = '#dc2626';
+    resultBox.textContent = "❌ Старший смены и помощник должны быть разными людьми";
+    return;
+  }
+  
   // Блокировка кнопки
   btn.disabled = true;
   const originalText = btn.textContent;
@@ -6602,55 +6660,64 @@ async function addSeniorShiftRecord() {
   resultBox.textContent = "";
   
   try {
-    // Формируем параметры запроса
+    // Создаем запрос для добавления старшего смены через специальный endpoint
     const params = new URLSearchParams({
       type: 'addSeniorShift',
       seniorName: seniorName,
+      helperName: helperName || '',
       shiftType: shiftType
     });
     
-    // Добавляем дату если указана
     if (customDate) {
       params.append('shiftDate', customDate);
     }
     
-    const res = await fetch(`${scriptURL}?${params}`);
-    const data = await res.json();
+    const response = await fetch(`${scriptURL}?${params}`, {
+      method: 'GET'
+    });
     
-    if (data.status === 'success') {
+    const result = await response.json();
+    
+    if (result.status === 'success') {
       resultBox.style.color = '#22c55e';
-      resultBox.textContent = data.message;
+      resultBox.textContent = result.message;
       
-      // Очищаем форму
+      // Очищаем форму при успехе
       document.getElementById("customDate").value = '';
       document.getElementById("seniorSelect").selectedIndex = 0;
-      
-      // Сбрасываем на День
+      document.getElementById("helperSelect").selectedIndex = 0;
       document.querySelector('input[name="shiftType"][value="День"]').checked = true;
       
+      console.log('✅ Записи успешно добавлены:', result.data);
     } else {
       resultBox.style.color = '#dc2626';
-      resultBox.textContent = data.message || "❌ Ошибка при добавлении записи";
+      resultBox.textContent = result.message || '❌ Ошибка при добавлении записей';
     }
     
   } catch (err) {
     resultBox.style.color = '#dc2626';
     resultBox.textContent = `❌ Ошибка: ${err.message}`;
-    console.error("Ошибка при добавлении записи старшего смены:", err);
+    console.error("Ошибка при добавлении записей смены:", err);
   } finally {
     btn.disabled = false;
     btn.textContent = originalText;
   }
 }
 
-// Загрузка списка старших смен для селекта (существующая функция)
+// Загрузка списка старших смен для селекта экспорта зарплаты
 async function loadSalaryExportSeniors() {
   try {
-    const res = await fetch(`${scriptURL}?type=getSeniorsList`);
+    const res = await fetch(`${scriptURL}?type=getSeniorsAndHelpers`);
     const data = await res.json();
 
-    const seniors = Array.from(new Set((data.seniors || []))).sort();
     const select = document.getElementById("salaryExportSenior");
+
+    if (data.error) {
+      select.innerHTML = `<option value="">❌ ${data.error}</option>`;
+      return;
+    }
+
+    const seniors = data.seniors || [];
 
     select.innerHTML = `<option value="">-- Все --</option>`;
     seniors.forEach(senior => {
@@ -6659,9 +6726,11 @@ async function loadSalaryExportSeniors() {
       opt.textContent = senior;
       select.appendChild(opt);
     });
+    
+    console.log(`✅ Загружено для экспорта: ${seniors.length} старших смен`);
   } catch (err) {
-    document.getElementById("salaryExportResult").textContent = "Ошибка загрузки старших смен!";
-    console.error("Ошибка при загрузке старших смен:", err);
+    document.getElementById("salaryExportResult").textContent = "Ошибка загрузки справочника старших смен!";
+    console.error("Ошибка при загрузке справочника старших смен:", err);
   }
 }
 
@@ -8244,9 +8313,9 @@ function displayNormativesResults(results) {
     
     <div style="margin-top:16px; padding:12px; background:#f0f9ff; border-radius:8px; font-size:12px; color:#1e40af;">
       <strong>💡 Пояснения:</strong><br>
-      🔴 <strong>Завышенная норма</strong> - средняя эффективность < 70%<br>
-      🟢 <strong>Заниженная норма</strong> - средняя эффективность > 120%<br>
-      ⚪ <strong>Норма в порядке</strong> - эффективность в диапазоне 70-120%
+      🔴 <strong>Завышенная норма</strong> - средняя эффективность < 80%<br>
+      🟢 <strong>Заниженная норма</strong> - средняя эффективность > 100%<br>
+      ⚪ <strong>Норма в порядке</strong> - эффективность в диапазоне 80-100%
     </div>
   `;
   
@@ -8370,7 +8439,7 @@ function openEditNormModal(rateKey, index) {
   } else if (item.status === "understated") {
     recommendation = `🟢 Норма занижена! Сотрудники легко превышают норму с эффективностью ${item.avgEfficiency}%. Рекомендуется повысить норму до ${item.recommendedNorm} шт/час для более точного планирования.`;
   } else {
-    recommendation = `⚪ Норма соответствует реальной производительности. Средняя эффективность ${item.avgEfficiency}% находится в оптимальном диапазоне 70-120%.`;
+    recommendation = `⚪ Норма соответствует реальной производительности. Средняя эффективность ${item.avgEfficiency}% находится в оптимальном диапазоне 80-100%.`;
   }
   
   document.getElementById("editNormRecommendation").textContent = recommendation;
