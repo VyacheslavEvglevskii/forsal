@@ -275,7 +275,7 @@ input:focus, select:focus, textarea:focus {
 button {
   background-color: #2563eb;
   color: white;
-  padding: 14px 18px;
+  padding: 16px 18px;
   font-size: 15px;
   font-weight: 600;
   border: none;
@@ -283,6 +283,8 @@ button {
   cursor: pointer;
   width: 100%;
   margin-top: 12px;
+  min-height: 48px;
+  touch-action: manipulation;
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
@@ -392,11 +394,14 @@ button.danger:hover {
   background: none;
   border: none;
   color: white;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
   flex: 1;
   text-align: center;
   transition: all 0.3s ease;
+  padding: 12px 6px;
+  min-height: 48px;
+  touch-action: manipulation;
 }
 
 /* Стили для скрытых кнопок в админ-режиме */
@@ -440,13 +445,15 @@ button.danger:hover {
 
 .stat-card button {
   margin-top: 12px;
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 12px 16px;
+  font-size: 16px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
   background-color: #2563eb;
   color: white;
+  min-height: 48px;
+  touch-action: manipulation;
 }
 
 .stat-card button:hover {
@@ -1010,16 +1017,19 @@ button.danger:hover {
     margin-bottom: 2px;
   }
   input, select, textarea {
-    font-size: 14px;
-    min-height: 38px;
-    padding: 6px 4px;
-    border-radius: 7px;
+    font-size: 16px;
+    min-height: 44px;
+    padding: 12px 8px;
+    border-radius: 8px;
+    -webkit-appearance: none;
+    appearance: none;
   }
   button, .button {
     font-size: 14px;
-    min-height: 38px;
+    min-height: 44px;
     border-radius: 8px;
-    padding: 8px 0;
+    padding: 12px 8px;
+    touch-action: manipulation;
   }
   .form-row, .block, .list {
     margin-bottom: 6px;
@@ -1034,7 +1044,9 @@ button.danger:hover {
   }
   th, td {
     white-space: nowrap;
-    padding: 5px 6px;
+    padding: 8px 10px;
+    min-height: 44px;
+    vertical-align: middle;
   }
   
   /* Улучшенная адаптивность для блока тарифов */
@@ -1060,8 +1072,10 @@ button.danger:hover {
   }
   
   #ratesTable th, #ratesTable td {
-    padding: 8px 6px;
-    font-size: 12px;
+    padding: 12px 8px;
+    font-size: 14px;
+    min-height: 44px;
+    vertical-align: middle;
   }
   
   /* Скрываем менее важные колонки на мобильных */
@@ -1081,11 +1095,68 @@ button.danger:hover {
     border-radius: 8px;
     margin-top: 8px;
     font-size: 12px;
-  }
-  
+    }
+
   /* Компактный поиск на мобильных */
   #ratesContainer > div:first-of-type {
     padding: 12px 8px !important;
+  }
+  
+  /* Модальные окна на мобильных */
+  .modal-content {
+    margin: 10px !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100vh - 20px) !important;
+    overflow-y: auto;
+  }
+  
+  /* Улучшенная прокрутка для мобильных */
+  .table-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Кнопки в модальных окнах */
+  .modal-content button {
+    min-height: 48px !important;
+    font-size: 16px !important;
+    padding: 12px !important;
+    touch-action: manipulation;
+  }
+  
+  /* Форма добавления старшего смены на мобильных */
+  #reportContainer .senior-shift-form select,
+  #reportContainer .senior-shift-form input[type="date"] {
+    min-height: 48px !important;
+    font-size: 16px !important;
+    padding: 14px 12px !important;
+  }
+  
+  #reportContainer .senior-shift-form .radio-group {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 16px 12px !important;
+  }
+  
+  #reportContainer .senior-shift-form .radio-group label {
+    min-height: 48px !important;
+    padding: 12px !important;
+    background: rgba(255,255,255,0.7);
+    border-radius: 8px;
+    border: 2px solid transparent;
+  }
+  
+  #reportContainer .senior-shift-form .radio-group label.selected {
+    border-color: #22c55e;
+    background: rgba(34,197,94,0.1);
+  }
+  
+  #reportContainer .senior-shift-form .form-row {
+    flex-direction: column !important;
+  }
+  
+  #reportContainer .senior-shift-form .form-row > div {
+    min-width: auto !important;
+    margin-bottom: 16px;
   }
 }
 
@@ -1118,6 +1189,7 @@ button.danger:hover {
     <button id="tabTraineeManagement" onclick="switchTab('traineeManagement')" style="display: none;">👨‍🎓</button>
     <button id="tabRates" onclick="switchTab('rates')">💰</button>
     <button id="tabMySalary" onclick="switchTab('mySalary')">💵</button>
+    <button id="tabDuplicates" onclick="switchTab('duplicates')" style="display: none;">🔍</button>
     <button id="tabAdmin" onclick="switchTab('admin')" style="display: none;">🛠️</button>
   </nav>
 <div class="container" id="loginContainer">
@@ -1384,7 +1456,7 @@ button.danger:hover {
 <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
   <button onclick="loadShiftStats()">📊 Сводка по смене</button>
   <button onclick="analyzePackers()" id="analyzeBtn">🧮 Анализ штатных упаковщиков</button>
-  <button onclick="openUpdateAllModal()" id="updateAllBtn" style="background:#8b5cf6;">🔄 Выборочное обновление</button>
+  <button onclick="openUpdateAllModal()" id="updateAllBtn" style="background:#8b5cf6;">🔄 Обновление блока данных показателей</button>
   <button onclick="runCustomReport()" id="reportBtn">📆 Отчёт показателей за период</button>
   <button onclick="loadSeniorsReport()" id="seniorsReportBtn" style="background:#8b5cf6;">👨‍💼 Анализ старших смен</button>
   <button onclick="showSeniorShiftForm()" id="addSeniorBtn" style="background:#22c55e;">➕ Добавить старшего смены</button>
@@ -1499,6 +1571,7 @@ button.danger:hover {
   </div>
 </div>
 
+
 <!-- 📊 Результаты анализа -->
 <div id="shiftStatsOutput" style="margin-top:20px;"></div>
 <div id="packerAnalysis" style="margin-top:24px;"></div>
@@ -1506,6 +1579,83 @@ button.danger:hover {
   <!-- 🚪 Кнопка выхода для администратора -->
   <div style="margin-top: 40px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px;">
     <button onclick="handleLogout()" class="danger" style="background-color: #dc2626; width: auto; padding: 12px 24px;">🚪 Выйти из системы</button>
+  </div>
+</div>
+
+<!-- 🔍 Дубликаты — отдельный блок для управления дубликатами -->
+<div class="container" style="display:none;" id="duplicatesContainer">
+  <h2>🔍 Управление дубликатами</h2>
+  <button onclick="switchTab('admin')" style="margin-bottom: 10px; background:#6b7280;">← Назад в админ-панель</button>
+  
+  <!-- Описание раздела -->
+  <div style="background: #f0f9ff; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #0ea5e9;">
+    <h3 style="margin: 0 0 12px 0; color: #0c4a6e;">ℹ️ О системе дедупликации</h3>
+    <p style="margin: 0; color: #0c4a6e; font-size: 14px;">
+      Этот раздел позволяет находить и удалять дублирующиеся записи в базе данных. 
+      Дубликаты определяются по ключевым полям: сотрудник, количество, время, операция, заказ и артикул.
+      Удаленные записи сохраняются в карантине для проверки.
+    </p>
+  </div>
+  
+  <!-- Действия -->
+  <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+    <button onclick="analyzeDuplicatesInTab()" id="analyzeDuplicatesTabBtn" style="background:#ff6b35; flex: 1; min-width: 200px;">
+      🔍 Анализ дубликатов
+    </button>
+    <button onclick="runDeduplicateInTab()" id="runDeduplicateTabBtn" style="background:#dc2626; flex: 1; min-width: 200px;">
+      🗑️ Удалить дубликаты
+    </button>
+  </div>
+  
+  <!-- Дополнительные функции -->
+  <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+    <button onclick="viewQuarantine()" id="viewQuarantineBtn" style="background:#8b5cf6; flex: 1; min-width: 200px;">
+      📦 Просмотр карантина
+    </button>
+    <button onclick="viewDeduplicationLog()" id="viewLogBtn" style="background:#059669; flex: 1; min-width: 200px;">
+      📋 Журнал дедупликации
+    </button>
+  </div>
+  
+  <!-- Результаты анализа -->
+  <div id="duplicatesAnalysisResults" style="background: #fef2f2; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: none;"></div>
+  
+  <!-- Результаты удаления -->
+  <div id="deduplicationResults" style="background: #f0fdf4; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: none;"></div>
+  
+  <!-- Просмотр карантина -->
+  <div id="quarantineResults" style="background: #fef3c7; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: none;"></div>
+  
+  <!-- Журнал дедупликации -->
+  <div id="logResults" style="background: #f0f9ff; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: none;"></div>
+  
+  <!-- Загрузка -->
+  <div id="duplicatesLoader" style="display: none; text-align: center; padding: 40px;">
+    <div style="font-size: 24px;">⏳</div>
+    <div style="margin-top: 10px;">Обрабатываем запрос...</div>
+  </div>
+  
+  <!-- Статистика -->
+  <div id="duplicatesStats" style="background: #f8fafc; padding: 16px; border-radius: 12px; margin-top: 20px; display: none;">
+    <h3 style="margin: 0 0 12px 0; color: #374151;">📊 Статистика системы</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+      <div style="text-align: center;">
+        <div style="font-size: 24px; font-weight: bold; color: #3b82f6;" id="totalRecords">-</div>
+        <div style="font-size: 12px; color: #6b7280;">Всего записей</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 24px; font-weight: bold; color: #dc2626;" id="duplicatesFound">-</div>
+        <div style="font-size: 12px; color: #6b7280;">Найдено дубликатов</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 24px; font-weight: bold; color: #059669;" id="duplicatesRemoved">-</div>
+        <div style="font-size: 12px; color: #6b7280;">Удалено дубликатов</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 24px; font-weight: bold; color: #7c3aed;" id="quarantineCount">-</div>
+        <div style="font-size: 12px; color: #6b7280;">В карантине</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1527,6 +1677,7 @@ button.danger:hover {
 </div>
 <div class="container" style="display:none;" id="costAnalysisContainer">
   <h2>📊 Анализ себестоимости по объёмам</h2>
+  <button onclick="switchTab('admin')" style="margin-bottom: 10px; background:#6b7280;">← Назад в админ-панель</button>
   
   <div class="form-row">
     <div class="form-item">
@@ -1561,7 +1712,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbyp4X6HNa35JUvKkmgLhXdxbP1FRvGas9dcfm9juSbsW0RatHMMqj9wpTc_3oL5JUY/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycby0cApwMk5t4azzIshtQQlHhZ4ZtoHRsJiLgJyj9ZlG_r1XjEbUTpWLCE6UlQfmpD0/exec";
   
   // Проверяем URL при загрузке
 
@@ -2310,13 +2461,13 @@ async function saveProfile() {
 
 
 function switchTab(tabName) {
-  // Для администратора: разрешаем админ-панель, анализ себестоимости и управление стажерами
-  if (currentUserRole === "admin" && tabName !== "admin" && tabName !== "costAnalysis" && tabName !== "traineeManagement") {
+  // Для администратора: разрешаем админ-панель, анализ себестоимости, управление стажерами и дубликаты
+  if (currentUserRole === "admin" && tabName !== "admin" && tabName !== "costAnalysis" && tabName !== "traineeManagement" && tabName !== "duplicates") {
     return; // Не позволяем админу переключаться на другие вкладки
   }
   
   // 🔐 Блокировка доступа к админ-функциям для обычных пользователей
-  if (currentUserRole !== "admin" && (tabName === "admin" || tabName === "costAnalysis" || tabName === "traineeManagement")) {
+  if (currentUserRole !== "admin" && (tabName === "admin" || tabName === "costAnalysis" || tabName === "traineeManagement" || tabName === "duplicates")) {
     console.log("❌ Доступ запрещен: требуется роль администратора");
     return;
   }
@@ -2333,12 +2484,13 @@ function switchTab(tabName) {
   document.getElementById("ratesContainer").style.display = "none";
   document.getElementById("costAnalysisContainer").style.display = "none";
   document.getElementById("traineeManagementContainer").style.display = "none";
+  document.getElementById("duplicatesContainer").style.display = "none";
 
   // Удаляем fullscreen от appContainer, если был ранее
   document.getElementById("appContainer").classList.remove("fullscreen");
 
   // Деактивируем все вкладки
-  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabCostAnalysis", "tabTraineeManagement", "tabRates", "tabMySalary", "tabAdmin"];
+  const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabCostAnalysis", "tabTraineeManagement", "tabRates", "tabMySalary", "tabDuplicates", "tabAdmin"];
   tabButtons.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.disabled = false;
@@ -2392,6 +2544,13 @@ function switchTab(tabName) {
     case "admin":
       document.getElementById("adminContainer").style.display = "block";
       document.getElementById("tabAdmin").disabled = true;
+      break;
+
+    case "duplicates":
+      document.getElementById("duplicatesContainer").style.display = "block";
+      document.getElementById("tabDuplicates").disabled = true;
+      // Загружаем статистику при открытии вкладки
+      loadDuplicatesStats();
       break;
   }
 }
@@ -2464,6 +2623,8 @@ async function handleLogin() {
         if (tabCostAnalysis) {
           tabCostAnalysis.classList.add("admin-visible");
           tabCostAnalysis.classList.remove("admin-hidden");
+          // 🛡️ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Принудительно сбрасываем style.display
+          tabCostAnalysis.style.display = "";
         }
         
         // Показываем кнопку управления стажерами для администраторов
@@ -2471,6 +2632,17 @@ async function handleLogin() {
         if (tabTraineeManagement) {
           tabTraineeManagement.classList.add("admin-visible");
           tabTraineeManagement.classList.remove("admin-hidden");
+          // 🛡️ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Принудительно сбрасываем style.display
+          tabTraineeManagement.style.display = "";
+        }
+        
+        // Показываем кнопку дубликатов для администраторов
+        const tabDuplicates = document.getElementById("tabDuplicates");
+        if (tabDuplicates) {
+          tabDuplicates.classList.add("admin-visible");
+          tabDuplicates.classList.remove("admin-hidden");
+          // 🛡️ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Принудительно сбрасываем style.display
+          tabDuplicates.style.display = "";
         }
         
         // Показываем админ-кнопку
@@ -2478,6 +2650,8 @@ async function handleLogin() {
         if (tabAdmin) {
           tabAdmin.classList.add("admin-visible");
           tabAdmin.classList.remove("admin-hidden");
+          // 🛡️ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Принудительно сбрасываем style.display
+          tabAdmin.style.display = "";
         }
         
         document.getElementById("bottomNav").style.display = "flex";
@@ -2503,12 +2677,14 @@ async function handleLogin() {
         });
         
         // 🔐 Скрываем админ-вкладки от обычных пользователей
-        const adminTabButtons = ["tabCostAnalysis", "tabTraineeManagement", "tabAdmin"];
+        const adminTabButtons = ["tabCostAnalysis", "tabTraineeManagement", "tabDuplicates", "tabAdmin"];
         adminTabButtons.forEach(id => {
           const btn = document.getElementById(id);
           if (btn) {
             btn.classList.add("admin-hidden");
             btn.classList.remove("admin-visible");
+            // 🛡️ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Принудительно скрываем через style
+            btn.style.display = "none";
           }
         });
         
@@ -2612,7 +2788,7 @@ function handleLogout() {
   currentStatus = "";
 
   // Очищаем все CSS классы для кнопок навигации
-  const allTabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary", "tabCostAnalysis", "tabTraineeManagement", "tabAdmin"];
+  const allTabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary", "tabCostAnalysis", "tabTraineeManagement", "tabDuplicates", "tabAdmin"];
   allTabButtons.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
@@ -2692,7 +2868,8 @@ function handleLogout() {
     "adminContainer",
     "mySalaryContainer",
     "costAnalysisContainer",
-    "traineeManagementContainer"
+    "traineeManagementContainer",
+    "duplicatesContainer"
   ];
   containers.forEach(id => {
     const el = document.getElementById(id);
@@ -2707,7 +2884,7 @@ function handleLogout() {
   });
   
   // 🔐 Админ-вкладки остаются скрытыми
-  const adminTabs = ["tabCostAnalysis", "tabTraineeManagement", "tabAdmin"];
+  const adminTabs = ["tabCostAnalysis", "tabTraineeManagement", "tabDuplicates", "tabAdmin"];
   adminTabs.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.style.display = "none";
@@ -4262,22 +4439,13 @@ async function loadStats() {
       return shiftCardsHTML;
     }
     
-    // Создаем блоки для каждой смены
+    // Создаем блоки только для каждой смены (убираем дублирование по статусу)
     if (dayRecords.length > 0) {
       cardsHTML += createShiftCards(dayRecords, "Дневная смена", "☀️");
     }
     
     if (nightRecords.length > 0) {
       cardsHTML += createShiftCards(nightRecords, "Ночная смена", "🌙");
-    }
-
-    // 👥 Создаем блоки для каждого статуса сотрудников
-    if (staffRecords.length > 0) {
-      cardsHTML += createShiftCards(staffRecords, "Штатные сотрудники", "👥");
-    }
-    
-    if (traineeRecords.length > 0) {
-      cardsHTML += createShiftCards(traineeRecords, "Стажеры", "👨‍🎓");
     }
     
     // Получаем бонус наставника и детали из данных сервера
@@ -4418,6 +4586,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("mySalaryContainer").style.display = "none";
   document.getElementById("costAnalysisContainer").style.display = "none";
   document.getElementById("traineeManagementContainer").style.display = "none";
+  document.getElementById("duplicatesContainer").style.display = "none";
   document.getElementById("bottomNav").style.display = "none";
 
   // 🎯 Обработка Enter в полях входа
@@ -4465,7 +4634,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   currentUserRole = "user";
   
   // 🔄 Очистка CSS классов навигации при инициализации
-  const allTabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary", "tabCostAnalysis", "tabTraineeManagement", "tabAdmin"];
+  const allTabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary", "tabCostAnalysis", "tabTraineeManagement", "tabDuplicates", "tabAdmin"];
   allTabButtons.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
@@ -5159,17 +5328,16 @@ function showTraineeManagement() {
   document.getElementById("mySalaryContainer").style.display = "none";
   document.getElementById("ratesContainer").style.display = "none";
   document.getElementById("costAnalysisContainer").style.display = "none";
+  document.getElementById("duplicatesContainer").style.display = "none";
   document.getElementById("loginContainer").style.display = "none";
   
   // Показываем контейнер управления стажерами
   document.getElementById("traineeManagementContainer").style.display = "block";
   
-  // Автоматически показываем раздел текущих связей
-  showTraineeSection('pairs');
-  
-  // Предзагружаем списки наставников и стажеров в фоне
+  // Предзагружаем списки наставников и стажеров и текущие связи
   setTimeout(() => {
     loadMentorsAndTrainees();
+    loadMentorshipPairs();
   }, 500);
 }
 
@@ -5184,39 +5352,7 @@ function hideTraineeManagement() {
   }
 }
 
-function showTraineeSection(sectionName) {
-  // Скрываем все секции
-  const sections = ['pairs', 'create', 'analytics', 'cleanup'];
-  sections.forEach(section => {
-    document.getElementById(`traineeSection-${section}`).style.display = 'none';
-    document.getElementById(`${section}Btn`).classList.remove('active');
-  });
-  
-  // Показываем выбранную секцию
-  document.getElementById(`traineeSection-${sectionName}`).style.display = 'block';
-  document.getElementById(`${sectionName}Btn`).classList.add('active');
-  
-  // Автоматически загружаем списки при открытии раздела создания
-  if (sectionName === 'create') {
-    // Ждем, пока секция станет видимой, затем загружаем списки
-    setTimeout(() => {
-      const createSection = document.getElementById('traineeSection-create');
-      if (createSection && createSection.style.display !== 'none') {
-        loadMentorsAndTrainees();
-      }
-    }, 300); // Увеличиваем задержку для гарантии загрузки DOM
-  }
-  
-  // Добавляем принудительную загрузку при любом переключении на создание
-  if (sectionName === 'create') {
-    setTimeout(loadMentorsAndTrainees, 500);
-  }
-  
-  // Автоматически загружаем текущие связи при открытии раздела связей
-  if (sectionName === 'pairs') {
-    setTimeout(loadMentorshipPairs, 100);
-  }
-}
+
 
 async function loadMentorshipPairs() {
   const btn = document.getElementById("refreshPairsBtn");
@@ -5741,35 +5877,7 @@ function showResult(container, message, type) {
   }
 }
 
-// Инициализация при открытии раздела создания
-document.addEventListener('DOMContentLoaded', function() {
-  // Загружаем списки наставников и стажеров при открытии раздела создания
-  const createBtn = document.getElementById('createBtn');
-  if (createBtn) {
-    createBtn.addEventListener('click', () => {
-      setTimeout(loadMentorsAndTrainees, 100);
-    });
-  }
-  
-  // Автоматически загружаем списки при первом открытии раздела управления стажерами
-  const traineeManagementContainer = document.getElementById('traineeManagementContainer');
-  if (traineeManagementContainer) {
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-          const isVisible = traineeManagementContainer.style.display !== 'none';
-          if (isVisible) {
-            // Загружаем списки при первом показе
-            setTimeout(loadMentorsAndTrainees, 100);
-            observer.disconnect(); // Отключаем наблюдатель после первой загрузки
-          }
-        }
-      });
-    });
-    
-    observer.observe(traineeManagementContainer, { attributes: true });
-  }
-});
+
 
 
 
@@ -6037,7 +6145,7 @@ async function loadShiftStats() {
           // Определение иконки для норм
           let normIcon = "—";
           if (normsTotal === 0) normIcon = "—";
-          else if (normsPercent >= 85) normIcon = "✅";
+          else if (normsPercent >= 90) normIcon = "✅";
           else if (normsPercent >= 60) normIcon = "⚠️";
           else if (normsPercent > 0) normIcon = "❌";
           
@@ -6071,7 +6179,7 @@ async function loadShiftStats() {
           // Определение иконки для норм
           let normIcon = "—";
           if (normsTotal === 0) normIcon = "—";
-          else if (normsPercent >= 85) normIcon = "✅";
+          else if (normsPercent >= 90) normIcon = "✅";
           else if (normsPercent >= 60) normIcon = "⚠️";
           else if (normsPercent > 0) normIcon = "❌";
           
@@ -6105,7 +6213,7 @@ async function loadShiftStats() {
           // Определение иконки для норм
           let normIcon = "—";
           if (normsTotal === 0) normIcon = "—";
-          else if (normsPercent >= 85) normIcon = "✅";
+          else if (normsPercent >= 90) normIcon = "✅";
           else if (normsPercent >= 60) normIcon = "⚠️";
           else if (normsPercent > 0) normIcon = "❌";
           
@@ -6292,7 +6400,7 @@ async function loadSeniorsReport() {
         let rowStyle = "";
         if (item.efficiency >= 100) {
           rowStyle = "background:#ecfdf5;"; // Зеленый для высокой эффективности
-        } else if (item.efficiency >= 80) {
+        } else if (item.efficiency >= 90) {
           rowStyle = "background:#fef3c7;"; // Желтый для средней эффективности
         } else {
           rowStyle = "background:#fef2f2;"; // Красный для низкой эффективности
@@ -6303,12 +6411,12 @@ async function loadSeniorsReport() {
           <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.shift}</td>
           <td style="padding:8px; border:1px solid #d1d5db; ${rowStyle}">${item.name}</td>
           <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
-            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 80 ? '#d97706' : '#dc2626'}">
+            <span style="font-weight:bold; color:${item.efficiency >= 100 ? '#059669' : item.efficiency >= 90 ? '#d97706' : '#dc2626'}">
               ${item.efficiency}%
             </span>
           </td>
           <td style="padding:8px; border:1px solid #d1d5db; text-align:center; ${rowStyle}">
-            <span style="font-weight:bold; color:${item.norm >= 80 ? '#059669' : '#dc2626'}">
+            <span style="font-weight:bold; color:${item.norm >= 90 ? '#059669' : '#dc2626'}">
               ${item.norm}%
             </span>
           </td>
@@ -6486,38 +6594,38 @@ async function showSeniorShiftForm() {
   const container = document.getElementById("reportContainer");
   
   container.innerHTML = `
-    <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 100%;">
+    <div class="senior-shift-form" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 100%;">
       <h3 style="text-align: center; color: #22c55e; margin-bottom: 20px; font-size: 18px;">👥 Добавить смену</h3>
       
       <div style="max-width: 100%; margin: 0 auto;">
         <!-- Выбор старшего смены и помощника в одной строке для десктопа -->
-        <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 250px;">
             <label for="seniorSelect" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">👨‍💼 Старший смены:</label>
-            <select id="seniorSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;" required>
+            <select id="seniorSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box; min-height: 48px;" required>
               <option value="">⌛ Загрузка списка...</option>
             </select>
           </div>
           
           <div style="flex: 1; min-width: 250px;">
             <label for="helperSelect" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">👤 Помощник <small style="color: #6b7280; font-weight: normal;">(необязательно)</small>:</label>
-            <select id="helperSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+            <select id="helperSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box; min-height: 48px;">
               <option value="">⌛ Загрузка списка...</option>
             </select>
           </div>
         </div>
         
         <!-- Тип смены и дата в адаптивном блоке -->
-        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">🌅🌙 Тип смены:</label>
-            <div style="display: flex; gap: 16px; justify-content: center; padding: 8px; background: #f3f4f6; border-radius: 8px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" name="shiftType" value="День" checked style="transform: scale(1.3);">
+            <div class="radio-group" style="display: flex; gap: 16px; justify-content: center; padding: 12px; background: #f3f4f6; border-radius: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; min-height: 44px;">
+                <input type="radio" name="shiftType" value="День" checked style="transform: scale(1.5); margin: 0;">
                 <span style="font-size: 16px; font-weight: 500;">🌅 День</span>
               </label>
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" name="shiftType" value="Ночь" style="transform: scale(1.3);">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; min-height: 44px;">
+                <input type="radio" name="shiftType" value="Ночь" style="transform: scale(1.5); margin: 0;">
                 <span style="font-size: 16px; font-weight: 500;">🌙 Ночь</span>
               </label>
             </div>
@@ -6526,7 +6634,7 @@ async function showSeniorShiftForm() {
           <div style="flex: 1; min-width: 200px;">
             <label for="customDate" style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">📅 Дата (опционально):</label>
             <input type="date" id="customDate" 
-                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box; min-height: 48px;">
           </div>
         </div>
         
@@ -6539,11 +6647,11 @@ async function showSeniorShiftForm() {
         <!-- Кнопки для мобильной адаптации -->
         <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
           <button onclick="addSeniorShiftRecord()" id="addSeniorRecordBtn" 
-                  style="background: #22c55e; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1; min-width: 140px; max-width: 180px; touch-action: manipulation;">
+                  style="background: #22c55e; color: white; padding: 16px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1; min-width: 140px; max-width: 180px; min-height: 48px; touch-action: manipulation;">
             ➕ Добавить
           </button>
           <button onclick="clearReports()" 
-                  style="background: #6b7280; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1; min-width: 140px; max-width: 180px; touch-action: manipulation;">
+                  style="background: #6b7280; color: white; padding: 16px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1; min-width: 140px; max-width: 180px; min-height: 48px; touch-action: manipulation;">
             ❌ Отменить
           </button>
         </div>
@@ -7410,6 +7518,312 @@ function hideAllWarnings() {
 function clearDraft() {
   localStorage.removeItem("formDraft");
   
+}
+
+// ===== ФУНКЦИИ ДЕДУПЛИКАЦИИ =====
+
+/**
+ * 🔍 Анализ дубликатов без удаления (для отдельной вкладки)
+ */
+async function analyzeDuplicatesInTab() {
+  const loader = document.getElementById("duplicatesLoader");
+  const resultsDiv = document.getElementById("duplicatesAnalysisResults");
+  
+  // Скрываем другие результаты
+  hideAllResults();
+  
+  // Показываем загрузку
+  loader.style.display = "block";
+  
+  try {
+    const response = await fetch(scriptURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ type: "analyzeDuplicates" })
+    });
+    
+    if (!response.ok) throw new Error("Ошибка сети");
+    
+    const result = await response.json();
+    
+    // Обновляем статистику
+    updateDuplicatesStats(result.analyzed, result.total, 0, 0);
+    
+    // Отображаем результаты
+    if (result.total > 0) {
+      resultsDiv.innerHTML = `
+        <h4>🔍 Результаты анализа дубликатов</h4>
+        <div style="margin-bottom: 16px;">
+          <strong>📊 Статистика:</strong><br>
+          • Проанализировано записей: ${result.analyzed}<br>
+          • Найдено дубликатов: ${result.total}
+        </div>
+        <div style="margin-bottom: 16px;">
+          <strong>📋 Детали:</strong><br>
+          ${result.details.map(detail => `• ${detail}`).join('<br>')}
+        </div>
+        <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border: 1px solid #ffeaa7;">
+          <strong>⚠️ Найдены дубликаты!</strong><br>
+          Для их удаления нажмите кнопку "🗑️ Удалить дубликаты"
+        </div>
+      `;
+    } else {
+      resultsDiv.innerHTML = `
+        <div style="text-align: center; color: #059669;">
+          <h4>✅ Дубликаты не найдены</h4>
+          <p>Проанализировано записей: ${result.analyzed}</p>
+          <p>Все данные уникальны!</p>
+        </div>
+      `;
+    }
+    
+    resultsDiv.style.display = "block";
+    
+  } catch (error) {
+    console.error("Ошибка анализа дубликатов:", error);
+    resultsDiv.innerHTML = `
+      <div style="color: #dc2626; text-align: center;">
+        <h4>❌ Ошибка анализа</h4>
+        <p>${error.message}</p>
+      </div>
+    `;
+    resultsDiv.style.display = "block";
+  } finally {
+    loader.style.display = "none";
+  }
+}
+
+/**
+ * 🗑️ Удаление дубликатов (для отдельной вкладки)
+ */
+async function runDeduplicateInTab() {
+  // Запрашиваем подтверждение
+  if (!confirm("⚠️ ВНИМАНИЕ!\n\nВы собираетесь удалить дубликаты из основной таблицы.\nДубликаты будут перемещены в карантин.\n\nПродолжить?")) {
+    return;
+  }
+  
+  const loader = document.getElementById("duplicatesLoader");
+  const resultsDiv = document.getElementById("deduplicationResults");
+  
+  // Скрываем другие результаты
+  hideAllResults();
+  
+  // Показываем загрузку
+  loader.style.display = "block";
+  
+  try {
+    const response = await fetch(scriptURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ type: "runSafeDeduplicate" })
+    });
+    
+    if (!response.ok) throw new Error("Ошибка сети");
+    
+    const result = await response.json();
+    
+    // Отображаем результаты
+    if (result.success) {
+      // Обновляем статистику
+      updateDuplicatesStats(result.analyzed, result.found, result.deleted, result.quarantined);
+      
+      resultsDiv.innerHTML = `
+        <h4>✅ Дедупликация завершена</h4>
+        <div style="margin-bottom: 16px;">
+          <strong>📊 Статистика:</strong><br>
+          • Проанализировано записей: ${result.analyzed}<br>
+          • Найдено дубликатов: ${result.found}<br>
+          • Удалено записей: ${result.deleted}<br>
+          • Помещено в карантин: ${result.quarantined}
+        </div>
+        ${result.message ? `<div style="margin-bottom: 16px;"><strong>📝 Детали:</strong><br>${result.message}</div>` : ''}
+        <div style="background: #d1fae5; padding: 12px; border-radius: 8px; border: 1px solid #a7f3d0;">
+          <strong>🎉 Операция выполнена успешно!</strong><br>
+          Дубликаты удалены из основной таблицы и сохранены в карантине для проверки.
+        </div>
+      `;
+    } else {
+      resultsDiv.innerHTML = `
+        <div style="color: #dc2626; text-align: center;">
+          <h4>❌ Ошибка дедупликации</h4>
+          <p>${result.message || "Неизвестная ошибка"}</p>
+        </div>
+      `;
+    }
+    
+    resultsDiv.style.display = "block";
+    
+  } catch (error) {
+    console.error("Ошибка дедупликации:", error);
+    resultsDiv.innerHTML = `
+      <div style="color: #dc2626; text-align: center;">
+        <h4>❌ Ошибка дедупликации</h4>
+        <p>${error.message}</p>
+      </div>
+    `;
+    resultsDiv.style.display = "block";
+  } finally {
+    loader.style.display = "none";
+  }
+}
+
+// ===== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ВКЛАДКИ ДУБЛИКАТОВ =====
+
+/**
+ * Загрузка статистики дубликатов при открытии вкладки
+ */
+async function loadDuplicatesStats() {
+  const statsDiv = document.getElementById("duplicatesStats");
+  statsDiv.style.display = "block";
+  
+  // Устанавливаем начальные значения
+  updateDuplicatesStats(0, 0, 0, 0);
+}
+
+/**
+ * Обновление статистики в интерфейсе
+ */
+function updateDuplicatesStats(total, found, removed, quarantine) {
+  document.getElementById("totalRecords").textContent = total;
+  document.getElementById("duplicatesFound").textContent = found;
+  document.getElementById("duplicatesRemoved").textContent = removed;
+  document.getElementById("quarantineCount").textContent = quarantine;
+  
+  document.getElementById("duplicatesStats").style.display = "block";
+}
+
+/**
+ * Скрытие всех результатов
+ */
+function hideAllResults() {
+  const resultDivs = [
+    "duplicatesAnalysisResults",
+    "deduplicationResults", 
+    "quarantineResults",
+    "logResults"
+  ];
+  
+  resultDivs.forEach(id => {
+    const div = document.getElementById(id);
+    if (div) div.style.display = "none";
+  });
+}
+
+/**
+ * 📦 Просмотр карантина
+ */
+async function viewQuarantine() {
+  const loader = document.getElementById("duplicatesLoader");
+  const resultsDiv = document.getElementById("quarantineResults");
+  
+  hideAllResults();
+  loader.style.display = "block";
+  
+  try {
+    // Здесь можно добавить запрос к серверу для получения данных карантина
+    // Пока показываем заглушку
+    resultsDiv.innerHTML = `
+      <h4>📦 Карантин дубликатов</h4>
+      <div style="text-align: center; color: #6b7280; padding: 20px;">
+        <p>Функция просмотра карантина будет реализована в следующих версиях.</p>
+        <p>Карантинные записи сохраняются в листе "Справочник_Карантин"</p>
+      </div>
+    `;
+    
+    resultsDiv.style.display = "block";
+    
+  } catch (error) {
+    console.error("Ошибка загрузки карантина:", error);
+    resultsDiv.innerHTML = `
+      <div style="color: #dc2626; text-align: center;">
+        <h4>❌ Ошибка загрузки</h4>
+        <p>${error.message}</p>
+      </div>
+    `;
+    resultsDiv.style.display = "block";
+  } finally {
+    loader.style.display = "none";
+  }
+}
+
+/**
+ * 📋 Просмотр журнала дедупликации
+ */
+async function viewDeduplicationLog() {
+  const loader = document.getElementById("duplicatesLoader");
+  const resultsDiv = document.getElementById("logResults");
+  
+  hideAllResults();
+  loader.style.display = "block";
+  
+  try {
+    // Здесь можно добавить запрос к серверу для получения журнала
+    // Пока показываем заглушку
+    resultsDiv.innerHTML = `
+      <h4>📋 Журнал дедупликации</h4>
+      <div style="text-align: center; color: #6b7280; padding: 20px;">
+        <p>Функция просмотра журнала будет реализована в следующих версиях.</p>
+        <p>Журнал операций сохраняется в листе "Журнал_дедупликации"</p>
+      </div>
+    `;
+    
+    resultsDiv.style.display = "block";
+    
+  } catch (error) {
+    console.error("Ошибка загрузки журнала:", error);
+    resultsDiv.innerHTML = `
+      <div style="color: #dc2626; text-align: center;">
+        <h4>❌ Ошибка загрузки</h4>
+        <p>${error.message}</p>
+      </div>
+    `;
+    resultsDiv.style.display = "block";
+  } finally {
+    loader.style.display = "none";
+  }
+}
+
+// ===== ДИАГНОСТИЧЕСКИЕ ФУНКЦИИ =====
+
+/**
+ * 🔧 Диагностика состояния вкладки дубликатов
+ * Вызывается из консоли: diagnoseDuplicatesTab()
+ */
+function diagnoseDuplicatesTab() {
+  const tab = document.getElementById("tabDuplicates");
+  
+  console.log("🔧 ДИАГНОСТИКА ВКЛАДКИ ДУБЛИКАТОВ:");
+  console.log("📊 Роль пользователя:", currentUserRole);
+  console.log("👤 Текущий пользователь:", currentUser);
+  
+  if (!tab) {
+    console.log("❌ Элемент tabDuplicates не найден в DOM!");
+    return;
+  }
+  
+  console.log("🎯 Состояние кнопки tabDuplicates:");
+  console.log("  • style.display:", tab.style.display);
+  console.log("  • style.visibility:", tab.style.visibility);
+  console.log("  • disabled:", tab.disabled);
+  console.log("  • CSS классы:", tab.className);
+  console.log("  • offsetWidth:", tab.offsetWidth);
+  console.log("  • offsetHeight:", tab.offsetHeight);
+  
+  // Проверяем CSS правила
+  const computedStyle = window.getComputedStyle(tab);
+  console.log("  • computed display:", computedStyle.display);
+  console.log("  • computed visibility:", computedStyle.visibility);
+  
+  // Принудительное восстановление для админов
+  if (currentUserRole === "admin") {
+    console.log("🔧 Принудительное восстановление для администратора...");
+    tab.classList.remove("admin-hidden");
+    tab.classList.add("admin-visible");
+    tab.style.display = "";
+    tab.style.visibility = "";
+    tab.disabled = false;
+    console.log("✅ Восстановление выполнено!");
+  }
 }
 
 /**
@@ -8722,195 +9136,71 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- 👨‍🎓 Контейнер: Управление стажерами -->
 <div class="container" style="display:none;" id="traineeManagementContainer">
   <h2>👨‍🎓 Управление стажерами</h2>
+  <button onclick="hideTraineeManagement()" style="margin-bottom: 10px; background:#6b7280;">← Назад в админ-панель</button>
   
-  <!-- Навигация по разделам -->
-  <div class="form-row" style="margin-bottom: 20px;">
-    <button onclick="showTraineeSection('pairs')" id="pairsBtn" class="tab-btn active">📋 Текущие связи</button>
-    <button onclick="showTraineeSection('create')" id="createBtn" class="tab-btn">➕ Создать связь</button>
-    <button onclick="showTraineeSection('analytics')" id="analyticsBtn" class="tab-btn">📊 Аналитика</button>
-    <button onclick="showTraineeSection('cleanup')" id="cleanupBtn" class="tab-btn">🧹 Очистка связей</button>
-    <button onclick="hideTraineeManagement()" style="background:#6b7280; margin-left: auto;">← Назад</button>
+  <!-- 📋 Текущие связи -->
+  <h3>📋 Текущие связи наставник ↔ стажер</h3>
+  <button onclick="loadMentorshipPairs()" id="refreshPairsBtn" style="background:#3b82f6; margin-bottom: 10px;">🔄 Обновить список связей</button>
+  <div style="overflow-x: auto;">
+    <div id="mentorshipPairsList" style="margin-top: 16px;">
+      <p style="color: #6b7280; text-align: center;">Нажмите "Обновить список связей" для загрузки</p>
+    </div>
   </div>
-
-  <!-- 📋 Раздел: Текущие связи -->
-  <div id="traineeSection-pairs" class="trainee-section">
-    <h3>📋 Текущие связи наставник ↔ стажер</h3>
-    <div class="form-row" style="margin-bottom: 16px;">
-      <button onclick="loadMentorshipPairs()" id="refreshPairsBtn" style="background:#3b82f6;">🔄 Обновить список</button>
-      <button onclick="loadMentorsAndTrainees()" style="background:#10b981;">👥 Загрузить списки</button>
-    </div>
-                    <div id="mentorshipPairsList" style="margin-top: 16px;">
-                  <p style="color: #000000;">Нажмите "Обновить список" для загрузки связей</p>
-                </div>
+  
+  <!-- ➕ Создание новой связи -->
+  <h3 style="margin-top: 30px;">➕ Создание новой связи</h3>
+  <label>👨‍💼 Выберите наставника:
+    <select id="mentorSelect" required>
+      <option value="">-- Загрузка... --</option>
+    </select>
+  </label>
+  <label>👨‍🎓 Выберите стажера:
+    <select id="traineeSelect" required>
+      <option value="">-- Загрузка... --</option>
+    </select>
+  </label>
+  
+  <!-- Информация о бонусе -->
+  <div style="background: #f0f9ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin: 16px 0;">
+    <strong style="color: #1e40af;">💰 Бонус наставника:</strong>
+    <span style="color: #1f2937;">Фиксированный бонус 1750 ₽ за смену за каждого стажера</span>
   </div>
-
-  <!-- ➕ Раздел: Создание связи -->
-  <div id="traineeSection-create" class="trainee-section" style="display:none;">
-    <h3>➕ Создание новой связи наставник ↔ стажер</h3>
-    
-    <div class="form-row">
-      <div class="form-item">
-        <label>👨‍💼 Выберите наставника:
-          <select id="mentorSelect" required>
-            <option value="">-- Загрузка... --</option>
-        </select>
-        </label>
-      </div>
-      
-      <div class="form-item">
-        <label>👨‍🎓 Выберите стажера:
-          <select id="traineeSelect" required>
-            <option value="">-- Загрузка... --</option>
-        </select>
-        </label>
-      </div>
+  
+  <button onclick="createMentorshipPair()" id="createPairBtn" style="background:#10b981;">✅ Создать связь</button>
+  <button onclick="loadMentorsAndTrainees()" style="background:#6b7280; margin-left: 10px;">🔄 Обновить списки</button>
+  
+  <!-- 📊 Аналитика работы пар -->
+  <h3 style="margin-top: 30px;">📊 Аналитика работы пар</h3>
+  <label>📅 Период с:
+    <input type="date" id="analyticsStartDate">
+  </label>
+  <label style="margin-left:10px;">по:
+    <input type="date" id="analyticsEndDate">
+  </label>
+  <button onclick="loadTraineeAnalytics()" id="loadAnalyticsBtn" style="background:#8b5cf6;">📊 Загрузить аналитику</button>
+  <div style="overflow-x: auto;">
+    <div id="traineeAnalyticsResults" style="margin-top: 20px;">
+      <p style="color: #6b7280; text-align: center;">Выберите период и нажмите "Загрузить аналитику"</p>
     </div>
-    
-    <!-- Информация о фиксированном бонусе -->
-    <div style="background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
-      <h4 style="margin: 0 0 8px 0; color: #1e40af;">💰 Информация о бонусе наставника</h4>
-      <p style="margin: 0; color: #1f2937;">
-        Наставник получает <strong>фиксированный бонус 1750 ₽ за смену</strong> за каждого стажера.<br/>
-        Бонус начисляется автоматически при первой операции стажера в смену.
-      </p>
-    </div>
-    
-    <div class="form-row">
-      <button onclick="createMentorshipPair()" id="createPairBtn" style="background:#10b981;">✅ Создать связь</button>
-      <button onclick="loadMentorsAndTrainees()" style="background:#6b7280;">🔄 Обновить списки</button>
   </div>
-
-    <script>
-      // Автозагрузка при открытии раздела
-      setTimeout(async () => {
-        loadMentorsAndTrainees();
-      }, 500);
-    </script>
-    
-
+  
+  <!-- 🧹 Очистка связей -->
+  <h3 style="margin-top: 30px;">🧹 Очистка связей наставничества</h3>
+  <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+    <strong style="color: #92400e;">⚠️ Внимание!</strong>
+    <span style="color: #92400e; font-size: 14px;">
+      Ручная очистка удалит ВСЕ связи наставничества. Эта операция необратима.
+      Автоматическая очистка работает по расписанию: дневная смена в 23:00, ночная в 11:00.
+    </span>
   </div>
-  <div id="traineeSection-analytics" class="trainee-section" style="display:none;">
-    <h3>📊 Аналитика работы пар наставник ↔ стажер</h3>
-    
-    <div class="form-row">
-      <div class="form-item">
-        <label>📅 Период с:
-          <input type="date" id="analyticsStartDate">
-        </label>
-      </div>
-      <div class="form-item">
-        <label>📅 по:
-          <input type="date" id="analyticsEndDate">
-        </label>
-      </div>
-      </div>
-    
-    <div class="form-row">
-      <button onclick="loadTraineeAnalytics()" id="loadAnalyticsBtn" style="background:#8b5cf6;">📊 Загрузить аналитику</button>
-    </div>
-    
-                    <div id="traineeAnalyticsResults" style="margin-top: 20px;">
-                  <p style="color: #000000;">Выберите период и нажмите "Загрузить аналитику"</p>
-                </div>
-  </div>
-
-  <!-- 🧹 Раздел: Очистка связей -->
-  <div id="traineeSection-cleanup" class="trainee-section" style="display:none;">
-        <h3>🧹 Очистка связей наставничества</h3>
-    
-    <div style="padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b; margin-bottom: 20px;">
-      <h4 style="margin: 0 0 8px 0; color: #92400e;">⚠️ Внимание!</h4>
-      <p style="margin: 0; color: #92400e; font-size: 14px;">
-        Ручная очистка удалит ВСЕ связи наставничества. Эта операция необратима.
-        Автоматическая очистка работает по расписанию: дневная смена в 23:00, ночная в 11:00.
-      </p>
-    </div>
-    
-    <div class="form-row">
-      <button onclick="cleanupAllMentorshipPairs(false)" id="previewCleanupBtn" style="background:#3b82f6;">🔍 Предварительный просмотр</button>
-      <button onclick="cleanupAllMentorshipPairs(true)" id="executeCleanupBtn" style="background:#ef4444;">🧹 Выполнить очистку</button>
-    </div>
-    
-    <div id="cleanupResults" style="margin-top: 16px; padding: 12px; border-radius: 6px; display: none;"></div>
+  <button onclick="cleanupAllMentorshipPairs(false)" id="previewCleanupBtn" style="background:#3b82f6;">🔍 Предварительный просмотр</button>
+  <button onclick="cleanupAllMentorshipPairs(true)" id="executeCleanupBtn" style="background:#ef4444; margin-left: 10px;">🧹 Выполнить очистку</button>
+  <div style="overflow-x: auto;">
+    <div id="cleanupResults" style="margin-top: 16px; display: none;"></div>
   </div>
 </div>
 
-<style>
-.trainee-section {
-  padding: 20px;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 20px;
-}
 
-.tab-btn {
-  padding: 10px 16px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-}
-
-.tab-btn:hover {
-  background: #f3f4f6;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.tab-btn.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-}
-
-.mentor-pair-card {
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
-}
-
-.mentor-pair-card:hover {
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transform: translateY(-1px);
-}
-
-.analytics-card {
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  border-left: 4px solid #3b82f6;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
-}
-
-.analytics-card:hover {
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transform: translateY(-1px);
-}
-
-/* Стили для кнопок в форме */
-.form-row button {
-  margin-right: 8px;
-  margin-bottom: 8px;
-  transition: all 0.2s ease;
-}
-
-.form-row button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-</style>
 
 <script>
   window.addEventListener("load", () => {
