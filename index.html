@@ -1125,82 +1125,101 @@ button.danger:hover {
   
   /* Компактная форма старшего смены для мобильных */
   #reportContainer .senior-shift-form {
-    padding: 12px !important;
-    margin: 8px !important;
+    padding: 8px !important;
+    margin: 4px !important;
+    border-radius: 8px !important;
   }
   
   #reportContainer .senior-shift-form h3 {
-    font-size: 16px !important;
-    margin-bottom: 12px !important;
+    font-size: 15px !important;
+    margin-bottom: 8px !important;
   }
   
   #reportContainer .senior-shift-form .form-row {
     flex-direction: column !important;
-    gap: 8px !important;
-    margin-bottom: 12px !important;
+    gap: 6px !important;
+    margin-bottom: 8px !important;
   }
   
   #reportContainer .senior-shift-form .form-row > div {
     min-width: auto !important;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   
   #reportContainer .senior-shift-form select,
   #reportContainer .senior-shift-form input[type="date"] {
-    min-height: 44px !important;
+    min-height: 42px !important;
     font-size: 16px !important;
-    padding: 10px 12px !important;
+    padding: 8px 10px !important;
   }
   
   #reportContainer .senior-shift-form label {
-    font-size: 13px !important;
-    margin-bottom: 4px !important;
+    font-size: 12px !important;
+    margin-bottom: 3px !important;
+    font-weight: 600 !important;
   }
   
   #reportContainer .senior-shift-form .radio-group {
     flex-direction: row !important;
-    gap: 8px !important;
-    padding: 8px !important;
+    gap: 6px !important;
+    padding: 6px !important;
     justify-content: space-around !important;
+    background: #f8fafc !important;
+    border-radius: 6px !important;
   }
   
   #reportContainer .senior-shift-form .radio-group label {
-    min-height: 40px !important;
-    padding: 8px 12px !important;
-    font-size: 14px !important;
+    min-height: 38px !important;
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
     flex: 1;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     text-align: center;
-    background: rgba(255,255,255,0.8);
-    border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    margin: 0;
+    background: #ffffff !important;
+    border-radius: 5px !important;
+    border: 1px solid #d1d5db !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    position: relative !important;
   }
   
   #reportContainer .senior-shift-form .radio-group label.selected {
-    border-color: #22c55e;
-    background: rgba(34,197,94,0.1);
-    color: #16a34a;
+    border-color: #22c55e !important;
+    background: rgba(34,197,94,0.1) !important;
+    color: #16a34a !important;
+    box-shadow: 0 0 0 1px rgba(34,197,94,0.2) !important;
   }
   
   #reportContainer .senior-shift-form .radio-group input[type="radio"] {
-    transform: scale(1.2) !important;
+    display: none !important;
+  }
+  
+  #reportContainer .senior-shift-form .radio-group label span {
+    font-weight: 500 !important;
+    white-space: nowrap !important;
   }
   
   #reportContainer .senior-shift-form .button-group {
     gap: 6px !important;
-    margin-top: 12px !important;
+    margin-top: 8px !important;
   }
   
   #reportContainer .senior-shift-form .button-group button {
-    padding: 12px 16px !important;
-    font-size: 14px !important;
-    min-height: 44px !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    min-height: 42px !important;
+    border-radius: 6px !important;
   }
   
   #reportContainer .senior-shift-form .info-text {
-    font-size: 11px !important;
-    margin: 8px 0 !important;
-    padding: 6px !important;
+    font-size: 10px !important;
+    margin: 6px 0 !important;
+    padding: 4px !important;
+    line-height: 1.3 !important;
   }
 }
 
@@ -6631,7 +6650,39 @@ async function loadSalaryExportEmployees() {
 
 // ========== ➕ ФУНКЦИИ УПРАВЛЕНИЯ СТАРШИМИ СМЕНАМИ ==========
 
-// Функция для управления выбором радиокнопок в компактной форме
+// Функция для выбора типа смены
+function selectShiftType(shiftType) {
+  const dayLabel = document.querySelector('label[for="dayShift"]');
+  const nightLabel = document.querySelector('label[for="nightShift"]');
+  const dayInput = document.getElementById('dayShift');
+  const nightInput = document.getElementById('nightShift');
+  
+  // Стили для не выбранного состояния
+  const unselectedStyle = "flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: white; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500;";
+  
+  // Стили для выбранного состояния
+  const selectedStyle = "flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: rgba(34,197,94,0.1); border: 1px solid #22c55e; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; color: #16a34a;";
+  
+  // Сбрасываем состояние обеих кнопок
+  dayLabel.classList.remove('selected');
+  nightLabel.classList.remove('selected');
+  
+  if (shiftType === 'день') {
+    dayLabel.classList.add('selected');
+    dayLabel.style.cssText = selectedStyle;
+    nightLabel.style.cssText = unselectedStyle;
+    dayInput.checked = true;
+    nightInput.checked = false;
+  } else {
+    nightLabel.classList.add('selected');
+    nightLabel.style.cssText = selectedStyle;
+    dayLabel.style.cssText = unselectedStyle;
+    nightInput.checked = true;
+    dayInput.checked = false;
+  }
+}
+
+// Функция для управления выбором радиокнопок в компактной форме (старая версия для совместимости)
 function updateRadioSelection(selectedLabel) {
   // Убираем класс selected у всех радиокнопок в группе
   const radioGroup = selectedLabel.closest('.radio-group');
@@ -6643,19 +6694,35 @@ function updateRadioSelection(selectedLabel) {
   
   // Отмечаем соответствующий input как checked
   const radioInput = selectedLabel.querySelector('input[type="radio"]');
-  radioInput.checked = true;
+  if (radioInput) {
+    radioInput.checked = true;
+  }
 }
 
 // Инициализация состояния радиокнопок при загрузке формы
 function initRadioButtons() {
-  const radioGroups = document.querySelectorAll('.radio-group');
-  radioGroups.forEach(group => {
-    const checkedInput = group.querySelector('input[type="radio"]:checked');
-    if (checkedInput) {
-      const parentLabel = checkedInput.closest('label');
-      parentLabel.classList.add('selected');
+  // Проверяем новую структуру
+  const dayInput = document.getElementById('dayShift');
+  const nightInput = document.getElementById('nightShift');
+  
+  if (dayInput && nightInput) {
+    // Новая структура - используем selectShiftType
+    if (dayInput.checked) {
+      selectShiftType('день');
+    } else if (nightInput.checked) {
+      selectShiftType('ночь');
     }
-  });
+  } else {
+    // Старая структура - используем старый метод
+    const radioGroups = document.querySelectorAll('.radio-group');
+    radioGroups.forEach(group => {
+      const checkedInput = group.querySelector('input[type="radio"]:checked');
+      if (checkedInput) {
+        const parentLabel = checkedInput.closest('label');
+        if (parentLabel) parentLabel.classList.add('selected');
+      }
+    });
+  }
 }
 
 // Показать форму добавления старшего смены
@@ -6665,79 +6732,76 @@ async function showSeniorShiftForm() {
   const container = document.getElementById("reportContainer");
   
   container.innerHTML = `
-    <div class="senior-shift-form" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 100%;">
-      <h3 style="text-align: center; color: #22c55e; margin-bottom: 16px; font-size: 18px;">👥 Добавить смену</h3>
+    <div class="senior-shift-form" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; max-width: 100%;">
+      <h3 style="text-align: center; color: #22c55e; margin-bottom: 10px; font-size: 16px;">👥 Добавить смену</h3>
       
       <div style="max-width: 100%; margin: 0 auto;">
         <!-- Выбор старшего смены -->
-        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+        <div class="form-row" style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
           <div style="flex: 1;">
-            <label for="seniorSelect" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px;">👨‍💼 Старший смены:</label>
-            <select id="seniorSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box; min-height: 48px;" required>
+            <label for="seniorSelect" style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">👨‍💼 Старший смены:</label>
+            <select id="seniorSelect" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; min-height: 44px;" required>
               <option value="">⌛ Загрузка списка...</option>
             </select>
           </div>
           
           <div style="flex: 1;">
-            <label for="helperSelect" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px;">👤 Помощник <small style="color: #6b7280; font-weight: normal;">(опционально)</small>:</label>
-            <select id="helperSelect" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box; min-height: 48px;">
+            <label for="helperSelect" style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">👤 Помощник <small style="color: #6b7280; font-weight: normal;">(опционально)</small>:</label>
+            <select id="helperSelect" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; min-height: 44px;">
               <option value="">⌛ Загрузка списка...</option>
             </select>
           </div>
         </div>
         
         <!-- Тип смены -->
-        <div class="form-row" style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+        <div class="form-row" style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
           <div style="flex: 1;">
-            <label style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px;">🌅🌙 Тип смены:</label>
-            <div class="radio-group" style="display: flex; gap: 8px; justify-content: center; padding: 8px; background: #f3f4f6; border-radius: 8px;">
-              <label onclick="updateRadioSelection(this)" style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px; min-height: 40px; flex: 1; text-align: center; background: rgba(255,255,255,0.8); border-radius: 6px; border: 1px solid #e5e7eb;">
-                <input type="radio" name="shiftType" value="День" checked style="transform: scale(1.2); margin: 0;">
-                <span style="font-size: 14px; font-weight: 500;">🌅 День</span>
+            <label style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">🌅🌙 Тип смены:</label>
+            <div class="radio-group" style="display: flex; gap: 6px; justify-content: center; padding: 6px; background: #f8fafc; border-radius: 6px;">
+              <input type="radio" name="shiftType" value="День" id="dayShift" checked style="display: none;">
+              <input type="radio" name="shiftType" value="Ночь" id="nightShift" style="display: none;">
+              <label for="dayShift" onclick="selectShiftType('день')" class="selected" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: rgba(34,197,94,0.1); border: 1px solid #22c55e; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; color: #16a34a;">
+                🌅 День
               </label>
-              <label onclick="updateRadioSelection(this)" style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px; min-height: 40px; flex: 1; text-align: center; background: rgba(255,255,255,0.8); border-radius: 6px; border: 1px solid #e5e7eb;">
-                <input type="radio" name="shiftType" value="Ночь" style="transform: scale(1.2); margin: 0;">
-                <span style="font-size: 14px; font-weight: 500;">🌙 Ночь</span>
+              <label for="nightShift" onclick="selectShiftType('ночь')" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: white; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                🌙 Ночь
               </label>
             </div>
           </div>
           
           <div style="flex: 1;">
-            <label for="customDate" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px;">📅 Дата (опц.):</label>
+            <label for="customDate" style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">📅 Дата (опц.):</label>
             <input type="date" id="customDate" 
-                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box; min-height: 48px;">
+                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; min-height: 44px;">
           </div>
         </div>
         
-        <div class="info-text" style="text-align: center; margin-bottom: 16px;">
-          <small style="color: #6b7280; font-size: 12px;">
+        <div class="info-text" style="text-align: center; margin-bottom: 10px;">
+          <small style="color: #6b7280; font-size: 11px;">
             💡 Дата определится автоматически по типу смены
           </small>
         </div>
         
         <!-- Кнопки -->
-        <div class="button-group" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <div class="button-group" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
           <button onclick="addSeniorShiftRecord()" id="addSeniorRecordBtn" 
-                  style="background: #22c55e; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; flex: 1; min-width: 120px; max-width: 160px; min-height: 44px; touch-action: manipulation;">
+                  style="background: #22c55e; color: white; padding: 12px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; min-width: 110px; max-width: 150px; min-height: 42px; touch-action: manipulation;">
             ➕ Добавить
           </button>
           <button onclick="clearReports()" 
-                  style="background: #6b7280; color: white; padding: 14px 20px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; flex: 1; min-width: 120px; max-width: 160px; min-height: 44px; touch-action: manipulation;">
+                  style="background: #6b7280; color: white; padding: 12px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; min-width: 110px; max-width: 150px; min-height: 42px; touch-action: manipulation;">
             ❌ Отменить
           </button>
         </div>
         
         <!-- Результат -->
-        <div id="seniorShiftResult" style="margin-top: 12px; text-align: center; font-weight: 600;"></div>
+        <div id="seniorShiftResult" style="margin-top: 8px; text-align: center; font-weight: 600;"></div>
       </div>
     </div>
   `;
   
   // Загружаем список старших смен
   await loadSeniorsListForForm();
-  
-  // Инициализируем состояние радиокнопок
-  initRadioButtons();
 }
 
 // Загрузка списка старших смен для формы из справочника
