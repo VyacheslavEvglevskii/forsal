@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -1779,7 +1779,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwQY3igQM3uhSnXA8uKloUgcVY8IwZ6A7_L63HzaAKS093w1wZ2lBIV9AB_d8b_j_g/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbz_0gA65BcUiN___rp_jHb2ZGx4ysrcehVwQ0R2UU4yY2RDaRL8pE71lg7jiWToOlA/exec";
   
   // Проверяем URL при загрузке
 
@@ -5253,21 +5253,33 @@ function closeUpdateAllModal() {
 
 // Функции управления чекбоксами выбора обновлений
 function selectAllUpdates() {
-  document.getElementById("updateSeniorsSalary").checked = true;
-  document.getElementById("updateStaffIndicators").checked = true;
-  document.getElementById("updateOutsourcingIndicators").checked = true;
+  const seniorsSalary = document.getElementById("updateSeniorsSalary");
+  const staffIndicators = document.getElementById("updateStaffIndicators");
+  const outsourcingIndicators = document.getElementById("updateOutsourcingIndicators");
+  
+  if (seniorsSalary) seniorsSalary.checked = true;
+  if (staffIndicators) staffIndicators.checked = true;
+  if (outsourcingIndicators) outsourcingIndicators.checked = true;
 }
 
 function selectNoneUpdates() {
-  document.getElementById("updateSeniorsSalary").checked = false;
-  document.getElementById("updateStaffIndicators").checked = false;
-  document.getElementById("updateOutsourcingIndicators").checked = false;
+  const seniorsSalary = document.getElementById("updateSeniorsSalary");
+  const staffIndicators = document.getElementById("updateStaffIndicators");
+  const outsourcingIndicators = document.getElementById("updateOutsourcingIndicators");
+  
+  if (seniorsSalary) seniorsSalary.checked = false;
+  if (staffIndicators) staffIndicators.checked = false;
+  if (outsourcingIndicators) outsourcingIndicators.checked = false;
 }
 
 function selectOnlySeniors() {
-  document.getElementById("updateSeniorsSalary").checked = true;
-  document.getElementById("updateStaffIndicators").checked = false;
-  document.getElementById("updateOutsourcingIndicators").checked = false;
+  const seniorsSalary = document.getElementById("updateSeniorsSalary");
+  const staffIndicators = document.getElementById("updateStaffIndicators");
+  const outsourcingIndicators = document.getElementById("updateOutsourcingIndicators");
+  
+  if (seniorsSalary) seniorsSalary.checked = true;
+  if (staffIndicators) staffIndicators.checked = false;
+  if (outsourcingIndicators) outsourcingIndicators.checked = false;
 }
 
 // Новая функция выборочного обновления
@@ -6951,7 +6963,22 @@ async function addSeniorShiftRecord() {
       document.getElementById("customDate").value = '';
       document.getElementById("seniorSelect").selectedIndex = 0;
       document.getElementById("helperSelect").selectedIndex = 0;
-      document.querySelector('input[name="shiftType"][value="День"]').checked = true;
+      
+      // Устанавливаем тип смены на "День" (используем скрытое поле)
+      const selectedShiftType = document.getElementById("selectedShiftType");
+      if (selectedShiftType) {
+        selectedShiftType.value = "День";
+      }
+      
+      // Также обновляем визуальное состояние кнопок типа смены
+      const dayButton = document.querySelector('button[onclick*="selectShiftType(\'День\')"]');
+      const nightButton = document.querySelector('button[onclick*="selectShiftType(\'Ночь\')"]');
+      if (dayButton && nightButton) {
+        dayButton.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+        dayButton.style.color = 'white';
+        nightButton.style.background = '#f3f4f6';
+        nightButton.style.color = '#374151';
+      }
       
       console.log('✅ Записи успешно добавлены:', result.data);
     } else {
