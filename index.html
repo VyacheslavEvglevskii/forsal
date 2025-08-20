@@ -1123,103 +1123,107 @@ button.danger:hover {
     touch-action: manipulation;
   }
   
-  /* Компактная форма старшего смены для мобильных */
+  /* Мобильная форма старшего смены - простая и читаемая */
   #reportContainer .senior-shift-form {
-    padding: 8px !important;
-    margin: 4px !important;
-    border-radius: 8px !important;
+    padding: 12px !important;
+    margin: 8px !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
   }
   
   #reportContainer .senior-shift-form h3 {
-    font-size: 15px !important;
-    margin-bottom: 8px !important;
+    font-size: 18px !important;
+    margin-bottom: 16px !important;
+    color: #22c55e !important;
+    text-align: center !important;
   }
   
   #reportContainer .senior-shift-form .form-row {
     flex-direction: column !important;
-    gap: 6px !important;
-    margin-bottom: 8px !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
   }
   
   #reportContainer .senior-shift-form .form-row > div {
     min-width: auto !important;
-    margin-bottom: 6px;
+    width: 100% !important;
   }
   
   #reportContainer .senior-shift-form select,
   #reportContainer .senior-shift-form input[type="date"] {
-    min-height: 42px !important;
+    min-height: 50px !important;
     font-size: 16px !important;
-    padding: 8px 10px !important;
+    padding: 14px 16px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
   }
   
   #reportContainer .senior-shift-form label {
-    font-size: 12px !important;
-    margin-bottom: 3px !important;
+    font-size: 14px !important;
+    margin-bottom: 6px !important;
     font-weight: 600 !important;
+    color: #374151 !important;
   }
   
-  #reportContainer .senior-shift-form .radio-group {
-    flex-direction: row !important;
-    gap: 6px !important;
-    padding: 6px !important;
-    justify-content: space-around !important;
-    background: #f8fafc !important;
-    border-radius: 6px !important;
-  }
-  
-  #reportContainer .senior-shift-form .radio-group label {
-    min-height: 38px !important;
-    padding: 8px 6px !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    flex: 1;
+  /* Простые кнопки выбора смены */
+  #reportContainer .senior-shift-form .shift-buttons {
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center;
-    background: #ffffff !important;
-    border-radius: 5px !important;
-    border: 1px solid #d1d5db !important;
-    margin: 0 !important;
-    cursor: pointer !important;
-    transition: all 0.15s ease !important;
-    position: relative !important;
-  }
-  
-  #reportContainer .senior-shift-form .radio-group label.selected {
-    border-color: #22c55e !important;
-    background: rgba(34,197,94,0.1) !important;
-    color: #16a34a !important;
-    box-shadow: 0 0 0 1px rgba(34,197,94,0.2) !important;
-  }
-  
-  #reportContainer .senior-shift-form .radio-group input[type="radio"] {
-    display: none !important;
-  }
-  
-  #reportContainer .senior-shift-form .radio-group label span {
-    font-weight: 500 !important;
-    white-space: nowrap !important;
-  }
-  
-  #reportContainer .senior-shift-form .button-group {
-    gap: 6px !important;
+    gap: 8px !important;
     margin-top: 8px !important;
   }
   
+  #reportContainer .senior-shift-form .shift-button {
+    flex: 1 !important;
+    min-height: 50px !important;
+    padding: 12px 8px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #6b7280 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  
+  #reportContainer .senior-shift-form .shift-button.active {
+    border-color: #22c55e !important;
+    background: #22c55e !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2) !important;
+    transform: scale(0.98) !important;
+  }
+  
+  #reportContainer .senior-shift-form .shift-button:active {
+    transform: scale(0.95) !important;
+  }
+  
+  #reportContainer .senior-shift-form .button-group {
+    gap: 8px !important;
+    margin-top: 20px !important;
+  }
+  
   #reportContainer .senior-shift-form .button-group button {
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-    min-height: 42px !important;
-    border-radius: 6px !important;
+    padding: 14px 20px !important;
+    font-size: 16px !important;
+    min-height: 50px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
   }
   
   #reportContainer .senior-shift-form .info-text {
-    font-size: 10px !important;
-    margin: 6px 0 !important;
-    padding: 4px !important;
-    line-height: 1.3 !important;
+    font-size: 12px !important;
+    margin: 12px 0 !important;
+    padding: 8px !important;
+    line-height: 1.4 !important;
+    color: #6b7280 !important;
+    text-align: center !important;
   }
 }
 
@@ -6650,35 +6654,45 @@ async function loadSalaryExportEmployees() {
 
 // ========== ➕ ФУНКЦИИ УПРАВЛЕНИЯ СТАРШИМИ СМЕНАМИ ==========
 
-// Функция для выбора типа смены
-function selectShiftType(shiftType) {
-  const dayLabel = document.querySelector('label[for="dayShift"]');
-  const nightLabel = document.querySelector('label[for="nightShift"]');
-  const dayInput = document.getElementById('dayShift');
-  const nightInput = document.getElementById('nightShift');
+// Функция для выбора типа смены (простая мобильная версия)
+function selectMobileShift(shiftType, clickedButton) {
+  // Убираем active класс у всех кнопок
+  const allButtons = document.querySelectorAll('.shift-button');
+  allButtons.forEach(btn => btn.classList.remove('active'));
   
-  // Стили для не выбранного состояния
-  const unselectedStyle = "flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: white; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500;";
+  // Добавляем active класс к нажатой кнопке
+  clickedButton.classList.add('active');
   
-  // Стили для выбранного состояния
-  const selectedStyle = "flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: rgba(34,197,94,0.1); border: 1px solid #22c55e; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; color: #16a34a;";
+  // Сохраняем выбранный тип смены
+  const hiddenInput = document.getElementById('selectedShiftType');
+  if (hiddenInput) {
+    hiddenInput.value = shiftType;
+  }
   
-  // Сбрасываем состояние обеих кнопок
-  dayLabel.classList.remove('selected');
-  nightLabel.classList.remove('selected');
+  // Тактильная обратная связь для мобильных устройств
+  if ('vibrate' in navigator) {
+    navigator.vibrate(50); // Легкая вибрация 50ms
+  }
   
-  if (shiftType === 'день') {
-    dayLabel.classList.add('selected');
-    dayLabel.style.cssText = selectedStyle;
-    nightLabel.style.cssText = unselectedStyle;
-    dayInput.checked = true;
-    nightInput.checked = false;
-  } else {
-    nightLabel.classList.add('selected');
-    nightLabel.style.cssText = selectedStyle;
-    dayLabel.style.cssText = unselectedStyle;
-    nightInput.checked = true;
-    dayInput.checked = false;
+  console.log('Выбран тип смены:', shiftType);
+}
+
+// Функция для получения выбранного типа смены
+function getSelectedShiftType() {
+  const hiddenInput = document.getElementById('selectedShiftType');
+  return hiddenInput ? hiddenInput.value : 'День';
+}
+
+// Инициализация кнопок смены после загрузки формы
+function initMobileShiftButtons() {
+  const dayButton = document.querySelector('.shift-button:first-child');
+  const hiddenInput = document.getElementById('selectedShiftType');
+  
+  if (dayButton && hiddenInput) {
+    // Убеждаемся что кнопка "День" активна по умолчанию
+    dayButton.classList.add('active');
+    hiddenInput.value = 'День';
+    console.log('Форма старшего смены инициализирована: День выбран по умолчанию');
   }
 }
 
@@ -6732,76 +6746,81 @@ async function showSeniorShiftForm() {
   const container = document.getElementById("reportContainer");
   
   container.innerHTML = `
-    <div class="senior-shift-form" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; max-width: 100%;">
-      <h3 style="text-align: center; color: #22c55e; margin-bottom: 10px; font-size: 16px;">👥 Добавить смену</h3>
+    <div class="senior-shift-form">
+      <h3>👥 Добавить смену</h3>
       
-      <div style="max-width: 100%; margin: 0 auto;">
-        <!-- Выбор старшего смены -->
-        <div class="form-row" style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-          <div style="flex: 1;">
-            <label for="seniorSelect" style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">👨‍💼 Старший смены:</label>
-            <select id="seniorSelect" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; min-height: 44px;" required>
+      <div>
+        <!-- Старший смены -->
+        <div class="form-row">
+          <div>
+            <label for="seniorSelect">👨‍💼 Старший смены:</label>
+            <select id="seniorSelect" required>
               <option value="">⌛ Загрузка списка...</option>
             </select>
           </div>
-          
-          <div style="flex: 1;">
-            <label for="helperSelect" style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">👤 Помощник <small style="color: #6b7280; font-weight: normal;">(опционально)</small>:</label>
-            <select id="helperSelect" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; min-height: 44px;">
+        </div>
+        
+        <!-- Помощник -->
+        <div class="form-row">
+          <div>
+            <label for="helperSelect">👤 Помощник (необязательно):</label>
+            <select id="helperSelect">
               <option value="">⌛ Загрузка списка...</option>
             </select>
           </div>
         </div>
         
         <!-- Тип смены -->
-        <div class="form-row" style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-          <div style="flex: 1;">
-            <label style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">🌅🌙 Тип смены:</label>
-            <div class="radio-group" style="display: flex; gap: 6px; justify-content: center; padding: 6px; background: #f8fafc; border-radius: 6px;">
-              <input type="radio" name="shiftType" value="День" id="dayShift" checked style="display: none;">
-              <input type="radio" name="shiftType" value="Ночь" id="nightShift" style="display: none;">
-              <label for="dayShift" onclick="selectShiftType('день')" class="selected" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: rgba(34,197,94,0.1); border: 1px solid #22c55e; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; color: #16a34a;">
+        <div class="form-row">
+          <div>
+            <label>🌅🌙 Тип смены:</label>
+            <div class="shift-buttons">
+              <button type="button" class="shift-button active" onclick="selectMobileShift('День', this)">
                 🌅 День
-              </label>
-              <label for="nightShift" onclick="selectShiftType('ночь')" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 6px; background: white; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500;">
+              </button>
+              <button type="button" class="shift-button" onclick="selectMobileShift('Ночь', this)">
                 🌙 Ночь
-              </label>
+              </button>
             </div>
-          </div>
-          
-          <div style="flex: 1;">
-            <label for="customDate" style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px;">📅 Дата (опц.):</label>
-            <input type="date" id="customDate" 
-                   style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; min-height: 44px;">
+            <input type="hidden" id="selectedShiftType" value="День">
           </div>
         </div>
         
-        <div class="info-text" style="text-align: center; margin-bottom: 10px;">
-          <small style="color: #6b7280; font-size: 11px;">
-            💡 Дата определится автоматически по типу смены
-          </small>
+        <!-- Дата -->
+        <div class="form-row">
+          <div>
+            <label for="customDate">📅 Дата (необязательно):</label>
+            <input type="date" id="customDate">
+          </div>
+        </div>
+        
+        <div class="info-text">
+          💡 Дата определится автоматически по типу смены
         </div>
         
         <!-- Кнопки -->
-        <div class="button-group" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+        <div class="button-group">
           <button onclick="addSeniorShiftRecord()" id="addSeniorRecordBtn" 
-                  style="background: #22c55e; color: white; padding: 12px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; min-width: 110px; max-width: 150px; min-height: 42px; touch-action: manipulation;">
+                  style="background: #22c55e; color: white; border: none; cursor: pointer; touch-action: manipulation;">
             ➕ Добавить
           </button>
           <button onclick="clearReports()" 
-                  style="background: #6b7280; color: white; padding: 12px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; min-width: 110px; max-width: 150px; min-height: 42px; touch-action: manipulation;">
+                  style="background: #6b7280; color: white; border: none; cursor: pointer; touch-action: manipulation;">
             ❌ Отменить
           </button>
         </div>
         
         <!-- Результат -->
-        <div id="seniorShiftResult" style="margin-top: 8px; text-align: center; font-weight: 600;"></div>
+        <div id="seniorShiftResult"></div>
       </div>
     </div>
   `;
   
   // Загружаем список старших смен
   await loadSeniorsListForForm();
+  
+  // Инициализируем кнопки смены
+  initMobileShiftButtons();
 }
 
 // Загрузка списка старших смен для формы из справочника
@@ -6883,7 +6902,7 @@ async function addSeniorShiftRecord() {
   // Получаем данные из формы
   const seniorName = document.getElementById("seniorSelect").value.trim();
   const helperName = document.getElementById("helperSelect").value.trim();
-  const shiftType = document.querySelector('input[name="shiftType"]:checked').value;
+  const shiftType = getSelectedShiftType(); // Используем новую функцию для мобильной версии
   const customDate = document.getElementById("customDate").value;
   
   // Валидация
