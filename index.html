@@ -1664,6 +1664,23 @@ button.danger:hover {
     </p>
   </div>
   
+  <!-- Выбор периода для анализа -->
+  <div style="background: #f9fafb; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #d1d5db;">
+    <h3 style="margin: 0 0 12px 0; color: #374151;">📅 Период анализа</h3>
+    
+    <!-- Ручной выбор дат -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">📅 Дата начала:</label>
+        <input type="date" id="duplicatesStartDate" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #6b7280;">📅 Дата окончания:</label>
+        <input type="date" id="duplicatesEndDate" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+      </div>
+    </div>
+  </div>
+  
   <!-- Действия -->
   <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
     <button onclick="analyzeDuplicatesInTab()" id="analyzeDuplicatesTabBtn" style="background:#ff6b35; flex: 1; min-width: 200px;">
@@ -1779,7 +1796,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbz_0gA65BcUiN___rp_jHb2ZGx4ysrcehVwQ0R2UU4yY2RDaRL8pE71lg7jiWToOlA/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbw_1EDxz4UWAAH2U34UFOh0L3yZ1S4vYiaQr3YuLrFo8jGzUrDQBS_oSfZnEdwvC9c/exec";
   
   // Проверяем URL при загрузке
 
@@ -4105,7 +4122,9 @@ function openEditModal(index, record) {
   form.rowIndex.value = index;
   form.employeeName.value = currentUser;
   form.orderNumber.value = record.orderNumber || "";
-  form.shiftType.value = currentShift;
+  
+  // 🌙 ИСПРАВЛЕНИЕ: Используем тип смены из записи, а не из профиля
+  document.getElementById("editShiftType").value = record.shiftType || currentShift;
   form.employeeStatus.value = currentStatus;
 
   form.quantity.value = record.quantity;
@@ -4115,6 +4134,17 @@ function openEditModal(index, record) {
   document.getElementById("editOperation").value = record.operationType || "";
   document.getElementById("editVolumeSelect").value = record.volume || "";
   document.getElementById("editSetNumberSelect").value = record.setNumber || "";
+
+  // 🌙 Обработка даты ночной смены для редактирования
+  const nightShiftDateInput = document.getElementById("editNightShiftDate");
+  
+  // Заполняем дату ночной смены если она есть в записи
+  if (nightShiftDateInput && record.shiftDate) {
+    nightShiftDateInput.value = record.shiftDate;
+  }
+  
+  // Инициализируем отображение блока ночной смены
+  toggleEditNightShiftBlock();
 
   // триггерим отображение поля объёма/набора
   document.getElementById("editOperation").dispatchEvent(new Event("change"));
@@ -4297,6 +4327,26 @@ async function submitEditForm() {
 
 function closeEditModal() {
   document.getElementById("editModal").style.display = "none";
+}
+
+// 🌙 Функция для показа/скрытия блока даты ночной смены в редактировании
+function toggleEditNightShiftBlock() {
+  const shiftType = document.getElementById("editShiftType").value;
+  const nightShiftBlock = document.getElementById("editNightShiftDateBlock");
+  const nightShiftInput = document.getElementById("editNightShiftDate");
+  
+  if (shiftType === "Ночь") {
+    nightShiftBlock.style.display = "block";
+    // Если поле пустое, предлагаем вчерашний день
+    if (!nightShiftInput.value) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      nightShiftInput.value = yesterday.toISOString().split('T')[0];
+    }
+  } else {
+    nightShiftBlock.style.display = "none";
+    nightShiftInput.value = "";
+  }
 }
 
 function getVolumesForOperation(operation) {
@@ -7720,18 +7770,25 @@ async function analyzeDuplicatesInTab() {
   loader.style.display = "block";
   
   try {
-    const response = await fetch(scriptURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ type: "analyzeDuplicates" })
+    console.log("🔍 Отправляем запрос на анализ дубликатов...");
+    
+    // Получаем параметры периода
+    const periodParams = getDuplicatesPeriodParams();
+    const urlParams = new URLSearchParams({ type: "analyzeDuplicates", ...periodParams });
+    
+    console.log("📅 Параметры периода:", periodParams);
+    
+    const response = await fetch(`${scriptURL}?${urlParams.toString()}`, {
+      method: "GET"
     });
     
     if (!response.ok) throw new Error("Ошибка сети");
     
     const result = await response.json();
+    console.log("📊 Ответ от сервера:", result);
     
     // Обновляем статистику
-    updateDuplicatesStats(result.analyzed, result.total, 0, 0);
+    updateDuplicatesStats(result.analyzed || 0, result.total || 0, 0, 0);
     
     // Отображаем результаты
     if (result.total > 0) {
@@ -7796,10 +7853,12 @@ async function runDeduplicateInTab() {
   loader.style.display = "block";
   
   try {
-    const response = await fetch(scriptURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ type: "runSafeDeduplicate" })
+    // Получаем параметры периода
+    const periodParams = getDuplicatesPeriodParams();
+    const urlParams = new URLSearchParams({ type: "runSafeDeduplicate", ...periodParams });
+    
+    const response = await fetch(`${scriptURL}?${urlParams.toString()}`, {
+      method: "GET"
     });
     
     if (!response.ok) throw new Error("Ошибка сети");
@@ -7852,6 +7911,24 @@ async function runDeduplicateInTab() {
 }
 
 // ===== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ВКЛАДКИ ДУБЛИКАТОВ =====
+
+
+
+
+
+/**
+ * Получение параметров периода для отправки на сервер
+ */
+function getDuplicatesPeriodParams() {
+  const startDate = document.getElementById("duplicatesStartDate").value;
+  const endDate = document.getElementById("duplicatesEndDate").value;
+  
+  const params = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+  
+  return params;
+}
 
 /**
  * Загрузка статистики дубликатов при открытии вкладки
@@ -9149,9 +9226,16 @@ document.addEventListener('DOMContentLoaded', function() {
   <input type="hidden" name="rowIndex" />
   <input type="hidden" name="employeeName" />
   <input type="hidden" name="orderNumber" />
-  <input type="hidden" name="shiftType" />
   <input type="hidden" name="employeeStatus" />
   <input type="hidden" name="duration" />
+
+  <!-- 🌙 Делаем тип смены видимым для редактирования -->
+  <label>Тип смены:
+    <select name="shiftType" id="editShiftType" onchange="toggleEditNightShiftBlock()" required>
+      <option value="День">День</option>
+      <option value="Ночь">Ночь</option>
+    </select>
+  </label>
 
   <label>Операция:
     <select name="operationType" id="editOperation" required></select>
@@ -9170,6 +9254,16 @@ document.addEventListener('DOMContentLoaded', function() {
   <label>Количество:<input name="quantity" type="number" required /></label>
   <label>Начало:<input name="startTime" type="time" required /></label>
   <label>Окончание:<input name="endTime" type="time" required /></label>
+
+  <!-- 🌙 БЛОК ДЛЯ НОЧНЫХ СМЕН В РЕДАКТИРОВАНИИ -->
+  <div id="editNightShiftDateBlock" style="display:none; margin-top: 12px;">
+    <label>📅 Дата ночной смены:
+      <input type="date" name="nightShiftDate" id="editNightShiftDate" style="font-size: 15px;" />
+    </label>
+    <small style="color:#6b7280; font-size:11px; margin-top:4px; display:block;">
+      ℹ️ Дата, к которой относится ночная смена
+    </small>
+  </div>
 
   <button type="button" onclick="submitEditForm()">💾 Сохранить</button>
   <button type="button" onclick="closeEditModal()" class="danger">❌ Отмена</button>
