@@ -1796,7 +1796,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbzAzriP-xC4r0Lzzt7AcNwv5dQjFrmE4N-NRDiUVioKdwEj8iMsdlIiTaQKh41sOlM/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzL3460wypyvmEjYdtdpVhzQpiANUmErwKSU5EPxfOYzgnZCAZYQmWYR6yGIF3ojOk/exec";
   
   // Проверяем URL при загрузке
 
@@ -4749,18 +4749,20 @@ async function loadStats() {
         shiftEfficiency += efficiency;
         shiftEfficiencyCount++;
 
+        // Определяем индекс строки записи, учитывая возможные имена поля из сервера
+        const recordIndex = (rec.rowIndex ?? rec.index ?? rec.row ?? rec.row_number ?? rec.rowNum);
         // Проверяем, можно ли редактировать (за последние 2 суток)
-        const canEdit = rec.rowIndex !== undefined && isWithinEditPeriod(date);
+        const canEdit = recordIndex !== undefined && isWithinEditPeriod(date);
         const buttonsHTML = canEdit
           ? `<div style="margin-top:10px;">
-               <button onclick="openEditModal(${rec.rowIndex}, ${JSON.stringify(rec).replace(/"/g, '&quot;')})">✏️ Редактировать</button>
-               <button onclick="deleteRecord(${rec.rowIndex})" class="danger" style="margin-left:10px;">🗑 Удалить</button>
+               <button onclick="openEditModal(${recordIndex}, ${JSON.stringify(rec).replace(/"/g, '&quot;')})">✏️ Редактировать</button>
+               <button onclick="deleteRecord(${recordIndex})" class="danger" style="margin-left:10px;">🗑 Удалить</button>
              </div>`
           : "";
 
         
         shiftCardsHTML += `
-          <div class="stat-card" ${rec.rowIndex !== undefined ? `data-record-index="${rec.rowIndex}"` : ""}>
+          <div class="stat-card" ${recordIndex !== undefined ? `data-record-index="${recordIndex}"` : ""}>
             <p><strong>🕒 Время:</strong> ${rec.startTime} – ${rec.endTime}</p>
             <p><strong>🔧 Операция:</strong> ${rec.operationType}</p>
             <p><strong>📦 Объём:</strong> ${rec.volume || "-"}</p>
