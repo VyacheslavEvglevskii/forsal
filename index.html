@@ -1283,6 +1283,15 @@ button.danger:hover {
       flex: 1 1 200px;
     }
     /* Удалено поведение column для мобилок */
+
+    /* Скрываем подсказки в учёте упаковки, не меняя логику */
+    #appContainer .tooltip[data-tooltip]::after {
+      display: none !important;
+    }
+    #appContainer #rateInfo,
+    #appContainer #calcBlock {
+      display: none !important;
+    }
   </style>
 
   <h2 id="mainTitle">📦 Учёт упаковки</h2>
@@ -1796,7 +1805,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbzL3460wypyvmEjYdtdpVhzQpiANUmErwKSU5EPxfOYzgnZCAZYQmWYR6yGIF3ojOk/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxFlWxUgU_S4HyyQUh3dBKEBvrgzvhrfOmnI5Zkjo1siSFV-gdM9qsneUY3I7wSrLU/exec";
   
   // Проверяем URL при загрузке
 
@@ -1807,6 +1816,37 @@ let currentStatus = "";
  let allRates = [];
 let allVolumes = []; // ← добавь это!
 let currentUserRole = "user"; // ← добавляем сюда
+
+// Быстрый индекс: операция -> массив доступных ключей объёмов
+let operationKeysIndex = {};
+let operationOptionsHtmlIndex = {};
+let lastRenderedOperation = "";
+
+// Попытка восстановить кэш готовых опций из localStorage
+try {
+  const cached = JSON.parse(localStorage.getItem('volumeOptionsCache') || 'null');
+  if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+    operationOptionsHtmlIndex = cached.htmlIndex || {};
+    operationKeysIndex = cached.keysIndex || {};
+  }
+} catch (e) { /* ignore */ }
+
+// Утилиты для естественной числовой сортировки значений объёма
+function extractNumericValue(value) {
+  const str = String(value ?? '').replace(/\s+/g, '');
+  const match = str.match(/\d+(?:[.,]\d+)?/);
+  if (!match) return NaN;
+  return parseFloat(match[0].replace(',', '.'));
+}
+
+function sortVolumeKeysNaturally(keys) {
+  return keys.sort((a, b) => {
+    const na = extractNumericValue(a);
+    const nb = extractNumericValue(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b), 'ru', { numeric: true, sensitivity: 'base' });
+  });
+}
 
 // Кэш для ускорения загрузки данных
 let dataCache = {
@@ -2880,6 +2920,9 @@ async function handleLogin() {
         loadOperationFilter();
         // loadPackingModels(); // УБРАНО: уже загружается через preloadPackingModels в DOMContentLoaded
         
+        // Прогреваем индекс объёмов для мгновенного отклика
+        ensureOperationKeysIndex();
+        
 
       }
 
@@ -3371,7 +3414,7 @@ function formatDate(iso) {
         opt.textContent = val;
         select.appendChild(opt);
       });
-      select.addEventListener("change", () => handleOperationChange(select.value));
+      select.addEventListener("change", async () => await handleOperationChange(select.value));
     } catch (error) {
       console.error("Ошибка загрузки операций:", error);
     }
@@ -3499,7 +3542,7 @@ async function deleteRecord(index) {
   }
 }
 
-  function handleOperationChange(operation) {
+  async function handleOperationChange(operation) {
   const setField = document.getElementById("setNumberField");
   const volumeLabel = document.getElementById("volumeLabel");
   const volumeSelect = document.querySelector('[name="volume"]');
@@ -3528,26 +3571,16 @@ async function deleteRecord(index) {
   return;
 }
 
-  // === 📂 Подгрузка объёмов по операции ===
+  // === 📂 Подгрузка объёмов по операции (ускоренная) ===
+  // Гарантируем наличие индекса
+  await ensureOperationKeysIndex();
   volumeSelect.disabled = false;
-  volumeSelect.innerHTML = '<option value="">-- Выбери объём --</option>';
-
-  // Фильтруем доступные объёмы по операции из справочника (allRates должен быть загружен заранее)
-  const relatedKeys = Array.from(
-    new Set(
-      allRates
-        .filter(rate => rate.operation === operation)
-        .map(rate => rate.key)
-    )
-  );
-
-  // Добавляем варианты
-  relatedKeys.forEach(key => {
-    const opt = document.createElement("option");
-    opt.value = key;
-    opt.textContent = key;
-    volumeSelect.appendChild(opt);
-  });
+  // Избегаем лишних перерисовок, если операция не менялась
+  if (lastRenderedOperation !== operation) {
+    const html = operationOptionsHtmlIndex[operation] || '<option value="">-- Выбери объём --</option>';
+    volumeSelect.innerHTML = html;
+    lastRenderedOperation = operation;
+  }
 }
 
 
@@ -3742,68 +3775,6 @@ async function handleOutsourcingSubmitOptimized(form, submitBtn, result) {
   }
 }
 
-// 🚀 СТАРАЯ: Оптимизированная отправка для аутсорсеров  
-async function handleOutsourcingSubmit(form, submitBtn, result) {
-  // Минимальная блокировка UI
-  submitBtn.disabled = true;
-  submitBtn.textContent = "⏳ Отправка...";
-  result.style.display = "none";
-
-  // Быстрое формирование данных
-  const formData = new FormData(form);
-  
-  // Добавляем только необходимые данные
-  formData.append("packingModel", document.getElementById("profilePackingModel").value);
-  formData.append("shiftType", currentShift);
-  formData.append("employeeStatus", currentStatus);
-  formData.append("payType", "Сделка"); // Фиксированное для аутсорсеров
-  
-  // 🌙 Дата ночной смены если нужно
-  if (currentShift === "Ночь") {
-    const nightShiftDate = localStorage.getItem("profileNightShiftDate");
-    if (nightShiftDate) {
-      formData.append("nightShiftDate", nightShiftDate);
-    }
-  }
-
-  // Быстрая отправка без лишних проверок
-  try {
-    const response = await fetch(scriptURL, {
-      method: "POST",
-      body: formData // Используем FormData напрямую для скорости
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const resultData = await response.json();
-    
-    if (resultData.status === "success") {
-      // 🚀 Быстрый сброс для аутсорсеров
-      form.reset();
-      document.querySelector('[name="employeeName"]').value = currentUser;
-      showTemporaryNotification("✅ Данные отправлены!", "success");
-      
-      // Асинхронное обновление без блокировки
-      setTimeout(() => loadTodayRecords(), 100);
-    } else {
-      result.textContent = resultData.message;
-      result.style.display = "block";
-      result.className = "error-message";
-    }
-    
-  } catch (error) {
-    console.error("❌ Ошибка отправки:", error);
-    result.textContent = "❌ Ошибка: " + error.message;
-    result.style.display = "block";
-    result.className = "error-message";
-  } finally {
-    // Быстрая разблокировка
-    submitBtn.disabled = false;
-    submitBtn.textContent = "💾 Сохранить";
-  }
-}
 
 // Стандартная отправка для штатных сотрудников
 // 🚀 НОВАЯ: Оптимизированная отправка для штатных
@@ -3926,106 +3897,6 @@ function refreshDataInBackground() {
   }
 }
 
-// 🚀 СТАРАЯ: Обычная отправка для штатных
-async function handleRegularSubmit(form, submitBtn, result) {
-  const formData = new FormData(form);
-
-  // Добавляем модель упаковки из профиля
-  const packingModel = document.getElementById("profilePackingModel").value;
-  formData.append("packingModel", packingModel);
-
-  // Пересчёт продолжительности (если нужно)
-  const start = formData.get("startTime");
-  const end = formData.get("endTime");
-  if (start && end) {
-    const [sh, sm] = start.split(":").map(Number);
-    const [eh, em] = end.split(":").map(Number);
-    let minutes = (eh * 60 + em) - (sh * 60 + sm);
-    if (minutes < 0) minutes += 1440;
-    const duration = `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
-    formData.set("duration", duration);
-    document.querySelector('[name="duration"]').value = duration;
-  }
-
-  // Добавляем данные профиля
-  formData.append("shiftType", currentShift);
-  formData.append("employeeStatus", currentStatus);
-  formData.append("payType", localStorage.getItem("profilePayType") || "");
-  formData.append("salary", localStorage.getItem("profileSalary") || "");
-  
-  // 🌙 Добавляем дату ночной смены если это ночная смена
-  if (currentShift === "Ночь") {
-    const nightShiftDate = localStorage.getItem("profileNightShiftDate");
-    if (nightShiftDate) {
-      formData.append("nightShiftDate", nightShiftDate);
-    }
-  }
-
-  // === Блокировка кнопки и изменение интерфейса ===
-  submitBtn.disabled = true;
-  submitBtn.textContent = "⏳ Отправка...";
-  submitBtn.style.opacity = "0.6";
-  submitBtn.style.cursor = "not-allowed";
-  submitBtn.classList.add("loading");
-  result.style.display = "none";
-  
-  // Блокируем всю форму
-  form.classList.add("form-disabled");
-  
-  // Скрываем предупреждения о дубликатах во время отправки
-  hideAllWarnings();
-
-  // === ОПТИМИЗАЦИЯ: отправляем через URLSearchParams ===
-  const params = new URLSearchParams();
-  formData.forEach((value, key) => {
-    params.append(key, value);
-  });
-
-  try {
-    const response = await fetch(scriptURL, {
-      method: "POST",
-      body: params,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const resultData = await response.json();
-    
-    // Показываем результат
-    result.textContent = resultData.message;
-    result.style.display = "block";
-    
-    // Добавляем класс для стилизации сообщения
-    result.className = resultData.status === "success" ? "success-message" : "error-message";
-
-    if (resultData.status === "success") {
-      // ✅ ПОЛНОЕ ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
-      await performFullInterfaceRefresh();
-      
-      // Показываем сообщение об успехе немного дольше
-      setTimeout(() => {
-        result.style.display = "none";
-        result.className = "";
-      }, 3000);
-      
-    } else {
-      // В случае ошибки просто разблокируем кнопку
-      enableSubmitButton();
-    }
-    
-  } catch (error) {
-    console.error("❌ Ошибка отправки данных:", error);
-    result.textContent = "❌ Ошибка отправки: " + error.message;
-    result.style.display = "block";
-    result.className = "error-message";
-    enableSubmitButton();
-  }
-}
 
 
 async function loadRatesTable() {
@@ -4059,6 +3930,35 @@ async function loadRatesTable() {
   const filteredRates = allRates.filter(r =>
     r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат"
   );
+
+  // Предварительно строим индекс операции -> список ключей (для быстрого наполнения объёмов)
+  // Учитываем уникальность ключей
+  operationKeysIndex = filteredRates.reduce((acc, rate) => {
+    const op = rate.operation;
+    const key = rate.key;
+    if (!op || !key) return acc;
+    if (!acc[op]) acc[op] = new Set();
+    acc[op].add(String(key));
+    return acc;
+  }, {});
+  // Преобразуем множества в отсортированные массивы строк
+  Object.keys(operationKeysIndex).forEach(op => {
+    const sorted = sortVolumeKeysNaturally(Array.from(operationKeysIndex[op]));
+    operationKeysIndex[op] = sorted;
+    // Заготавливаем HTML-строку опций (для мгновенной подстановки)
+    operationOptionsHtmlIndex[op] = ['<option value="">-- Выбери объём --</option>']
+      .concat(sorted.map(k => `<option value="${k}">${k}</option>`))
+      .join('');
+  });
+
+  // Сохраняем в localStorage на будущее (с TTL = CACHE_DURATION)
+  try {
+    localStorage.setItem('volumeOptionsCache', JSON.stringify({
+      timestamp: Date.now(),
+      htmlIndex: operationOptionsHtmlIndex,
+      keysIndex: operationKeysIndex
+    }));
+  } catch (e) { /* ignore */ }
 
     // Заполняем фильтры
     populateFilters(filteredRates, opFilter, keyFilter);
@@ -4337,6 +4237,44 @@ async function loadSetSizesFast() {
   };
   
   return data.setSizes;
+}
+
+// Обеспечивает готовность индекса операция -> ключи объёмов
+async function ensureOperationKeysIndex() {
+  if (operationKeysIndex && Object.keys(operationKeysIndex).length > 0) return;
+  operationOptionsHtmlIndex = {};
+
+  let rates = [];
+  try {
+    if (isCacheValid(dataCache.rates)) {
+      rates = dataCache.rates.data;
+    } else {
+      const res = await fetch(`${scriptURL}?type=rates`);
+      const data = await res.json();
+      rates = data.rates || [];
+      dataCache.rates = { data: rates, timestamp: Date.now() };
+    }
+  } catch (e) {
+    console.error("Ошибка загрузки тарифов для индекса объёмов:", e);
+    rates = [];
+  }
+
+  const filtered = rates.filter(r => r.operation !== "Ставка_Аутсорсинг" && r.operation !== "Ставка_штат");
+  operationKeysIndex = filtered.reduce((acc, rate) => {
+    const op = rate.operation;
+    const key = rate.key;
+    if (!op || !key) return acc;
+    if (!acc[op]) acc[op] = new Set();
+    acc[op].add(String(key));
+    return acc;
+  }, {});
+  Object.keys(operationKeysIndex).forEach(op => {
+    const sorted = sortVolumeKeysNaturally(Array.from(operationKeysIndex[op]));
+    operationKeysIndex[op] = sorted;
+    operationOptionsHtmlIndex[op] = ['<option value="">-- Выбери объём --</option>']
+      .concat(sorted.map(k => `<option value="${k}">${k}</option>`))
+      .join('');
+  });
 }
 
 async function loadOperationFilter() {
@@ -6646,12 +6584,6 @@ function toggleReport(id, contentHtml) {
     wrapper.innerHTML = contentHtml;
     container.appendChild(wrapper);
   }
-}
-
-function clearReports() {
-  const container = document.getElementById("reportContainer");
-  container.innerHTML = "";
-  isShiftStatsLoaded = false;
 }
 
 async function loadShiftStats() {
