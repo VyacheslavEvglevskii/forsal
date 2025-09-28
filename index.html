@@ -1805,7 +1805,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbxFlWxUgU_S4HyyQUh3dBKEBvrgzvhrfOmnI5Zkjo1siSFV-gdM9qsneUY3I7wSrLU/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzr5ABJeATBq5GnkN_To3dhzUb4C2v7eJGFq87ZdjP__ZkxcpUDPGMJwuWahPTZzqU/exec";
   
   // Проверяем URL при загрузке
 
@@ -2296,7 +2296,6 @@ async function updateProfileFromServer() {
         await updateProfileConnectionsDisplay(userData);
       }
       
-      console.log("✅ Профиль автоматически обновлен с сервера");
       
       // ⚡ ПРЕДЗАГРУЗКА ОКЛАДОВ в фоне (не блокирует UI)
       if (userData.status !== "Аутсорсинг") {
@@ -2325,12 +2324,12 @@ async function getUserDataFromServer(currentUser) {
   const response = await fetch(`${scriptURL}?type=employees`);
   const data = await response.json();
   
-  if (data.employees) {
+  if (data.employeesData) {
     // Обновляем кэш
-    userDataCache = data.employees;
+    userDataCache = data.employeesData;
     userDataCacheTimestamp = Date.now();
     
-    return data.employees.find(emp => emp.name === currentUser);
+    return data.employeesData.find(emp => emp.name === currentUser);
   }
   
   return null;
@@ -2468,7 +2467,6 @@ async function saveProfile() {
   
   // ⚡ Защита от повторных нажатий
   if (saveBtn.disabled) {
-    console.log("🛡️ Сохранение уже выполняется");
     return;
   }
   
@@ -2528,7 +2526,6 @@ async function saveProfile() {
       const cachedSalary = getCachedSalary(currentUser, shiftValue);
       if (cachedSalary !== null) {
         salary = cachedSalary;
-        console.log(`⚡ Использован кэшированный оклад: ${salary}`);
       } else {
         // Загружаем с сервера с fallback логикой
         salary = await fetchSalaryWithFallback(currentUser, shiftValue) || "";
@@ -2638,7 +2635,6 @@ function switchTab(tabName) {
   
   // 🔐 Блокировка доступа к админ-функциям для обычных пользователей
   if (currentUserRole !== "admin" && (tabName === "admin" || tabName === "costAnalysis" || tabName === "traineeManagement" || tabName === "duplicates")) {
-    console.log("❌ Доступ запрещен: требуется роль администратора");
     return;
   }
   
@@ -3689,7 +3685,6 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   
   // 🛡️ УСИЛЕННАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ
   if (submitBtn.disabled) {
-    console.log("🛡️ Блокировка: кнопка уже заблокирована");
     return;
   }
 
@@ -3698,7 +3693,6 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   const timeSinceLastSubmit = Date.now() - lastSubmitTime;
   
   if (timeSinceLastSubmit < 2000) { // 2 секунды защита
-    console.log("🛡️ Блокировка: слишком быстрая повторная отправка");
     showTemporaryNotification("⚠️ Подождите немного перед повторной отправкой", "warning");
     return;
   }
@@ -3857,7 +3851,6 @@ async function handleSuccessResponseOptimized(form, submitBtn, result, message) 
     refreshDataInBackground();
   }, 100);
   
-  console.log("✅ Форма успешно отправлена и UI разблокирован");
 }
 
 // ⚡ Быстрый сброс формы с сохранением важных полей
@@ -3877,7 +3870,6 @@ function quickFormReset(form) {
   if (rateInfo) rateInfo.style.display = "none";
   if (calcBlock) calcBlock.style.display = "none";
   
-  console.log("⚡ Форма быстро сброшена");
 }
 
 // ⚡ Асинхронное обновление данных в фоне
@@ -3890,7 +3882,6 @@ function refreshDataInBackground() {
     hideAllWarnings();
     clearDraft();
     
-    console.log("🔄 Фоновое обновление данных запущено");
   } catch (error) {
     console.warn("⚠️ Ошибка фонового обновления:", error);
     // Не показываем пользователю - это не критично
@@ -4550,6 +4541,7 @@ let isStatsLoading = false;
 
 
 
+
 // ⚡ ОПТИМИЗИРОВАННАЯ функция загрузки статистики
 async function loadStats() {
   if (isStatsLoading) return;
@@ -4586,26 +4578,43 @@ async function loadStats() {
 
     // ⚡ Быстрая валидация
     if (!currentUser) {
+      console.error("❌ Пользователь не авторизован:", currentUser);
       showTemporaryNotification("❗Ошибка: пользователь не авторизован", "error");
       return;
     }
 
     if (!date) {
+      console.warn("⚠️ Дата не выбрана");
       showTemporaryNotification("❗Выберите дату для статистики", "warning");
       return;
     }
+    
 
     // ⚡ Оптимизированный запрос к серверу с обработкой ошибок
-    const res = await fetch(`${scriptURL}?type=stats&date=${encodeURIComponent(date)}&employee=${encodeURIComponent(currentUser)}`);
+    const requestUrl = `${scriptURL}?type=stats&date=${encodeURIComponent(date)}&employee=${encodeURIComponent(currentUser)}`;
+    
+    const res = await fetch(requestUrl);
     
     if (!res.ok) {
+      console.error("❌ HTTP ошибка:", res.status, res.statusText);
       throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
     
-    const data = await res.json();
+    const responseText = await res.text();
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("❌ Ошибка парсинга JSON:", parseError);
+      console.error("❌ Текст ответа:", responseText);
+      throw new Error(`Ошибка парсинга ответа сервера: ${parseError.message}`);
+    }
+    
     
     // 🛡️ Проверка на ошибки сервера
     if (data.error) {
+      console.error("❌ Ошибка сервера:", data.error);
       throw new Error(data.error);
     }
 
@@ -5252,7 +5261,6 @@ async function fetchSalaryByShift(employee, shiftType) {
     const data = await res.json();
     const salary = String(data.salary || "");
     
-    console.log(`🌙 Загружен оклад для ${employee} (${shiftType}): ${salary}`);
     
     return salary;
     
@@ -5280,7 +5288,6 @@ async function updateSalaryForShift(shiftType) {
     if (cachedSalary !== null) {
       // ⚡ Мгновенное обновление из кэша
       salaryInput.value = cachedSalary;
-      console.log(`⚡ Оклад мгновенно обновлен из кэша для смены "${shiftType}": ${cachedSalary}`);
       return;
     }
     
@@ -5294,7 +5301,6 @@ async function updateSalaryForShift(shiftType) {
       
       // Кэшируем результат
       cacheSalary(currentUser, shiftType, salary);
-      console.log(`✅ Оклад обновлен для смены "${shiftType}": ${salary}`);
     }
   } catch (err) {
     console.error("❌ Ошибка обновления оклада:", err);
@@ -5308,7 +5314,6 @@ async function updateSalaryForShift(shiftType) {
 async function fetchSalaryWithFallback(employee, shiftType) {
   try {
     // Сначала пытаемся использовать новую оптимизированную функцию
-    console.log(`⚡ Попытка загрузки оклада через новый API для ${employee} (${shiftType})`);
     
     const res = await fetch(`${scriptURL}?type=getSalaryByShift&employee=${encodeURIComponent(employee)}&shift=${encodeURIComponent(shiftType)}`);
     
@@ -5316,20 +5321,17 @@ async function fetchSalaryWithFallback(employee, shiftType) {
       const data = await res.json();
       if (data.salary !== undefined && !data.error) {
         const salary = String(data.salary || "");
-        console.log(`✅ Оклад загружен через новый API: ${salary}`);
         return salary;
       }
     }
     
     // Если новый API не работает, пробуем старый
-    console.log(`⚠️ Новый API недоступен, пробуем старый для ${employee}`);
     
     const fallbackRes = await fetch(`${scriptURL}?type=getSalary&employee=${encodeURIComponent(employee)}`);
     
     if (fallbackRes.ok) {
       const fallbackData = await fallbackRes.json();
       const salary = String(fallbackData.salary || "");
-      console.log(`✅ Оклад загружен через старый API: ${salary}`);
       return salary;
     }
     
@@ -5353,7 +5355,6 @@ function getCachedSalary(employee, shiftType) {
   const cached = salaryCache.get(cacheKey);
   
   if (cached && (Date.now() - cached.timestamp) < salaryCacheExpiry) {
-    console.log(`⚡ Использован кэшированный оклад для ${employee} (${shiftType}): ${cached.salary}`);
     return cached.salary;
   }
   
@@ -5878,7 +5879,7 @@ async function loadMentorshipPairs() {
     
 
     
-    if (!data.employees) {
+    if (!data.employeesData) {
       container.innerHTML = '<p style="color: #dc2626;">❌ Ошибка загрузки данных</p>';
       return;
     }
@@ -5887,7 +5888,7 @@ async function loadMentorshipPairs() {
     const pairs = [];
     const mentorTraineePairs = new Map();
     
-    data.employees.forEach(employee => {
+    data.employeesData.forEach(employee => {
       if (employee.mentor && employee.mentor.trim()) {
         const mentor = employee.mentor.trim();
         const trainee = employee.name.trim();
@@ -6008,8 +6009,8 @@ async function getMentorInfo(traineeName) {
     
 
     
-    if (data.employees) {
-      const trainee = data.employees.find(emp => emp.name === traineeName);
+    if (data.employeesData) {
+      const trainee = data.employeesData.find(emp => emp.name === traineeName);
 
 
       
@@ -6333,9 +6334,9 @@ async function cleanupAllMentorshipPairs(execute = false) {
       const data = await response.json();
       
       let pairsCount = 0;
-      if (data.employees) {
+      if (data.employeesData) {
         // Подсчитываем количество связей (упрощенно)
-        data.employees.forEach(emp => {
+        data.employeesData.forEach(emp => {
           if (emp.mentor && emp.mentor.trim()) {
             pairsCount++;
           }
@@ -6481,6 +6482,7 @@ async function analyzePackers() {
           <td>${row.qty}</td>
           <td>${row.efficiency}%</td>
           <td>${row.wage.toLocaleString("ru-RU")} ₽</td>
+          <td>${row.shiftsWorked || 0}</td>
           <td>${met}/${total} (${percent}%) ${normIcon}</td>
         </tr>
       `);
@@ -6499,6 +6501,7 @@ async function analyzePackers() {
             <th>Количество</th>
             <th>Эффективность</th>
             <th>Зарплата</th>
+            <th>Смены</th>
             <th>Нормы</th>
           </tr>
         </thead>
@@ -6514,6 +6517,11 @@ async function analyzePackers() {
         📊 <b>Итого по выполнению норм за смену:</b>
         <br>
         ${totalNormsMet}/${totalNormsTotal} (${totalNormsPercent}%)
+        <br><br>
+        📅 <b>Статистика по сменам:</b>
+        <br>
+        • Всего смен отработано: ${list.reduce((sum, emp) => sum + (emp.shiftsWorked || 0), 0)}<br>
+        • Среднее смен на сотрудника: ${list.length > 0 ? Math.round(list.reduce((sum, emp) => sum + (emp.shiftsWorked || 0), 0) / list.length * 10) / 10 : 0}
       </div>
     `;
 
@@ -7095,7 +7103,12 @@ async function loadSalaryExportEmployees() {
     const res = await fetch(`${scriptURL}?type=employees`);
     const data = await res.json();
 
-    const names = Array.from(new Set((data.employees || []))).sort();
+    if (data.error) {
+      document.getElementById("salaryExportResult").textContent = data.error;
+      return;
+    }
+
+    const names = (data.employees || []).filter(name => name && name.trim()).sort();
     const select = document.getElementById("salaryExportEmployee");
 
     select.innerHTML = `<option value="">-- Все --</option>`;
@@ -7456,7 +7469,7 @@ async function loadSalaryExportSeniors() {
       return;
     }
 
-    const seniors = data.seniors || [];
+    const seniors = (data.seniors || []).filter(senior => senior && senior.trim());
 
     select.innerHTML = `<option value="">-- Все --</option>`;
     seniors.forEach(senior => {
@@ -7466,7 +7479,6 @@ async function loadSalaryExportSeniors() {
       select.appendChild(opt);
     });
     
-    console.log(`✅ Загружено для экспорта: ${seniors.length} старших смен`);
   } catch (err) {
     document.getElementById("salaryExportResult").textContent = "Ошибка загрузки справочника старших смен!";
     console.error("Ошибка при загрузке справочника старших смен:", err);
