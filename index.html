@@ -1950,7 +1950,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbyMwoJDq6YpZFfi6SLMozJcquuYagP4zMCqtZ_AnNV2q4imXOoPqzpm9TIopcNnrA/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxhnmCUDiOgDf2MDYy86yqEh1jvbXdj0wY2cHPCQNnYJBVyevvNv2GEir4UhSQD6uc/exec";
   
   // Проверяем URL при загрузке
 
@@ -3461,6 +3461,17 @@ async function handleLogin() {
 
       localStorage.setItem("currentUser", login);
       localStorage.setItem("currentUserRole", currentUserRole);
+      
+      // ✅ ДОБАВЛЕНО: Обязательная загрузка настроек администратора с сервера
+      try {
+        await loadAdminSettingsFromServer();
+        console.log("✅ Настройки администратора загружены при входе:", currentAdminSettings);
+      } catch (error) {
+        console.error("❌ Ошибка загрузки настроек при входе:", error);
+        // При ошибке используются безопасные defaults (false) из синхронной инициализации
+        showTemporaryNotification("⚠️ Настройки загружены из кэша", "warning", 2000);
+      }
+      // КОНЕЦ ДОБАВЛЕННОГО КОДА
       
       // 🌙 Автоматическая настройка профиля для аутсорсеров
       if (currentStatus === "Аутсорсинг") {
@@ -5333,8 +5344,8 @@ async function loadStats() {
   if (Object.keys(currentAdminSettings).length === 0) {
     console.log("⚠️ Критическая ошибка: настройки потеряны, восстанавливаем");
     currentAdminSettings = {
-      "allow_record_editing": true,
-      "allow_record_deletion": true,
+      "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+      "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
       "auto_end_time_enabled": false,
       "force_deal_paytype": false
     };
@@ -10530,10 +10541,10 @@ let hasUnsavedChanges = false;
 // ⚡ СИНХРОННАЯ ИНИЦИАЛИЗАЦИЯ НАСТРОЕК (выполняется немедленно)
 (function initializeSettingsSync() {
   try {
-    // Сначала устанавливаем настройки по умолчанию
+    // Сначала устанавливаем настройки по умолчанию (БЕЗОПАСНЫЕ - Fail-Closed)
     currentAdminSettings = {
-      "allow_record_editing": true,
-      "allow_record_deletion": true,
+      "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+      "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
       "auto_end_time_enabled": false,
       "force_deal_paytype": false
     };
@@ -10555,10 +10566,10 @@ let hasUnsavedChanges = false;
     
   } catch (e) {
     console.warn("Ошибка синхронной инициализации настроек:", e);
-    // Fallback к настройкам по умолчанию
+    // Fallback к настройкам по умолчанию (БЕЗОПАСНЫЕ - Fail-Closed)
     currentAdminSettings = {
-      "allow_record_editing": true,
-      "allow_record_deletion": true,
+      "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+      "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
       "auto_end_time_enabled": false,
       "force_deal_paytype": false
     };
@@ -10828,8 +10839,8 @@ async function resetAdminSettings() {
   }
   
   const defaultSettings = {
-    "allow_record_editing": true,
-    "allow_record_deletion": true,
+    "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+    "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
     "auto_end_time_enabled": false,
     "force_deal_paytype": false
   };
@@ -11414,21 +11425,21 @@ function preloadAdminSettings() {
       }
     }
     
-    // Если нет кэша - используем настройки по умолчанию для мгновенного старта
+    // Если нет кэша - используем настройки по умолчанию для мгновенного старта (БЕЗОПАСНЫЕ)
     currentAdminSettings = {
-      "allow_record_editing": true,
-      "allow_record_deletion": true,
+      "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+      "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
       "auto_end_time_enabled": false,
       "force_deal_paytype": false
     };
-    console.log("🔧 Предзагрузка: используем настройки по умолчанию");
+    console.log("🔧 Предзагрузка: используем безопасные настройки по умолчанию");
     
   } catch (e) {
     console.warn("Ошибка предзагрузки настроек:", e);
-    // Fallback к настройкам по умолчанию
+    // Fallback к настройкам по умолчанию (БЕЗОПАСНЫЕ)
     currentAdminSettings = {
-      "allow_record_editing": true,
-      "allow_record_deletion": true,
+      "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+      "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
       "auto_end_time_enabled": false,
       "force_deal_paytype": false
     };
@@ -11546,14 +11557,15 @@ async function loadAdminSettingsFromServer() {
       console.warn("⚠️ Не удалось загрузить настройки администратора:", error);
     }
     
-    // Используем настройки по умолчанию только если нет вообще никаких настроек
+    // Используем настройки по умолчанию только если нет вообще никаких настроек (БЕЗОПАСНЫЕ)
     if (Object.keys(currentAdminSettings).length === 0) {
       currentAdminSettings = {
-        "allow_record_editing": true,
-        "allow_record_deletion": true,
-        "auto_end_time_enabled": false
+        "allow_record_editing": false,   // ✅ ИСПРАВЛЕНО: true → false
+        "allow_record_deletion": false,  // ✅ ИСПРАВЛЕНО: true → false
+        "auto_end_time_enabled": false,
+        "force_deal_paytype": false
       };
-      console.log("🔧 Используем настройки по умолчанию из-за ошибки сервера");
+      console.log("🔧 Используем безопасные настройки по умолчанию из-за ошибки сервера");
     }
   } finally {
     isLoadingAdminSettings = false;
@@ -11691,7 +11703,7 @@ function updateSettingsButtons() {
 /**
  * 🛠️ Получение конкретной настройки (для использования в других функциях)
  */
-function getAdminSetting(key, defaultValue = true) {
+function getAdminSetting(key, defaultValue = false) {  // ✅ ИСПРАВЛЕНО: true → false (Fail-Closed архитектура)
   return currentAdminSettings[key] !== undefined ? currentAdminSettings[key] : defaultValue;
 }
 
