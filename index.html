@@ -1346,6 +1346,125 @@ button.danger:hover {
   }
 }
 
+/* Модальное окно подтверждения */
+#confirmModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#confirmModal .modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to { 
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+#confirmModal .modal-header {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#confirmModal .modal-body {
+  color: #4b5563;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+#confirmModal .modal-summary {
+  background: #f3f4f6;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+#confirmModal .modal-summary div {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
+#confirmModal .modal-summary .label {
+  color: #6b7280;
+}
+
+#confirmModal .modal-summary .value {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+#confirmModal .modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+#confirmModal button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#confirmModal .btn-cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+#confirmModal .btn-cancel:hover {
+  background: #d1d5db;
+}
+
+#confirmModal .btn-confirm {
+  background: #3b82f6;
+  color: white;
+}
+
+#confirmModal .btn-confirm:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
   </style>
 </head>
 <body>
@@ -1950,7 +2069,7 @@ button.danger:hover {
   <div id="costResults" style="margin-top: 20px;"></div>
 </div>
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbxhnmCUDiOgDf2MDYy86yqEh1jvbXdj0wY2cHPCQNnYJBVyevvNv2GEir4UhSQD6uc/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwxRJO09hyO4Vi4Nol3QUkk7XLlTT0oglCf5JbTHQcIS3FB13-MLaFY1wmKVSdgVPQ/exec";
   
   // Проверяем URL при загрузке
 
@@ -4413,25 +4532,14 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   submitBtn.disabled = true;
   window.lastFormSubmitTime = Date.now();
   
-  // 🛡️ ПАУЗА перед отправкой для предотвращения дубликатов
-  submitBtn.textContent = "⏳ Подготовка...";
-  await new Promise(resolve => setTimeout(resolve, 800)); // 800ms пауза
-  
   // 🚀 Определяем тип отправки
   const isOutsourcing = currentStatus === "Аутсорсинг";
   
-  try {
-    if (isOutsourcing) {
-      await handleOutsourcingSubmitOptimized(form, submitBtn, result);
-    } else {
-      await handleRegularSubmitOptimized(form, submitBtn, result);
-    }
-  } catch (error) {
-    console.error("❌ Ошибка при отправке формы:", error);
-    submitBtn.disabled = false;
-    submitBtn.textContent = "💾 Сохранить";
-    showTemporaryNotification("❌ Ошибка отправки: " + error.message, "error");
-  }
+  // ✅ Подготавливаем FormData для показа в модальном окне
+  const formData = new FormData(form);
+  
+  // ✅ ПОКАЗЫВАЕМ МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ
+  showConfirmModal(formData, form, submitBtn, result, isOutsourcing);
 });
 
 // 🚀 НОВАЯ: Оптимизированная отправка для аутсорсеров
@@ -4667,6 +4775,238 @@ function refreshDataInBackground() {
   }
 }
 
+// ✅ Глобальная переменная для хранения данных формы при подтверждении
+let pendingFormSubmission = null;
+
+// ✅ Функция показа модального окна подтверждения
+function showConfirmModal(formData, form, submitBtn, result, isOutsourcing) {
+  const modal = document.getElementById("confirmModal");
+  const summary = document.getElementById("confirmSummary");
+  
+  // Формируем краткую сводку данных
+  const quantity = formData.get("quantity");
+  const orderNumber = formData.get("orderNumber");
+  const operationType = formData.get("operationType");
+  const volume = formData.get("volume");
+  const setNumber = formData.get("setNumber");
+  const startTime = formData.get("startTime");
+  const endTime = formData.get("endTime");
+  
+  let summaryHTML = `
+    <div><span class="label">Количество:</span> <span class="value">${quantity || '-'}</span></div>
+    <div><span class="label">Номер заказа:</span> <span class="value">${orderNumber || '-'}</span></div>
+    <div><span class="label">Операция:</span> <span class="value">${operationType || '-'}</span></div>
+  `;
+  
+  if (operationType && operationType.includes("Набор")) {
+    summaryHTML += `<div><span class="label">Артикул набора:</span> <span class="value">${setNumber || '-'}</span></div>`;
+  } else {
+    summaryHTML += `<div><span class="label">Объём:</span> <span class="value">${volume || '-'}</span></div>`;
+  }
+  
+  summaryHTML += `
+    <div><span class="label">Время:</span> <span class="value">${startTime || '-'} - ${endTime || '-'}</span></div>
+  `;
+  
+  summary.innerHTML = summaryHTML;
+  
+  // Сохраняем данные для последующей отправки
+  pendingFormSubmission = {
+    formData: formData,
+    form: form,
+    submitBtn: submitBtn,
+    result: result,
+    isOutsourcing: isOutsourcing
+  };
+  
+  // Показываем модальное окно
+  modal.style.display = "block";
+  
+  // Добавляем обработчик закрытия по клику вне окна
+  modal.onclick = function(event) {
+    if (event.target === modal) {
+      closeConfirmModal();
+    }
+  };
+  
+  // Добавляем обработчик для закрытия по клавише Escape
+  const escapeHandler = function(event) {
+    if (event.key === "Escape") {
+      closeConfirmModal();
+      document.removeEventListener("keydown", escapeHandler);
+    }
+  };
+  document.addEventListener("keydown", escapeHandler);
+}
+
+// ✅ Функция закрытия модального окна
+function closeConfirmModal() {
+  const modal = document.getElementById("confirmModal");
+  modal.style.display = "none";
+  
+  // Разблокируем кнопку отправки, если отменили
+  if (pendingFormSubmission) {
+    const { submitBtn } = pendingFormSubmission;
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+    pendingFormSubmission = null;
+  }
+}
+
+// ✅ Функция подтверждения отправки
+async function confirmSubmit() {
+  if (!pendingFormSubmission) return;
+  
+  const { formData, form, submitBtn, result, isOutsourcing } = pendingFormSubmission;
+  
+  // Закрываем модальное окно
+  const modal = document.getElementById("confirmModal");
+  modal.style.display = "none";
+  
+  // Очищаем сохраненные данные
+  pendingFormSubmission = null;
+  
+  // Выполняем отправку
+  submitBtn.textContent = "⏳ Подготовка...";
+  await new Promise(resolve => setTimeout(resolve, 800)); // 800ms пауза
+  
+  try {
+    if (isOutsourcing) {
+      await handleOutsourcingSubmitOptimizedConfirmed(formData, form, submitBtn, result);
+    } else {
+      await handleRegularSubmitOptimizedConfirmed(formData, form, submitBtn, result);
+    }
+  } catch (error) {
+    console.error("❌ Ошибка при отправке формы:", error);
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+    showTemporaryNotification("❌ Ошибка отправки: " + error.message, "error");
+  }
+}
+
+// 🚀 Отправка для аутсорсеров (после подтверждения)
+async function handleOutsourcingSubmitOptimizedConfirmed(formData, form, submitBtn, result) {
+  submitBtn.textContent = "📤 Отправка...";
+  result.style.display = "none";
+
+  // Добавляем только необходимые данные
+  formData.append("packingModel", document.getElementById("profilePackingModel").value);
+  formData.append("shiftType", currentShift);
+  formData.append("employeeStatus", currentStatus);
+  formData.append("payType", "Сделка"); // Фиксированное для аутсорсеров
+  
+  // ⏰ АВТОМАТИЧЕСКОЕ ВРЕМЯ ОКОНЧАНИЯ (если включено в настройках)
+  const autoEndTimeEnabled = getAdminSetting('auto_end_time_enabled', false);
+  if (autoEndTimeEnabled) {
+    const currentTime = new Date();
+    const timeString = currentTime.toTimeString().slice(0, 5);
+    formData.set("endTime", timeString);
+  }
+
+  // 🌙 Дата ночной смены если нужно
+  if (currentShift === "Ночь") {
+    const nightShiftDate = localStorage.getItem("profileNightShiftDate");
+    if (nightShiftDate) {
+      formData.append("nightShiftDate", nightShiftDate);
+    }
+  }
+
+  // Быстрая отправка
+  const response = await fetch(scriptURL, {
+    method: "POST",
+    body: formData
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const resultData = await response.json();
+  
+  if (resultData.status === "success") {
+    await handleSuccessResponseOptimized(form, submitBtn, result, "✅ Данные отправлены!");
+  } else if (resultData.status === "duplicate") {
+    showTemporaryNotification(resultData.message, "warning");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+  } else {
+    result.textContent = resultData.message;
+    result.style.display = "block";
+    result.className = "error-message";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+  }
+}
+
+// 🚀 Отправка для штатных сотрудников (после подтверждения)
+async function handleRegularSubmitOptimizedConfirmed(formData, form, submitBtn, result) {
+  submitBtn.textContent = "📤 Отправка...";
+  result.style.display = "none";
+
+  // Добавляем модель упаковки из профиля
+  const packingModel = document.getElementById("profilePackingModel").value;
+  formData.append("packingModel", packingModel);
+
+  // Быстрый пересчёт продолжительности
+  const start = formData.get("startTime");
+  const end = formData.get("endTime");
+  if (start && end) {
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let minutes = (eh * 60 + em) - (sh * 60 + sm);
+    if (minutes < 0) minutes += 1440;
+    const duration = `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`;
+    formData.set("duration", duration);
+  }
+
+  // Добавляем данные профиля
+  formData.append("shiftType", currentShift);
+  formData.append("employeeStatus", currentStatus);
+  formData.append("payType", localStorage.getItem("profilePayType") || "");
+  formData.append("salary", localStorage.getItem("profileSalary") || "");
+  
+  // ⏰ АВТОМАТИЧЕСКОЕ ВРЕМЯ ОКОНЧАНИЯ (если включено в настройках)
+  const autoEndTimeEnabled = getAdminSetting('auto_end_time_enabled', false);
+  if (autoEndTimeEnabled) {
+    const currentTime = new Date();
+    const timeString = currentTime.toTimeString().slice(0, 5);
+    formData.set("endTime", timeString);
+  }
+
+  // 🌙 Добавляем дату ночной смены если это ночная смена
+  if (currentShift === "Ночь") {
+    const nightShiftDate = localStorage.getItem("profileNightShiftDate");
+    if (nightShiftDate) {
+      formData.append("nightShiftDate", nightShiftDate);
+    }
+  }
+
+  // ⚡ ОПТИМИЗАЦИЯ: отправляем FormData напрямую
+  const response = await fetch(scriptURL, {
+    method: "POST",
+    body: formData
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const resultData = await response.json();
+  
+  if (resultData.status === "success") {
+    await handleSuccessResponseOptimized(form, submitBtn, result, "✅ Данные сохранены!");
+  } else if (resultData.status === "duplicate") {
+    showTemporaryNotification(resultData.message, "warning");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+  } else {
+    result.textContent = resultData.message;
+    result.style.display = "block";
+    result.className = "error-message";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "💾 Сохранить";
+  }
+}
 
 
 async function loadRatesTable() {
@@ -12035,5 +12375,25 @@ function showNotification(message, type = "info") {
     }, 5000); // ЗАДЕРЖКА 3 секунды
   });
 </script>
+
+<!-- Модальное окно подтверждения отправки данных -->
+<div id="confirmModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      ✅ Подтверждение отправки
+    </div>
+    <div class="modal-body">
+      Вы уверены, что хотите отправить данные?
+      <div class="modal-summary" id="confirmSummary">
+        <!-- Здесь будет краткая сводка данных -->
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeConfirmModal()">❌ Отмена</button>
+      <button class="btn-confirm" onclick="confirmSubmit()">✅ Да, отправить</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
