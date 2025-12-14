@@ -385,7 +385,7 @@ button.danger:hover {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   background-color: #2563eb;
   padding: 10px 0;
   border-bottom-left-radius: 12px;
@@ -400,28 +400,22 @@ button.danger:hover {
   color: white;
   font-size: 20px;
   cursor: pointer;
-  flex: 1;
   text-align: center;
   transition: all 0.3s ease;
-  padding: 12px 6px;
+  padding: 12px 16px;
   min-height: 48px;
   touch-action: manipulation;
 }
 
 /* Стили для скрытых кнопок в админ-режиме */
-.top-nav button.admin-hidden {
+.top-nav button.admin-hidden,
+.top-nav button[style*="display: none"],
+.top-nav button[style*="display:none"] {
   display: none !important;
-  visibility: hidden !important;
-  width: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  flex: 0 !important;
 }
 
 .top-nav button.admin-visible {
-  display: inline-block !important;
-  visibility: visible !important;
-  flex: 1 !important;
+  display: inline-flex !important;
 }
 
 .mobile-nav button:active {
@@ -1494,12 +1488,12 @@ button.danger:hover {
     <button id="tabProfile" onclick="switchTab('profile')">👤</button>
     <button id="tabApp" onclick="switchTab('app')" disabled>📋</button>
     <button id="tabStats" onclick="switchTab('stats')">📈</button>
-    <button id="tabCostAnalysis" onclick="switchTab('costAnalysis')" style="display: none;">📊</button>
-    <button id="tabTraineeManagement" onclick="switchTab('traineeManagement')" style="display: none;">👨‍🎓</button>
+    <button id="tabCostAnalysis" onclick="switchTab('costAnalysis')" class="admin-hidden">📊</button>
+    <button id="tabTraineeManagement" onclick="switchTab('traineeManagement')" class="admin-hidden">👨‍🎓</button>
     <button id="tabRates" onclick="switchTab('rates')">💰</button>
     <button id="tabMySalary" onclick="switchTab('mySalary')">💵</button>
-    <button id="tabDuplicates" onclick="switchTab('duplicates')" style="display: none;">🔍</button>
-    <button id="tabAdmin" onclick="switchTab('admin')" style="display: none;">🛠️</button>
+    <button id="tabDuplicates" onclick="switchTab('duplicates')" class="admin-hidden">🔍</button>
+    <button id="tabAdmin" onclick="switchTab('admin')" class="admin-hidden">🛠️</button>
   </nav>
 <div class="container" id="loginContainer">
   <h2>🔐 Вход в систему</h2>

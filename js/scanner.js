@@ -112,8 +112,8 @@ function selectWorkMode(mode, save = true) {
     if (manualBlock) manualBlock.style.display = 'block';
     
     // ✍️ Показываем вкладки для ручного режима
-    if (tabApp) tabApp.style.display = 'inline-block';
-    if (tabRates) tabRates.style.display = 'inline-block';
+    if (tabApp) tabApp.style.display = '';
+    if (tabRates) tabRates.style.display = '';
     
     // Вызываем handleStatusChange для показа правильных блоков (наставник/стажер)
     if (typeof handleStatusChange === 'function') {

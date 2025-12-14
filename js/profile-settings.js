@@ -375,9 +375,9 @@ function clearOutsourcingSettings() {
   const tabStats = document.getElementById("tabStats");
   const tabRates = document.getElementById("tabRates");
   
-  if (tabMySalary) tabMySalary.style.display = "inline-block";
-  if (tabStats) tabStats.style.display = "inline-block"; 
-  if (tabRates) tabRates.style.display = "inline-block";
+  if (tabMySalary) tabMySalary.style.display = "";
+  if (tabStats) tabStats.style.display = ""; 
+  if (tabRates) tabRates.style.display = "";
   
   // Показываем блоки тарифов и расчета оплаты для обычных пользователей
   const rateInfo = document.getElementById("rateInfo");
@@ -785,7 +785,7 @@ document.getElementById("employeeStatus").addEventListener("change", function() 
   // Управляем отображением вкладки "Моя зарплата"
   const tabMySalary = document.getElementById("tabMySalary");
   if (tabMySalary) {
-    tabMySalary.style.display = (this.value === "Аутсорсинг") ? "none" : "inline-block";
+    tabMySalary.style.display = (this.value === "Аутсорсинг") ? "none" : "";
   }
 });
 
@@ -1038,18 +1038,18 @@ async function saveProfile() {
       } else {
         // ✍️ РЕЖИМ РУЧНОЙ ВВОД: показываем вкладки как обычно
         if (tabApp) {
-          tabApp.style.display = "inline-block";
+          tabApp.style.display = "";
           tabApp.disabled = !isFilled;
           tabApp.innerHTML = isFilled ? "📋" : "🔒";
         }
         if (tabRates) {
-          tabRates.style.display = "inline-block";
+          tabRates.style.display = "";
         }
       }
 
       // Скрываем вкладку "Моя зарплата", если сотрудник аутсорс
       if (tabMySalary) {
-        tabMySalary.style.display = (statusValue === "Аутсорсинг") ? "none" : "inline-block";
+        tabMySalary.style.display = (statusValue === "Аутсорсинг") ? "none" : "";
       }
     }
 

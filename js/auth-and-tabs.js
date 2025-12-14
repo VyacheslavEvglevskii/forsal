@@ -195,8 +195,6 @@ async function handleLogin() {
           if (btn) {
             btn.classList.add("admin-hidden");
             btn.classList.remove("admin-visible");
-            // 🛡️ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: Принудительно скрываем через style
-            btn.style.display = "none";
           }
         });
         
@@ -415,7 +413,7 @@ function handleLogout() {
     tabApp.innerHTML = "🔒";
   }
   // 🛠️ Показываем вкладку "Моя зарплата" (как до входа)
-  if (tabMySalary) tabMySalary.style.display = "inline-block";
+  if (tabMySalary) tabMySalary.style.display = "";
 
   // ❌ Очистка статистики
   if (typeof closeStats === "function") {
@@ -462,14 +460,17 @@ function handleLogout() {
   const tabButtons = ["tabProfile", "tabApp", "tabStats", "tabRates", "tabMySalary"];
   tabButtons.forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.style.display = "inline-block";
+    if (btn) btn.style.display = "";
   });
   
   // 🔐 Админ-вкладки остаются скрытыми
   const adminTabs = ["tabCostAnalysis", "tabTraineeManagement", "tabDuplicates", "tabAdmin"];
   adminTabs.forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.style.display = "none";
+    if (btn) {
+      btn.classList.add("admin-hidden");
+      btn.classList.remove("admin-visible");
+    }
   });
 
   // 🧽 Сброс модальных окон
@@ -503,8 +504,8 @@ function setupMasterInterface() {
   normalTabButtons.forEach((id) => {
     const btn = document.getElementById(id);
     if (btn) {
-      btn.style.display = "none";
-      btn.style.visibility = "hidden";
+      btn.classList.add("admin-hidden");
+      btn.classList.remove("admin-visible");
       console.log(`🔒 Полностью скрыта кнопка: ${id}`);
     }
   });
@@ -514,8 +515,8 @@ function setupMasterInterface() {
   masterTabs.forEach((tabId) => {
     const tab = document.getElementById(tabId);
     if (tab) {
-      tab.style.display = "inline-block";
-      tab.style.visibility = "visible";
+      tab.classList.remove("admin-hidden");
+      tab.classList.add("admin-visible");
       console.log(`✅ Показана кнопка: ${tabId}`);
     }
   });
@@ -534,8 +535,8 @@ function setupAdminInterface() {
   normalTabButtons.forEach((id) => {
     const btn = document.getElementById(id);
     if (btn) {
-      btn.style.display = "none";
-      btn.style.visibility = "hidden";
+      btn.classList.add("admin-hidden");
+      btn.classList.remove("admin-visible");
       console.log(`🔒 Полностью скрыта кнопка: ${id}`);
     }
   });
@@ -545,8 +546,8 @@ function setupAdminInterface() {
   hiddenAdminTabs.forEach((tabId) => {
     const tab = document.getElementById(tabId);
     if (tab) {
-      tab.style.display = "none";
-      tab.style.visibility = "hidden";
+      tab.classList.add("admin-hidden");
+      tab.classList.remove("admin-visible");
       console.log(`🔒 Полностью скрыта админ-кнопка: ${tabId}`);
     }
   });
@@ -556,8 +557,8 @@ function setupAdminInterface() {
   visibleTabs.forEach((tabId) => {
     const tab = document.getElementById(tabId);
     if (tab) {
-      tab.style.display = "inline-block";
-      tab.style.visibility = "visible";
+      tab.classList.remove("admin-hidden");
+      tab.classList.add("admin-visible");
       console.log(`✅ Показана кнопка: ${tabId}`);
     }
   });

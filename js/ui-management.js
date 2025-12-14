@@ -132,8 +132,6 @@ function diagnoseDuplicatesTab() {
     console.log("🔧 Принудительное восстановление для администратора...");
     tab.classList.remove("admin-hidden");
     tab.classList.add("admin-visible");
-    tab.style.display = "";
-    tab.style.visibility = "";
     tab.disabled = false;
     console.log("✅ Восстановление выполнено!");
   }
