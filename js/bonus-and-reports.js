@@ -291,11 +291,15 @@ async function loadShiftStatsForLeader() {
     return;
   }
 
-  container.innerHTML = "<p>⌛ Загрузка отчёта по сменам...</p>";
+  // 🔄 Показываем модальное окно загрузки
+  showReportLoadingModal();
+  container.innerHTML = "";
 
   try {
     const res = await fetch(`${scriptURL}?type=shiftStats&start=${start}&end=${end}`);
     const data = await res.json();
+
+    hideReportLoadingModal();
 
     if (!data || !data.data || !Array.isArray(data.data) || !data.data.length) {
       container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранному периоду</p>";
@@ -317,15 +321,23 @@ async function loadShiftStatsForLeader() {
       const shiftWorkload = shiftBlock.total?.workload ?? 0;
       const shiftWorkloadIcon = shiftBlock.total?.workloadIcon ?? "—";
       
+      // Итоги по смене с разделением на готовую продукцию и маркировку
+      const totalRepack = shiftBlock.total?.totalQtyRepack ?? 0;
+      const totalSticker = shiftBlock.total?.totalQtySticker ?? 0;
+      const avgRepackPerPerson = shiftBlock.total?.avgRepackPerPerson ?? 0;
+      const employeesCount = shiftBlock.total?.employeesCount ?? 0;
+      
       const shiftTitle = document.createElement("div");
       shiftTitle.innerHTML = `
         🕐 <strong>Смена:</strong> ${shiftBlock.shift}
-        <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
+        <br>📦 <strong>Готовая продукция:</strong> ${totalRepack} шт. <span style="color:#6b7280;">(ср. ${avgRepackPerPerson} шт/чел)</span>
+        <br>🏷️ <strong>Маркировка:</strong> ${totalSticker} шт.
+        <br>📊 <strong>Всего операций:</strong> ${shiftBlock.total?.totalQty ?? 0} шт. (${employeesCount} чел.)
         <br>⚙️ <strong>Средняя эффективность:</strong> ${shiftBlock.total?.overall ?? 0}%
         <br>⏱️ <strong>Средняя загрузка:</strong> ${shiftWorkload}% ${shiftWorkloadIcon}
-        <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт. (${shiftBlock.staff?.employees?.length ?? 0} чел.)
-        <br>👨‍🎓 <strong>Стажеры:</strong> ${shiftBlock.trainee?.totalQty ?? 0} шт. (${shiftBlock.trainee?.employees?.length ?? 0} чел.)
-        <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQty ?? 0} шт. (${shiftBlock.outsource?.employees?.length ?? 0} чел.)
+        <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQtyRepack ?? 0}/${shiftBlock.staff?.totalQtySticker ?? 0} (${shiftBlock.staff?.employees?.length ?? 0} чел.)
+        <br>👨‍🎓 <strong>Стажеры:</strong> ${shiftBlock.trainee?.totalQtyRepack ?? 0}/${shiftBlock.trainee?.totalQtySticker ?? 0} (${shiftBlock.trainee?.employees?.length ?? 0} чел.)
+        <br>📄 <strong>Аутсорсинг:</strong> ${shiftBlock.outsource?.totalQtyRepack ?? 0}/${shiftBlock.outsource?.totalQtySticker ?? 0} (${shiftBlock.outsource?.employees?.length ?? 0} чел.)
       `;
       shiftTitle.style.marginTop = "16px";
       container.appendChild(shiftTitle);
@@ -338,7 +350,7 @@ async function loadShiftStatsForLeader() {
 
       // Заголовок таблицы
       const headerRow = table.insertRow();
-      ["Сотрудник", "Кол-во", "Эффективность", "⏱️ Загрузка"].forEach((text) => {
+      ["Сотрудник", "📦/🏷️", "Эффективность", "⏱️ Загрузка"].forEach((text) => {
         const th = document.createElement("th");
         th.textContent = text;
         th.style.border = "1px solid #ccc";
@@ -359,8 +371,10 @@ async function loadShiftStatsForLeader() {
             nameCell.style.border = "1px solid #ccc";
             nameCell.style.padding = "8px";
 
+            // Формат: готовая продукция / маркировка
             const qtyCell = row.insertCell();
-            qtyCell.textContent = emp.totalQty || emp.quantity;
+            const qtyDisplay = emp.quantityDisplay || `${emp.quantityRepack || 0} / ${emp.quantitySticker || 0}`;
+            qtyCell.textContent = qtyDisplay;
             qtyCell.style.border = "1px solid #ccc";
             qtyCell.style.padding = "8px";
             qtyCell.style.textAlign = "center";
@@ -386,6 +400,7 @@ async function loadShiftStatsForLeader() {
       container.appendChild(table);
     });
   } catch (error) {
+    hideReportLoadingModal();
     console.error("Ошибка загрузки отчёта для старших смен:", error);
     container.innerHTML =
       "<p style='color:red;'>❌ Ошибка при загрузке отчёта. Попробуйте позже.</p>";
@@ -499,11 +514,15 @@ async function loadShiftStats() {
     return;
   }
 
-  container.innerHTML = "<p>⌛ Загрузка отчёта по сменам...</p>";
+  // 🔄 Показываем модальное окно загрузки
+  showReportLoadingModal();
+  container.innerHTML = "";
 
   try {
     const res = await fetch(`${scriptURL}?type=shiftStats&start=${start}&end=${end}`);
     const data = await res.json();
+
+    hideReportLoadingModal();
 
     if (!data || !data.data || !Array.isArray(data.data) || !data.data.length) {
       container.innerHTML = "<p style='text-align:center;'>Нет данных по выбранному периоду</p>";
@@ -524,10 +543,13 @@ async function loadShiftStats() {
       const shiftWorkload = shiftBlock.total?.workload ?? 0;
       const shiftWorkloadIcon = shiftBlock.total?.workloadIcon ?? "—";
       
+      const avgRepackPerPerson = shiftBlock.total?.avgRepackPerPerson ?? 0;
+      const employeesCount = shiftBlock.total?.employeesCount ?? 0;
+      
       const shiftTitle = document.createElement("div");
       shiftTitle.innerHTML = `
     🕐 <strong>Смена:</strong> ${shiftBlock.shift}
-    <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт.
+    <br>📦 <strong>Переупаковано за смену:</strong> ${shiftBlock.total?.totalQty ?? 0} шт. <span style="color:#6b7280;">(ср. ${avgRepackPerPerson} шт/чел, ${employeesCount} чел.)</span>
     <br>⚙️ <strong>Средняя эффективность:</strong> ${shiftBlock.total?.overall ?? 0}%
     <br>⏱️ <strong>Средняя загрузка:</strong> ${shiftWorkload}% ${shiftWorkloadIcon}
     <br>👨‍🔧 <strong>Штат:</strong> ${shiftBlock.staff?.totalQty ?? 0} шт. (${shiftBlock.staff?.employees?.length ?? 0} чел.)
@@ -547,7 +569,7 @@ async function loadShiftStats() {
       thead.innerHTML = `
         <tr style="background:#f3f4f6;">
           <th style="padding:6px; border:1px solid #ccc;">Сотрудник</th>
-          <th style="padding:6px; border:1px solid #ccc;">Кол-во</th>
+          <th style="padding:6px; border:1px solid #ccc;">📦/🏷️</th>
           <th style="padding:6px; border:1px solid #ccc;">Эффективность</th>
           <th style="padding:6px; border:1px solid #ccc;">⏱️ Загрузка</th>
           <th style="padding:6px; border:1px solid #ccc;">Нормы</th>
@@ -591,9 +613,11 @@ async function loadShiftStats() {
           const empWorkload = emp.workload ?? 0;
           const empWorkloadIcon = emp.workloadIcon ?? "—";
           
+          // Используем quantityDisplay если есть, иначе формируем из quantityRepack/quantitySticker
+          const qtyDisplay = emp.quantityDisplay || `${emp.quantityRepack || 0} / ${emp.quantitySticker || 0}`;
           tr.innerHTML = `
             <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
-            <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${qtyDisplay}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
             <td style="padding:6px; border:1px solid #ccc;">${empWorkload}% ${empWorkloadIcon}</td>
             <td style="padding:6px; border:1px solid #ccc;">${normsMet}/${normsTotal} (${normsPercent}%) ${normIcon}</td>
@@ -632,9 +656,11 @@ async function loadShiftStats() {
           const empWorkload = emp.workload ?? 0;
           const empWorkloadIcon = emp.workloadIcon ?? "—";
           
+          // Используем quantityDisplay если есть, иначе формируем из quantityRepack/quantitySticker
+          const qtyDisplay = emp.quantityDisplay || `${emp.quantityRepack || 0} / ${emp.quantitySticker || 0}`;
           tr.innerHTML = `
             <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
-            <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${qtyDisplay}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
             <td style="padding:6px; border:1px solid #ccc;">${empWorkload}% ${empWorkloadIcon}</td>
             <td style="padding:6px; border:1px solid #ccc;">${normsMet}/${normsTotal} (${normsPercent}%) ${normIcon}</td>
@@ -673,9 +699,11 @@ async function loadShiftStats() {
           const empWorkload = emp.workload ?? 0;
           const empWorkloadIcon = emp.workloadIcon ?? "—";
           
+          // Используем quantityDisplay если есть, иначе формируем из quantityRepack/quantitySticker
+          const qtyDisplay = emp.quantityDisplay || `${emp.quantityRepack || 0} / ${emp.quantitySticker || 0}`;
           tr.innerHTML = `
             <td style="padding:6px; border:1px solid #ccc;">${emp.name}</td>
-            <td style="padding:6px; border:1px solid #ccc;">${emp.quantity}</td>
+            <td style="padding:6px; border:1px solid #ccc;">${qtyDisplay}</td>
             <td style="padding:6px; border:1px solid #ccc;">${emp.efficiency}%</td>
             <td style="padding:6px; border:1px solid #ccc;">${empWorkload}% ${empWorkloadIcon}</td>
             <td style="padding:6px; border:1px solid #ccc;">${normsMet}/${normsTotal} (${normsPercent}%) ${normIcon}</td>
@@ -683,6 +711,26 @@ async function loadShiftStats() {
           tbody.appendChild(tr);
         });
       }
+      
+      // 📊 ИТОГОВАЯ СТРОКА ПО СМЕНЕ
+      const total = shiftBlock.total || {};
+      const totalRepack = total.totalQtyRepack || 0;
+      const totalSticker = total.totalQtySticker || 0;
+      const totalDisplay = total.totalQtyDisplay || `${totalRepack} / ${totalSticker}`;
+      const totalWorkload = total.workload ?? 0;
+      const totalWorkloadIcon = total.workloadIcon ?? "—";
+      
+      const totalRow = document.createElement("tr");
+      totalRow.style.background = "#e5e7eb";
+      totalRow.style.fontWeight = "bold";
+      totalRow.innerHTML = `
+        <td style="padding:6px; border:1px solid #ccc;">📊 ИТОГО за смену</td>
+        <td style="padding:6px; border:1px solid #ccc;">${totalDisplay}</td>
+        <td style="padding:6px; border:1px solid #ccc;">${total.overall || 0}%</td>
+        <td style="padding:6px; border:1px solid #ccc;">${totalWorkload}% ${totalWorkloadIcon}</td>
+        <td style="padding:6px; border:1px solid #ccc;">${total.totalOpsMet || 0}/${total.totalOps || 0}</td>
+      `;
+      tbody.appendChild(totalRow);
 
       table.appendChild(tbody);
       container.appendChild(table);
@@ -693,6 +741,7 @@ async function loadShiftStats() {
     }
 
   } catch (err) {
+    hideReportLoadingModal();
     container.innerHTML = `<p style='color:red;'>Ошибка: ${err.message}</p>`;
   }
 }
