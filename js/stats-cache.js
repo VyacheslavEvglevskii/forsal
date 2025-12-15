@@ -264,15 +264,15 @@ function regenerateStatsFromCache(cachedData, container, totalElem) {
     const isOutsourcing = currentStatus === "Аутсорсинг";
     
     // Функция создания карточек смены с учетом текущих настроек
-    // ⏱️ Константа для расчёта загрузки (10 часов = 600 минут)
-    const SHIFT_NORM_MINUTES_CACHE = 600;
+    // ⏱️ Константа для расчёта загрузки (10.5 часов = 630 минут) — СИНХРОНИЗИРОВАНО С СЕРВЕРОМ
+    const SHIFT_NORM_MINUTES_CACHE = 630;
     
     const createShiftCardsFromCache = (records, shiftName, shiftIcon) => {
       if (!records.length) return "";
       
       let shiftWage = 0;
-      let shiftEfficiency = 0;
-      let shiftEfficiencyCount = 0;
+      let effWeightedSum = 0;   // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(efficiency × duration)
+      let effDurationSum = 0;   // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(duration)
       let shiftRepackaged = 0;
       let shiftStickered = 0;
       let shiftWorkMinutes = 0; // ⏱️ Общее время работы
@@ -296,9 +296,13 @@ function regenerateStatsFromCache(cachedData, container, totalElem) {
           shiftRepackaged += quantity;
         }
 
+        // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: ВСЕ операции участвуют (без норматива = 0%)
         const efficiency = rec.efficiency !== null && rec.efficiency !== undefined ? rec.efficiency : 0;
-        shiftEfficiency += efficiency;
-        shiftEfficiencyCount++;
+        const durationMin = rec.durationMin || 0;
+        if (durationMin > 0) {
+          effWeightedSum += efficiency * durationMin;
+          effDurationSum += durationMin;
+        }
 
         const recordIndex = (rec.rowIndex ?? rec.index ?? rec.row ?? rec.row_number ?? rec.rowNum);
         // Используем дату записи для проверки возможности редактирования
@@ -341,8 +345,8 @@ function regenerateStatsFromCache(cachedData, container, totalElem) {
         `;
       });
       
-      // Итоги по смене
-      const avgEfficiency = shiftEfficiencyCount ? Math.round(shiftEfficiency / shiftEfficiencyCount) : "-";
+      // Итоги по смене (ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ)
+      const avgEfficiency = effDurationSum > 0 ? Math.round(effWeightedSum / effDurationSum) : "-";
       
       // ⏱️ Расчёт загрузки смены
       const workload = Math.round((shiftWorkMinutes / SHIFT_NORM_MINUTES_CACHE) * 100);
@@ -781,15 +785,15 @@ async function loadStats() {
     const isOutsourcing = currentStatus === "Аутсорсинг";
     let cardsHTML = "";
 
-    // ⏱️ Константа для расчёта загрузки (10 часов = 600 минут)
-    const SHIFT_NORM_MINUTES = 600;
+    // ⏱️ Константа для расчёта загрузки (10.5 часов = 630 минут) — СИНХРОНИЗИРОВАНО С СЕРВЕРОМ
+    const SHIFT_NORM_MINUTES = 630;
     
     function createShiftCards(records, shiftName, shiftIcon) {
       if (!records.length) return "";
       
       let shiftWage = 0;
-      let shiftEfficiency = 0;
-      let shiftEfficiencyCount = 0;
+      let effWeightedSum = 0;   // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(efficiency × duration)
+      let effDurationSum = 0;   // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(duration)
       let shiftRepackaged = 0;
       let shiftStickered = 0;
       let shiftWorkMinutes = 0; // ⏱️ Общее время работы
@@ -814,10 +818,13 @@ async function loadStats() {
           shiftRepackaged += quantity;
         }
 
-        // Считаем эффективность
+        // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: ВСЕ операции участвуют (без норматива = 0%)
         const efficiency = rec.efficiency !== null && rec.efficiency !== undefined ? rec.efficiency : 0;
-        shiftEfficiency += efficiency;
-        shiftEfficiencyCount++;
+        const durationMin = rec.durationMin || 0;
+        if (durationMin > 0) {
+          effWeightedSum += efficiency * durationMin;
+          effDurationSum += durationMin;
+        }
 
         // Определяем индекс строки записи, учитывая возможные имена поля из сервера
         const recordIndex = (rec.rowIndex ?? rec.index ?? rec.row ?? rec.row_number ?? rec.rowNum);
@@ -860,8 +867,8 @@ async function loadStats() {
         `;
       });
       
-      // Итоги по смене
-      const avgEfficiency = shiftEfficiencyCount ? Math.round(shiftEfficiency / shiftEfficiencyCount) : "-";
+      // Итоги по смене (ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ)
+      const avgEfficiency = effDurationSum > 0 ? Math.round(effWeightedSum / effDurationSum) : "-";
       
       // ⏱️ Расчёт загрузки смены
       const workload = Math.round((shiftWorkMinutes / SHIFT_NORM_MINUTES) * 100);

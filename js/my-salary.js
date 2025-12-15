@@ -72,7 +72,8 @@ async function loadMySalary() {
           qty: 0, 
           wage: 0,
           mentorBonus: 0,
-          effs: [],
+          effWeightedSum: 0,   // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(efficiency × duration)
+          effDurationSum: 0,   // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(duration)
           repackaged: 0,
           stickered: 0,
           operations: []
@@ -83,8 +84,12 @@ async function loadMySalary() {
       grouped[key].wage += r.wage || 0;
       grouped[key].mentorBonus += r.mentorBonus || 0;
     
-      if (r.efficiency !== undefined && r.efficiency !== null) {
-        grouped[key].effs.push(r.efficiency);
+      // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: учитываем длительность операции
+      const duration = r.durationMin || 0;
+      const efficiency = r.efficiency !== undefined && r.efficiency !== null ? r.efficiency : 0;
+      if (duration > 0) {
+        grouped[key].effWeightedSum += efficiency * duration;
+        grouped[key].effDurationSum += duration;
       }
 
       // Разделяем по типам операций
@@ -135,8 +140,9 @@ async function loadMySalary() {
     });
 
     sortedEntries.forEach(([key, stats]) => {
-      const avgEff = stats.effs.length
-        ? Math.round(stats.effs.reduce((a, b) => a + b, 0) / stats.effs.length)
+      // ВЗВЕШЕННАЯ ЭФФЕКТИВНОСТЬ: сумма(eff × dur) / сумма(dur)
+      const avgEff = stats.effDurationSum > 0
+        ? Math.round(stats.effWeightedSum / stats.effDurationSum)
         : "-";
       
       // Рассчитываем основную зарплату (общая - бонус наставника)

@@ -1,6 +1,6 @@
 // Глобальные переменные и базовая инициализация приложения
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbxnmdpdSWOtNkEEgagOgSJib9-tUk96bnI-SM8AtVZIksrdGLgfYvxGhCQjhFdYHuI/exec";
+const scriptURL = "https://script.google.com/macros/s/AKfycbzGsFgqGRWzetxFApostUYVl9BcM0YP7Crq0qIQ9fU6NKcu7MVwEHNuGyRh6uyWIqg/exec";
 
 let todayRecords = [];
 let currentUser = "";
