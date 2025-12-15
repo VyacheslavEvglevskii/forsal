@@ -23,7 +23,19 @@ async function runCustomReport() {
     const text = await res.text();
     
     hideReportLoadingModal();
-    alert(text || "✅ Отчёт успешно сформирован");
+    
+    // Пробуем распарсить как JSON
+    try {
+      const json = JSON.parse(text);
+      if (json.error) {
+        alert("❌ " + json.error);
+      } else {
+        alert(json.message || "✅ Отчёт успешно сформирован");
+      }
+    } catch (parseErr) {
+      // Если не JSON — показываем как есть
+      alert(text || "✅ Отчёт успешно сформирован");
+    }
   } catch (err) {
     hideReportLoadingModal();
     alert("❌ Ошибка при формировании отчёта: " + err.message);
