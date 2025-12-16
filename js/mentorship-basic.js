@@ -22,11 +22,9 @@ function showTraineeManagement() {
 function hideTraineeManagement() {
   document.getElementById("traineeManagementContainer").style.display = "none";
   
-  // Возвращаемся к админ-панели
-  if (currentUser && currentUserRole === "super_admin") {
+  // Возвращаемся к админ-панели в зависимости от роли
+  if (currentUser && (currentUserRole === "master" || currentUserRole === "admin")) {
     switchTab("admin");
-  } else if (currentUser && currentUserRole === "shift_leader") {
-    switchTab("shiftLeader");
   } else {
     switchTab("profile");
   }
@@ -37,16 +35,33 @@ async function loadMentorshipPairs() {
   const btn = document.getElementById("refreshPairsBtn");
   const container = document.getElementById("mentorshipPairsList");
   
+  if (!container) {
+    console.error("❌ Контейнер mentorshipPairsList не найден");
+    return;
+  }
+  
   try {
-    btn.disabled = true;
-    btn.textContent = "⏳ Загрузка...";
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "⏳ Загрузка...";
+    }
     
     // Получаем данные из справочника пользователей
     const response = await fetch(`${scriptURL}?type=employees`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
+    if (data.error) {
+      container.innerHTML = `<p style="color: #dc2626;">❌ Ошибка сервера: ${data.error}</p>`;
+      return;
+    }
+    
     if (!data.employeesData) {
-      container.innerHTML = '<p style="color: #dc2626;">❌ Ошибка загрузки данных</p>';
+      container.innerHTML = '<p style="color: #dc2626;">❌ Нет данных о сотрудниках. Проверьте справочник пользователей.</p>';
       return;
     }
     
@@ -116,40 +131,95 @@ async function loadMentorshipPairs() {
 
 // Загрузка данных для создания связи
 async function loadMentorsAndTrainees() {
+  const mentorSelect = document.getElementById('mentorSelect');
+  const traineeSelect = document.getElementById('traineeSelect');
+  
+  // Показываем индикаторы загрузки
+  if (mentorSelect) mentorSelect.innerHTML = '<option value="">⏳ Загрузка наставников...</option>';
+  if (traineeSelect) traineeSelect.innerHTML = '<option value="">⏳ Загрузка стажеров...</option>';
+  
   try {
-    // Загружаем наставников
-    const mentorsResponse = await fetch(`${scriptURL}?type=getMentors`);
-    const mentorsData = await mentorsResponse.json();
-    const mentors = mentorsData.mentors || [];
+    // Загружаем наставников и стажеров параллельно
+    const [mentorsResponse, traineesResponse] = await Promise.all([
+      fetch(`${scriptURL}?type=getMentors`),
+      fetch(`${scriptURL}?type=getTrainees`)
+    ]);
     
-    // Загружаем стажеров
-    const traineesResponse = await fetch(`${scriptURL}?type=getTrainees`);
+    // Проверяем HTTP статусы
+    if (!mentorsResponse.ok) {
+      throw new Error(`Ошибка загрузки наставников: HTTP ${mentorsResponse.status}`);
+    }
+    if (!traineesResponse.ok) {
+      throw new Error(`Ошибка загрузки стажеров: HTTP ${traineesResponse.status}`);
+    }
+    
+    const mentorsData = await mentorsResponse.json();
     const traineesData = await traineesResponse.json();
+    
+    // Проверяем на ошибки сервера
+    if (mentorsData.error) {
+      console.warn("⚠️ Ошибка сервера при загрузке наставников:", mentorsData.error);
+    }
+    if (traineesData.error) {
+      console.warn("⚠️ Ошибка сервера при загрузке стажеров:", traineesData.error);
+    }
+    
+    const mentors = mentorsData.mentors || [];
     const trainees = traineesData.trainees || [];
     
     // Обновляем селекты
-    updateSelect('mentorSelect', mentors, '-- Выберите наставника --');
-    updateSelect('traineeSelect', trainees, '-- Выберите стажера --');
+    updateSelect('mentorSelect', mentors, mentors.length > 0 ? '-- Выберите наставника --' : '-- Нет доступных наставников --');
+    updateSelect('traineeSelect', trainees, trainees.length > 0 ? '-- Выберите стажера --' : '-- Нет доступных стажеров --');
+    
+    console.log(`✅ Загружено: ${mentors.length} наставников, ${trainees.length} стажеров`);
     
   } catch (error) {
-    console.error("Ошибка загрузки данных:", error);
-    alert("Ошибка загрузки данных");
+    console.error("❌ Ошибка загрузки данных:", error);
+    
+    // Показываем ошибку в селектах
+    if (mentorSelect) mentorSelect.innerHTML = '<option value="">❌ Ошибка загрузки</option>';
+    if (traineeSelect) traineeSelect.innerHTML = '<option value="">❌ Ошибка загрузки</option>';
+    
+    // Определяем тип ошибки для пользователя
+    let userMessage = "Ошибка загрузки данных";
+    if (error.message.includes("Failed to fetch") || error.message.includes("fetch")) {
+      userMessage = "Нет связи с сервером. Проверьте интернет-подключение.";
+    } else if (error.message.includes("HTTP")) {
+      userMessage = error.message;
+    }
+    
+    if (typeof showNotification === "function") {
+      showNotification(`❌ ${userMessage}`, "error");
+    } else {
+      alert(`❌ ${userMessage}`);
+    }
   }
 }
 
 // ПРОСТАЯ ФУНКЦИЯ СОЗДАНИЯ СВЯЗИ
 async function createMentorshipPair() {
-  const mentor = document.getElementById("mentorSelect").value;
-  const trainee = document.getElementById("traineeSelect").value;
+  const mentorSelect = document.getElementById("mentorSelect");
+  const traineeSelect = document.getElementById("traineeSelect");
+  const createBtn = document.getElementById("createPairBtn");
   
+  const mentor = mentorSelect?.value;
+  const trainee = traineeSelect?.value;
+  
+  // Валидация
   if (!mentor || !trainee) {
-    alert("Выберите наставника и стажера");
+    showMentorshipNotification("⚠️ Выберите наставника и стажера", "warning");
     return;
   }
   
   if (mentor === trainee) {
-    alert("Наставник и стажер не могут быть одним человеком");
+    showMentorshipNotification("⚠️ Наставник и стажер не могут быть одним человеком", "warning");
     return;
+  }
+  
+  // Блокируем кнопку
+  if (createBtn) {
+    createBtn.disabled = true;
+    createBtn.textContent = "⏳ Создание связи...";
   }
   
   try {
@@ -164,10 +234,18 @@ async function createMentorshipPair() {
       body: formData
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
     if (data.success) {
-      alert(`✅ Связь создана: ${mentor} ↔ ${trainee}\n💰 Наставник будет получать 1750₽ за смену`);
+      showMentorshipNotification(`✅ Связь создана: ${mentor} → ${trainee}\n💰 Бонус наставника: 1750₽ за смену`, "success");
+      
+      // Сбрасываем селекты
+      if (mentorSelect) mentorSelect.value = "";
+      if (traineeSelect) traineeSelect.value = "";
       
       // Обновляем список связей и выпадающие списки
       await loadMentorshipPairs();
@@ -177,12 +255,35 @@ async function createMentorshipPair() {
       await updateAffectedProfiles(mentor, trainee);
       
     } else {
-      alert(`❌ Ошибка: ${data.message}`);
+      showMentorshipNotification(`❌ Ошибка: ${data.message || "Неизвестная ошибка"}`, "error");
     }
     
   } catch (error) {
-    console.error("Ошибка:", error);
-    alert("Ошибка сети");
+    console.error("❌ Ошибка создания связи:", error);
+    
+    let userMessage = "Ошибка сети";
+    if (error.message.includes("Failed to fetch")) {
+      userMessage = "Нет связи с сервером. Проверьте интернет-подключение.";
+    } else if (error.message.includes("HTTP")) {
+      userMessage = error.message;
+    }
+    
+    showMentorshipNotification(`❌ ${userMessage}`, "error");
+  } finally {
+    // Разблокируем кнопку
+    if (createBtn) {
+      createBtn.disabled = false;
+      createBtn.textContent = "✅ Создать связь";
+    }
+  }
+}
+
+// Вспомогательная функция для уведомлений
+function showMentorshipNotification(message, type = "info") {
+  if (typeof showNotification === "function") {
+    showNotification(message, type);
+  } else {
+    alert(message);
   }
 }
 
@@ -229,9 +330,16 @@ async function updateAffectedProfiles(mentor, trainee) {
 
 // Удаление связи наставник ↔ стажер
 async function deleteMentorshipPair(mentor, trainee) {
-  if (!confirm(`❓ Удалить связь между ${mentor} и ${trainee}?`)) {
+  if (!confirm(`❓ Удалить связь между ${mentor} и ${trainee}?\n\nНаставник перестанет получать бонус за этого стажера.`)) {
     return;
   }
+  
+  // Находим и блокируем кнопку удаления
+  const deleteButtons = document.querySelectorAll(`button[onclick*="deleteMentorshipPair"]`);
+  deleteButtons.forEach(btn => {
+    btn.disabled = true;
+    btn.textContent = "⏳";
+  });
   
   try {
     const formData = new FormData();
@@ -244,10 +352,14 @@ async function deleteMentorshipPair(mentor, trainee) {
       body: formData
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
     if (data.success) {
-      alert(`✅ Связь удалена: ${mentor} ↔ ${trainee}`);
+      showMentorshipNotification(`✅ Связь удалена: ${mentor} → ${trainee}`, "success");
       
       // Обновляем список связей и выпадающие списки
       await loadMentorshipPairs();
@@ -257,12 +369,32 @@ async function deleteMentorshipPair(mentor, trainee) {
       await updateAffectedProfiles(mentor, trainee);
       
     } else {
-      alert(`❌ Ошибка удаления: ${data.message}`);
+      showMentorshipNotification(`❌ Ошибка удаления: ${data.message || "Неизвестная ошибка"}`, "error");
+      
+      // Разблокируем кнопки при ошибке
+      deleteButtons.forEach(btn => {
+        btn.disabled = false;
+        btn.textContent = "🗑️ Удалить";
+      });
     }
     
   } catch (error) {
-    console.error("Ошибка удаления связи:", error);
-    alert("❌ Ошибка сети при удалении связи");
+    console.error("❌ Ошибка удаления связи:", error);
+    
+    let userMessage = "Ошибка сети при удалении связи";
+    if (error.message.includes("Failed to fetch")) {
+      userMessage = "Нет связи с сервером. Проверьте интернет-подключение.";
+    } else if (error.message.includes("HTTP")) {
+      userMessage = error.message;
+    }
+    
+    showMentorshipNotification(`❌ ${userMessage}`, "error");
+    
+    // Разблокируем кнопки при ошибке
+    deleteButtons.forEach(btn => {
+      btn.disabled = false;
+      btn.textContent = "🗑️ Удалить";
+    });
   }
 }
 

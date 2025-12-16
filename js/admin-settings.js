@@ -20,6 +20,81 @@ let settingsSyncInterval = null;
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 
+/**
+ * 🔧 Проверка доступности сервера
+ */
+async function testServerConnection() {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 сек таймаут
+    
+    const response = await fetch(`${scriptURL}?type=getAdminSettings`, {
+      method: 'GET',
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      return { ok: false, error: `HTTP ${response.status}` };
+    }
+    
+    const text = await response.text();
+    try {
+      JSON.parse(text);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Некорректный ответ сервера' };
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return { ok: false, error: 'Таймаут соединения (10 сек)' };
+    }
+    return { ok: false, error: error.message };
+  }
+}
+
+window.testServerConnection = testServerConnection;
+
+/**
+ * 🔧 Тестирование и отображение статуса соединения с сервером
+ */
+async function testAndShowServerStatus() {
+  const btn = document.getElementById("testConnectionBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "⏳ Проверка...";
+  }
+  
+  try {
+    const result = await testServerConnection();
+    
+    if (result.ok) {
+      showAdminNotification("✅ Соединение с сервером работает!", "success");
+      console.log("✅ Тест соединения успешен");
+    } else {
+      showAdminNotification(`❌ Ошибка соединения: ${result.error}`, "error");
+      console.error("❌ Тест соединения провален:", result.error);
+      
+      // Дополнительная диагностика
+      console.log("🔍 Диагностика:");
+      console.log("   - URL сервера:", scriptURL);
+      console.log("   - Онлайн статус:", navigator.onLine ? "Да" : "Нет");
+    }
+  } catch (error) {
+    showAdminNotification(`❌ Ошибка теста: ${error.message}`, "error");
+    console.error("❌ Исключение при тесте:", error);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "🔌 Тест соединения";
+    }
+  }
+}
+
+window.testAndShowServerStatus = testAndShowServerStatus;
+
 function getAdminSetting(key, defaultValue = false) {
   return currentAdminSettings[key] !== undefined
     ? currentAdminSettings[key]
@@ -286,51 +361,84 @@ async function saveAllAdminSettings() {
     saveBtn.textContent = "💾 Сохранение...";
     saveBtn.disabled = true;
 
-    const entries = Object.entries(currentAdminSettings);
-    // Сервер может возвращать как JSON, так и простой текст/HTML (при редиректах),
-    // поэтому парсим ответ максимально безопасно, не роняя сохранение.
-    const promises = entries.map(async ([key, value]) => {
-      const resp = await fetch(
-        `${scriptURL}?type=updateAdminSetting&key=${key}&value=${value}`
-      );
-
-      // Если HTTP‑ошибка — сразу падаем
-      if (!resp.ok) {
-        return { status: "error", message: `HTTP ${resp.status}` };
+    // 🔧 ИСПРАВЛЕНО: Отправляем все настройки одним запросом через POST
+    const settingsToSave = JSON.stringify(currentAdminSettings);
+    
+    // Пробуем POST запрос (более надёжный для Google Apps Script)
+    let response;
+    let data;
+    
+    try {
+      // Способ 1: POST с FormData
+      const formData = new FormData();
+      formData.append('type', 'updateAdminSettings');
+      formData.append('settings', settingsToSave);
+      
+      response = await fetch(scriptURL, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
+      
+      const text = await response.text();
+      data = text ? JSON.parse(text) : { status: 'ok' };
+      
+    } catch (postError) {
+      console.warn("POST не сработал, пробуем GET:", postError.message);
+      
+      // Способ 2: Fallback на GET запросы по одному
+      const entries = Object.entries(currentAdminSettings);
+      const promises = entries.map(async ([key, value]) => {
+        try {
+          const resp = await fetch(
+            `${scriptURL}?type=updateAdminSetting&key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}`,
+            { 
+              method: 'GET',
+              mode: 'cors',
+              cache: 'no-cache'
+            }
+          );
 
-      const text = await resp.text();
-      if (!text) {
-        // Пустой ответ считаем успешным
-        return { status: "ok" };
-      }
+          if (!resp.ok) {
+            return { status: "error", message: `HTTP ${resp.status}` };
+          }
 
-      try {
-        const data = JSON.parse(text);
-        // Если сервер явно сообщает об ошибке — пробрасываем её выше
-        if (data && (data.status === "error" || data.error)) {
-          return {
-            status: "error",
-            message: data.message || data.error || "Неизвестная ошибка",
-          };
+          const text = await resp.text();
+          if (!text) return { status: "ok" };
+
+          try {
+            const parsed = JSON.parse(text);
+            if (parsed && (parsed.status === "error" || parsed.error)) {
+              return { status: "error", message: parsed.message || parsed.error };
+            }
+            return parsed || { status: "ok" };
+          } catch {
+            return { status: "ok" };
+          }
+        } catch (fetchErr) {
+          return { status: "error", message: fetchErr.message };
         }
-        return data || { status: "ok" };
-      } catch {
-        // Ответ не JSON (например, HTML после redirect) — логируем и считаем ОК
-        console.warn(
-          "Неожиданный формат ответа updateAdminSetting, считаем успешным:",
-          text
-        );
-        return { status: "ok" };
-      }
-    });
+      });
 
-    const results = await Promise.all(promises);
-    const errors = results.filter((r) => r && r.status === "error");
-    if (errors.length) {
-      throw new Error(
-        `Ошибки при сохранении: ${errors.map((e) => e.message).join(", ")}`
-      );
+      const results = await Promise.all(promises);
+      const errors = results.filter((r) => r && r.status === "error");
+      
+      if (errors.length === entries.length) {
+        // Все запросы упали - критическая ошибка
+        throw new Error("Сервер недоступен. Проверьте подключение к интернету.");
+      } else if (errors.length > 0) {
+        console.warn("Некоторые настройки не сохранились:", errors);
+      }
+      
+      data = { status: 'ok' };
+    }
+    
+    // Проверяем ответ
+    if (data && (data.status === "error" || data.error)) {
+      throw new Error(data.message || data.error || "Ошибка сервера");
     }
 
     hasUnsavedChanges = false;
@@ -356,10 +464,64 @@ async function saveAllAdminSettings() {
     broadcastSettingsUpdate();
   } catch (error) {
     console.error("Ошибка сохранения настроек:", error);
-    showAdminNotification(`❌ Ошибка сохранения: ${error.message}`, "error");
+    
+    // 🔧 Более понятные сообщения об ошибках
+    let userMessage = error.message;
+    
+    if (error.message.includes('Failed to fetch') || error.message.includes('fetch')) {
+      userMessage = 'Нет связи с сервером. Проверьте интернет-подключение.';
+      
+      // Проверяем соединение
+      testServerConnection().then(result => {
+        if (!result.ok) {
+          console.error("Тест соединения:", result.error);
+        }
+      });
+    } else if (error.message.includes('NetworkError')) {
+      userMessage = 'Сетевая ошибка. Попробуйте позже.';
+    } else if (error.message.includes('CORS')) {
+      userMessage = 'Ошибка доступа к серверу (CORS). Обратитесь к администратору.';
+    } else if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+      userMessage = 'Сервер не отвечает. Попробуйте позже.';
+    }
+    
+    showAdminNotification(`❌ Ошибка сохранения: ${userMessage}`, "error");
+    
+    // 🔧 Предлагаем сохранить локально как временное решение
+    if (confirm("Сервер недоступен. Сохранить настройки локально?\n\nНастройки будут работать только на этом устройстве до синхронизации с сервером.")) {
+      saveSettingsLocally();
+    }
   } finally {
     saveBtn.textContent = originalText;
     saveBtn.disabled = false;
+  }
+}
+
+/**
+ * 🔧 Локальное сохранение настроек (fallback при недоступности сервера)
+ */
+function saveSettingsLocally() {
+  try {
+    adminSettingsCache = { ...currentAdminSettings };
+    adminSettingsCacheTime = Date.now();
+    
+    localStorage.setItem(
+      "adminSettingsCache",
+      JSON.stringify({
+        settings: adminSettingsCache,
+        timestamp: adminSettingsCacheTime,
+        localOnly: true // Флаг что это локальные настройки
+      })
+    );
+    
+    hasUnsavedChanges = false;
+    updateSettingsButtons();
+    applyAdminSettingsToUI();
+    
+    showAdminNotification("💾 Настройки сохранены локально. Синхронизируйте с сервером позже.", "info");
+  } catch (e) {
+    console.error("Ошибка локального сохранения:", e);
+    showAdminNotification("❌ Не удалось сохранить локально", "error");
   }
 }
 

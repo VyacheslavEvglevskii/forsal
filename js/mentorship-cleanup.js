@@ -5,14 +5,21 @@ async function cleanupAllMentorshipPairs(execute = false) {
   const previewBtn = document.getElementById("previewCleanupBtn");
   const executeBtn = document.getElementById("executeCleanupBtn");
   
-  if (execute && !confirm("❓ Вы УВЕРЕНЫ, что хотите удалить ВСЕ связи наставничества?\n\nЭта операция необратима!")) {
+  if (!container) {
+    console.error("❌ Контейнер cleanupResults не найден");
+    return;
+  }
+  
+  if (execute && !confirm("❓ Вы УВЕРЕНЫ, что хотите удалить ВСЕ связи наставничества?\n\n⚠️ Эта операция необратима!\n\nВсе наставники перестанут получать бонусы.")) {
     return;
   }
   
   try {
     const btn = execute ? executeBtn : previewBtn;
-    btn.disabled = true;
-    btn.textContent = execute ? "⏳ Очистка..." : "⏳ Анализ...";
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = execute ? "⏳ Очистка..." : "⏳ Анализ...";
+    }
     
     container.style.display = "block";
     container.innerHTML = execute ? 
@@ -72,12 +79,22 @@ async function cleanupAllMentorshipPairs(execute = false) {
     }
     
   } catch (error) {
-    console.error("Ошибка очистки:", error);
-    container.innerHTML = '<p style="color: #dc2626;">❌ Ошибка сети при очистке связей</p>';
+    console.error("❌ Ошибка очистки:", error);
+    
+    let userMessage = "Ошибка сети при очистке связей";
+    if (error.message?.includes("Failed to fetch") || error.message?.includes("fetch")) {
+      userMessage = "Нет связи с сервером. Проверьте интернет-подключение.";
+    } else if (error.message?.includes("HTTP")) {
+      userMessage = error.message;
+    }
+    
+    container.innerHTML = `<p style="color: #dc2626;">❌ ${userMessage}</p>`;
   } finally {
     const btn = execute ? executeBtn : previewBtn;
-    btn.disabled = false;
-    btn.textContent = execute ? "🧹 Выполнить очистку" : "🔍 Предварительный просмотр";
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = execute ? "🧹 Выполнить очистку" : "🔍 Предварительный просмотр";
+    }
   }
 }
 
